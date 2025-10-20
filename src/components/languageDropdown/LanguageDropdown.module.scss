@@ -1,0 +1,72 @@
+@import "@/styles/colors";
+
+.dropdown {
+  position: relative;
+  display: inline-block;
+  font-family: "SF Georgian Rounded", sans-serif;
+  width: 104px;
+  height: 24px;
+}
+
+.button {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: none;
+  background-color: white;
+  cursor: pointer;
+  color: $darker;
+}
+
+.content {
+  display: flex;
+  align-items: center;
+  font-size: 12px;
+  margin: 0 auto;
+  padding: 4px 0;
+}
+
+.arrow {
+  width: 24px;
+  height: 24px;
+  margin-left: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.menu {
+  position: absolute;
+  width: 120px;
+  height: 56px;
+  top: 100%;
+  right: -13px;
+  border: 1px solid #edf0f5;
+  border-radius: 8px;
+  box-shadow: 0px 4px 14px -5px #c6cfdd80;
+  margin-top: 10px;
+  z-index: 100;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  background-color: #fff;
+}
+
+.menuItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 6px 10px;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  font-size: 12px;
+  background-color: #fff;
+  color: $darker;
+
+  &:hover {
+    background-color: $light;
+  }
+}

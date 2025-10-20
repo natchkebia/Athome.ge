@@ -1,0 +1,13 @@
+.container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 21px 24px;
+  border-bottom: 1px solid #ECF2F6;
+}
+
+.wrapper {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}

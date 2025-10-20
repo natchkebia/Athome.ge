@@ -1,0 +1,15 @@
+@import "@/styles/colors";
+
+.container {
+  width: 96px;
+  height: 40px;
+  color: $darker;
+  font-size: 12px;
+  font-weight: 510;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #fbfbfb;
+  border: 1px solid #ecf2f6;
+  border-radius: 10px;
+}
