@@ -4,16 +4,16 @@ import styles from "./DiscountCard.module.scss";
 import Image from "next/image";
 
 interface ProductCardProps {
-  discount: number;
+  discount?: number;
   image: string;
   title: string;
-  oldPrice: number;
-  newPrice: number;
+  oldPrice?: number;
+  newPrice?: number;
   isNew?: boolean;
 }
 
 export default function DiscountCard({
-  discount,
+  discount = 0,
   image,
   title,
   oldPrice,
@@ -40,17 +40,24 @@ export default function DiscountCard({
             <img src="/icons/Arrows.svg" alt="compare" />
           </button>
         </div>
+
         <div className={styles.imageWrapper}>
           <Image src={image} alt={title} width={172} height={172} />
         </div>
       </div>
+
       <h3 className={styles.title}>{title}</h3>
 
       <div className={styles.priceWrapper}>
         <div className={styles.priceBox}>
-          <span className={styles.newPrice}>{newPrice.toFixed(2)} ₾</span>
-          <span className={styles.oldPrice}>{oldPrice.toFixed(2)} ₾</span>
+          {newPrice !== undefined && (
+            <span className={styles.newPrice}>{newPrice.toFixed(2)} ₾</span>
+          )}
+          {oldPrice !== undefined && (
+            <span className={styles.oldPrice}>{oldPrice.toFixed(2)} ₾</span>
+          )}
         </div>
+
         <button className={styles.addBtn}>
           <img src="/icons/CartWhite.svg" alt="cart" />
           დამატება

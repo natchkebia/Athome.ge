@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useId } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation } from "swiper/modules";
 import "swiper/css";
@@ -10,11 +10,11 @@ import DiscountCard from "./DiscountCard";
 
 interface Product {
   id: number;
-  discount: number;
+  discount?: number;
   image: string;
   title: string;
-  oldPrice: number;
-  newPrice: number;
+  oldPrice?: number;
+  newPrice?: number;
   isNew?: boolean;
 }
 
@@ -24,10 +24,10 @@ interface DiscountSliderProps {
 
 export default function DiscountSlider({ products }: DiscountSliderProps) {
   const [progress, setProgress] = useState(10);
+  const sliderId = useId();
 
   return (
     <div className={styles.sliderWrapper}>
-      {/* ზედა ნაწილი */}
       <div className={styles.topBar}>
         <div className={styles.rangeContainer}>
           <div className={styles.rangeTrack}>
@@ -39,21 +39,19 @@ export default function DiscountSlider({ products }: DiscountSliderProps) {
         </div>
 
         <div className={styles.navigation}>
-          <div className="discount-prev">
+          <div className={`discount-prev-${sliderId}`}>
             <img src="./icons/DiscountArrow.svg" alt="Arrow Left" />
           </div>
-          <div className="discount-next">
+          <div className={`discount-next-${sliderId}`}>
             <img src="./icons/DiscountArrowLeft.svg" alt="Arrow Right" />
           </div>
         </div>
       </div>
-
-      {/* სლაიდერი */}
       <Swiper
         modules={[Navigation]}
         navigation={{
-          nextEl: ".discount-next",
-          prevEl: ".discount-prev",
+          nextEl: `.discount-next-${sliderId}`,
+          prevEl: `.discount-prev-${sliderId}`,
         }}
         slidesPerView={4}
         spaceBetween={24}
