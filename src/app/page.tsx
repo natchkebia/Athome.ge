@@ -8,6 +8,7 @@ import HeroSlider from "@/components/hero/HeroSlider";
 import Navbar from "@/components/navbar/Navbar";
 import Categories from "@/components/categorSection/Categori";
 import Discount from "@/components/discount/Discount";
+import Service from "@/components/service/Service";
 
 export default function Home() {
   return (
@@ -19,6 +20,8 @@ export default function Home() {
        < HeroSlider/>
        <Categories/>
        <Discount/>
+       <Service/>
+       
       </main>
       <footer className={styles.footer}></footer>
     </div>

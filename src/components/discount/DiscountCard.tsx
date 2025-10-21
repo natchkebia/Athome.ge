@@ -9,6 +9,7 @@ interface ProductCardProps {
   title: string;
   oldPrice: number;
   newPrice: number;
+  isNew?: boolean;
 }
 
 export default function DiscountCard({
@@ -17,13 +18,20 @@ export default function DiscountCard({
   title,
   oldPrice,
   newPrice,
+  isNew = false,
 }: ProductCardProps) {
   return (
     <div className={styles.card}>
       <div className={styles.cardWrapper}>
-        {discount > 0 && (
-          <div className={styles.discountBadge}>{discount}%</div>
+        {(discount > 0 || isNew) && (
+          <div className={styles.badges}>
+            {discount > 0 && (
+              <div className={styles.discountBadge}>-{discount}%</div>
+            )}
+            {isNew && <div className={styles.newBadge}>NEW</div>}
+          </div>
         )}
+
         <div className={styles.actions}>
           <button className={styles.iconBtn}>
             <img src="/icons/Heart.svg" alt="wishlist" />

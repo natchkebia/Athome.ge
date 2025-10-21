@@ -15,61 +15,15 @@ interface Product {
   title: string;
   oldPrice: number;
   newPrice: number;
+  isNew?: boolean;
 }
 
-const products: Product[] = [
-  {
-    id: 1,
-    discount: 50,
-    image: "/images/DiscountPc.png",
-    title: "INTEL® CORE™ I5 14400F / RTX 3070 8GB / 16GB",
-    oldPrice: 9500,
-    newPrice: 7500,
-  },
-  {
-    id: 2,
-    discount: 30,
-    image: "/images/DiscountMonitor.png",
-    title: "SAMSUNG ODYSSEY G5 27'' CURVED GAMING MONITOR",
-    oldPrice: 2000,
-    newPrice: 1000,
-  },
-  {
-    id: 3,
-    discount: 60,
-    image: "/images/DiscountChair.png",
-    title: "სავარძელი – 2E GAMING CHAIR HEBI (BLACK/GREEN)",
-    oldPrice: 500,
-    newPrice: 250,
-  },
-  {
-    id: 4,
-    discount: 20,
-    image: "/images/DiscountHeadphone.png",
-    title: "ყურსასმენი – HYPERX CLOUD ALPHA WIRELESS (BLACK-RED)",
-    oldPrice: 600,
-    newPrice: 300,
-  },
-  {
-    id: 5,
-    discount: 50,
-    image: "/images/DiscountMonitor.png",
-    title: "SAMSUNG ODYSSEY G5 27'' CURVED GAMING MONITOR",
-    oldPrice: 2000,
-    newPrice: 1000,
-  },
-  {
-    id: 6,
-    discount: 40,
-    image: "/images/DiscountChair.png",
-    title: "სავარძელი – 2E GAMING CHAIR HEBI (BLACK/GREEN)",
-    oldPrice: 500,
-    newPrice: 250,
-  },
-];
+interface DiscountSliderProps {
+  products: Product[];
+}
 
-export default function DiscountSlider() {
-  const [progress, setProgress] = useState(10); // საწყისი progress 10%
+export default function DiscountSlider({ products }: DiscountSliderProps) {
+  const [progress, setProgress] = useState(10);
 
   return (
     <div className={styles.sliderWrapper}>
@@ -111,7 +65,6 @@ export default function DiscountSlider() {
           const rawProgress =
             total > 0 ? (swiper.activeIndex / total) * 100 : 100;
 
-          // როცა პირველი სლაიდია — მაინც დავტოვოთ მინიმუმ 10%
           const progressValue =
             swiper.activeIndex === 0
               ? 10
@@ -138,6 +91,7 @@ export default function DiscountSlider() {
               title={item.title}
               oldPrice={item.oldPrice}
               newPrice={item.newPrice}
+              isNew={item.isNew}
             />
           </SwiperSlide>
         ))}
