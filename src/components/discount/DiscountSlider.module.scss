@@ -1,0 +1,64 @@
+.sliderWrapper {
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+  margin-bottom: 72px;
+  padding: 0 20px;
+  overflow: hidden;
+}
+
+.topBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  gap: 16px;
+}
+
+.rangeContainer {
+  flex: 1;
+}
+
+.rangeTrack {
+  width: 100%;
+  height: 2px;
+  background: #e4e8eb;
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+  top: -2px;
+}
+
+.rangeFill {
+  height: 100%;
+  background: linear-gradient(90deg, #10b5c0 0%, #0fa1ab 100%);
+  transition: width 0.4s ease;
+  width: 0%;
+}
+
+.navigation {
+  display: flex;
+  gap: 8px;
+
+  div {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #f9fafb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+}
+
+.swiper {
+  .swiper-slide {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+  }
+
+  overflow: visible;
+}

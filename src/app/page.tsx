@@ -7,6 +7,7 @@ import DiscountSlider from "@/components/discountSlider/DiscountSlider";
 import HeroSlider from "@/components/hero/HeroSlider";
 import Navbar from "@/components/navbar/Navbar";
 import Categories from "@/components/categorSection/Categori";
+import Discount from "@/components/discount/Discount";
 
 export default function Home() {
   return (
@@ -17,6 +18,7 @@ export default function Home() {
       <main className={styles.main}>
        < HeroSlider/>
        <Categories/>
+       <Discount/>
       </main>
       <footer className={styles.footer}></footer>
     </div>

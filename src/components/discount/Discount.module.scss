@@ -1,0 +1,40 @@
+.filtersWrapper {
+  width: 1282px;
+  height: 24px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin: 0 auto;
+}
+
+.left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  .discountText {
+    color: #3b3f42;
+    font-size: 16px;
+    font-weight: 590;
+  }
+}
+
+.right {
+  display: flex;
+  align-items: center;
+  gap: 19px;
+}
+
+.filterBtn {
+  background: transparent;
+  border: none;
+  font-size: 14px;
+  font-weight: 400;
+  color: #000000;
+  cursor: pointer;
+  transition: color 0.2s ease;
+
+  &.active {
+    color: #10b5c0;
+  }
+}
