@@ -1,0 +1,73 @@
+@import "@/styles/colors";
+.wishlistWrapper {
+  position: relative;
+  display: inline-block;
+  cursor: pointer;
+}
+
+.badge {
+  position: absolute;
+  top: -5px;
+  left: 15px;
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  background-color: $red-normal;
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 10px;
+  font-weight: bold;
+}
+
+.dropdownBox {
+  position: absolute;
+  top: 45px; 
+  right: 0;
+  width: 330px;
+  height: 330px;
+  background-color: #fff;
+  box-shadow: 0px 2px 8px 0px #204e511a;
+  border-radius: 14px;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  justify-content: space-between;
+}
+
+.dropdownText {
+  font-size: 14px;
+  font-weight: 590;
+  color: $darker;
+  margin-top: 24px;
+}
+
+.dropdownBox > div > span {
+  font-size: 12px;
+  font-weight: 400;
+  color: $darker;
+}
+.dropdownImage {
+  width: 140px;
+  height: 108px;
+  margin-bottom: 20px;
+}
+
+.dropdownButton {
+  width: 298px;
+  height: 40px;
+  background-color: #10b5c0;
+  border-radius: 8px;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 510;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  margin-bottom: 16px;
+}
+

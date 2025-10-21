@@ -6,7 +6,7 @@ import styles from "./SearchBar.module.scss";
 export default function SearchBar() {
   const fakeCategories = [
     "ტელეფონი",
-    "კომპიუტერი აქსესიარები",
+    "კომპიუტერი აქსესუარები",
     "პლანშეტი",
     "ტელევიზორი",
     "პრინტერი",
@@ -22,7 +22,7 @@ export default function SearchBar() {
     if (category === "კატეგორია") {
       console.log("ძებნა:", searchQuery);
     } else {
-      console.log("ძებნა:", searchQuery, "კატეგორიაში:", category);
+      console.log("ძებნა:", selectedCategory.length, "კატეგორიაში:", category);
     }
   };
 
@@ -47,7 +47,10 @@ export default function SearchBar() {
   };
 
   return (
-    <div className={styles.searchBar}>
+    <div
+      className={styles.searchBar}
+      // style={{ width: selectedCategory.length > 15 ? "724px" : "auto" }}
+    >
       <div className={styles.dropdown}>
         <button onClick={toggleDropdown}>
           {selectedCategory}
@@ -74,8 +77,9 @@ export default function SearchBar() {
         placeholder="რას ეძებ?"
         value={query}
         onChange={handleInputChange}
-        onKeyDown={handleKeyPress} 
+        onKeyDown={handleKeyPress}
       />
+
       <button className={styles.searchBtn} onClick={handleSearch}>
         ძებნა
       </button>
