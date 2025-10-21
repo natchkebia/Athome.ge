@@ -8,6 +8,8 @@ import Discount from "@/components/discount/Discount";
 import Service from "@/components/service/Service";
 import ComputersSection from "@/components/computersSectio/ComputersSectio";
 import MonitorsSection from "@/components/monitors/Monitors";
+import PeripherySection from "@/components/periphery/Periphery";
+import TablesAndChairs from "@/components/tablesAndChairs/TablesAndChairs";
 
 export default function Home() {
   return (
@@ -22,6 +24,8 @@ export default function Home() {
        <Service/>
        <ComputersSection/>
        <MonitorsSection/>
+       <PeripherySection/>
+       <TablesAndChairs/>
       </main>
       <footer className={styles.footer}></footer>
     </div>
