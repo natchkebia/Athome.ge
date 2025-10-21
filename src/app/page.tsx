@@ -5,12 +5,14 @@ import Header from "@/components/header/Header";
 import Slider from "@/components/slider/Slider";
 import DiscountSlider from "@/components/discountSlider/DiscountSlider";
 import HeroSlider from "@/components/hero/HeroSlider";
+import Navbar from "@/components/navbar/Navbar";
 
 export default function Home() {
   return (
     <div className={styles.page}>
       <TopBar />
       <Header />
+      <Navbar/>
       <main className={styles.main}>
        < HeroSlider/>
       </main>

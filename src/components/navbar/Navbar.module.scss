@@ -1,0 +1,32 @@
+@import "@/styles/colors";
+.navbar {
+  width: 100%;
+  background: #fff;
+}
+.navbar > div {
+  width: 1400px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 24px;
+  padding: 20px 0;
+  margin: 0 auto;
+}
+
+.menuList {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.menuItem {
+  font-family: "SF Georgian Rounded", sans-serif;
+  font-weight: 510;
+  font-size: 14px;
+  color: $darker;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
