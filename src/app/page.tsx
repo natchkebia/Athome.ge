@@ -10,6 +10,7 @@ import ComputersSection from "@/components/computersSectio/ComputersSectio";
 import MonitorsSection from "@/components/monitors/Monitors";
 import PeripherySection from "@/components/periphery/Periphery";
 import TablesAndChairs from "@/components/tablesAndChairs/TablesAndChairs";
+import BrandSlider from "@/components/brands/BrandSlider";
 
 export default function Home() {
   return (
@@ -26,6 +27,7 @@ export default function Home() {
        <MonitorsSection/>
        <PeripherySection/>
        <TablesAndChairs/>
+       <BrandSlider/>
       </main>
       <footer className={styles.footer}></footer>
     </div>

@@ -1,0 +1,47 @@
+.sliderWrapper {
+  width: 1440px;
+  margin: 0 auto;
+  position: relative;
+  text-align: center;
+  margin-bottom: 72px;
+}
+
+.title {
+  font-size: 16px;
+  font-weight: 590;
+  margin-bottom: 24px;
+  color: #3b3f42;
+}
+
+.slider {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  position: relative;
+}
+
+.navButton {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 32px;
+  height: 32px;
+  background: #fff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 20;
+  pointer-events: auto; 
+}
+
+.prev {
+  left: 10px;
+  top: 63%;
+}
+.next {
+  right: 15px;
+  top: 63%;
+}
