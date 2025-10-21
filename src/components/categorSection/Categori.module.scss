@@ -1,0 +1,27 @@
+.categoriesSection {
+  padding-top: 56px;
+  padding-bottom: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  > div {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+}
+
+.title {
+  font-size: 16px;
+  font-weight: 590;
+  text-align: center;
+}
+
+.grid {
+  max-width: 1440px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 24px;
+}
