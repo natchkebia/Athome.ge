@@ -1,8 +1,5 @@
 import styles from "./page.module.css";
-import TopBar from "@/components/TopBar/TopBar";
-import Header from "@/components/header/Header";
 import HeroSlider from "@/components/hero/HeroSlider";
-import Navbar from "@/components/navbar/Navbar";
 import Categories from "@/components/categorSection/Categori";
 import Discount from "@/components/discount/Discount";
 import Service from "@/components/service/Service";
@@ -15,21 +12,17 @@ import BrandSlider from "@/components/brands/BrandSlider";
 export default function Home() {
   return (
     <div className={styles.page}>
-      <TopBar />
-      <Header />
-      <Navbar/>
       <main className={styles.main}>
-       < HeroSlider/>
-       <Categories/>
-       <Discount/>
-       <Service/>
-       <ComputersSection/>
-       <MonitorsSection/>
-       <PeripherySection/>
-       <TablesAndChairs/>
-       <BrandSlider/>
+        <HeroSlider />
+        <Categories />
+        <Discount />
+        <Service />
+        <ComputersSection />
+        <MonitorsSection />
+        <PeripherySection />
+        <TablesAndChairs />
+        <BrandSlider />
       </main>
-      <footer className={styles.footer}></footer>
     </div>
   );
 }
