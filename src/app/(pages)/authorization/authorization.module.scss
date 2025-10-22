@@ -1,0 +1,247 @@
+.wrapper {
+  width: 1440px;
+  margin: 0 auto;
+  margin-top: 220px;
+  height: 800px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.authWrapper {
+  width: 920px;
+  height: 694px;
+  display: flex;
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  margin: 0 auto;
+}
+.leftSide {
+  width: 436px;
+  height: 670px;
+  background: #c9e2e3;
+  border-radius: 12px;
+  margin: auto 0 auto 12px;
+}
+.rightSide {
+  flex: 1;
+  padding: 40px 50px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 32px;
+  > h3 {
+    color: #3b3f42;
+    text-align: center;
+    font-size: 16px;
+    font-weight: 510;
+  }
+}
+.tabs {
+  width: 408px;
+  display: flex;
+  gap: 16px;
+  button {
+    border: 1px solid #ecf2f6;
+    background: transparent;
+    color: #3b3f42;
+    height: 48px;
+    width: 196px;
+    border-radius: 8px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    &.active {
+      border: 1px solid #10b5c0;
+      color: #10b5c0;
+    }
+  }
+}
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 408px;
+  input,
+  select {
+    border: 1px solid #ecf2f6;
+    border-radius: 8px;
+    padding-left: 16px;
+    height: 48px;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+    color: #3B3F42;
+  }
+
+  .row {
+    display: flex;
+    gap: 10px;
+    > input {
+      width: 196px;
+    }
+  }
+  .genderGroup {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    margin-top: 10px;
+    .radio {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      > p {
+        font-size: 14px;
+        color: #3b3f42;
+      }
+      input[type="radio"] {
+        position: absolute;
+        opacity: 0;
+        cursor: pointer;
+      }
+      .customRadio {
+        width: 16px;
+        height: 16px;
+        border: 1px solid #10b5c0;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+        background: transparent;
+        &::after {
+          content: "✔";
+          color: white;
+          font-size: 10px;
+          opacity: 0;
+          transform: scale(0.6);
+          transition: all 0.2s ease;
+        }
+      }
+      input[type="radio"]:checked + .customRadio {
+        background-color: #10b5c0;
+        border-color: #10b5c0;
+        &::after {
+          opacity: 1;
+          transform: scale(1);
+        }
+      }
+    }
+  }
+  .checkbox {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: #000000;
+    > input {
+      appearance: none;
+      -webkit-appearance: none;
+      width: 16px;
+      height: 16px;
+      border: 1px solid #10b5c0;
+      border-radius: 4px;
+      cursor: pointer;
+      position: relative;
+      transition: all 0.2s ease;
+      &:checked {
+        background-color: #10b5c0;
+        border-color: #10b5c0;
+      }
+      &:checked::after {
+        content: "✔";
+        position: absolute;
+        top: 2px;
+        left: 4px;
+        font-size: 10px;
+        font-weight: 400;
+        color: #fff;
+      }
+    }
+  }
+  .submit {
+    background: #10b5c0;
+    border: none;
+    color: white;
+    border-radius: 8px;
+    height: 48px;
+    font-size: 14px;
+    cursor: pointer;
+    &:hover {
+      background: #1fa3a1;
+    }
+  }
+  .selectLabel {
+    font-size: 14px;
+    font-weight: 400;
+    color: #3b3f42;
+  }
+  .link {
+    text-align: left;
+    color: #3b3f42;
+    font-size: 14px;
+    cursor: pointer;
+  }
+  .socials {
+    display: flex;
+    gap: 16px;
+    button {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      width: 196px;
+      height: 48px;
+      border: 1px solid #ecf2f6;
+      border-radius: 8px;
+      font-size: 12px;
+      cursor: pointer;
+      background-color: #fff;
+    }
+  }
+  .footerText {
+    font-size: 14px;
+    text-align: center;
+    color: #3b3f42;
+    margin-top: 40px;
+    span {
+      color: #0d6eb7;
+      cursor: pointer;
+    }
+  }
+  .password {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .passwordField {
+    position: relative;
+    width: 400px;
+    display: flex;
+    input {
+      width: 179px;
+    }
+    .secondPassword {
+      margin-left: 10px;
+    }
+    .eyeButton {
+      position: absolute;
+      top: 50%;
+      right: 12px;
+      transform: translateY(-50%);
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      padding: 0;
+
+      img {
+        width: 16px;
+        height: 16px;
+      }
+    }
+  }
+}
