@@ -22,9 +22,27 @@ body {
   width: 100%;
   z-index: 1000;
   background: #fff;
+  transition: all 0.3s ease;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
+.topbar-wrapper {
+  overflow: hidden;
+  transition: all 0.5s ease-in-out;
+  opacity: 1;
+  max-height: 80px; 
+}
+
+.topbar-wrapper.hidden {
+  opacity: 0;
+  max-height: 0;
+}
+
 .page-content {
-  margin-top: 200px; 
+  margin-top: 220px;
+  transition: margin-top 0.3s ease;
+}
+
+.fixed-header.scrolled + .page-content {
+  margin-top: 140px;
 }

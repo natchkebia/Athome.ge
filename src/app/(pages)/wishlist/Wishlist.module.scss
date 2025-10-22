@@ -1,0 +1,56 @@
+.basketPage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: #ffffff;
+}
+
+.title {
+  align-self: flex-start;
+  width: 1440px;
+  margin: 0 auto;
+  font-size: 16px;
+  font-weight: 510;
+  color: #3b3f42;
+  margin-top: 257px;
+}
+
+.contentBox {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  > div {
+    width: 289px;
+  }
+}
+.subtitle {
+  font-size: 16px;
+  font-weight: 700;
+  color: #3b3f42;
+  margin-bottom: 12px;
+}
+
+.text {
+  font-size: 14px;
+  font-weight: 400;
+  color: #5b6a6a;
+  margin-bottom: 56px;
+}
+
+.button {
+  margin-top: 58px;
+  margin-bottom: 120px;
+  width: 212px;
+  height: 48px;
+  border: none;
+  border-radius: 8px;
+  background-color: #10b5c0;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 510;
+  cursor: pointer;
+  &:hover {
+    background-color: #0e9fa9;
+  }
+}

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import BasketPage from "../Basket/Basket";
 import SearchBar from "../searchBar/SearchBar";
 import SignIn from "../signIn/SignIn";
@@ -8,7 +9,13 @@ export default function Header() {
   return (
     <div className={styles.container}>
       <div className="site-wrapper">
-        <img src="./icons/Logo.svg" alt="computer" />
+        <Link href="/">
+          <img
+            src="./icons/Logo.svg"
+            alt="Eduverse Logo"
+            className={styles.logo}
+          />
+        </Link>
         <SearchBar />
         <div className={styles.wrapper}>
           <SignIn />
