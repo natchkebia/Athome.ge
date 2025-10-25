@@ -19,6 +19,10 @@ export default function Header() {
         <SearchBar />
         <div className={styles.wrapper}>
           <SignIn />
+          <Link href="/profile">
+            <button className={styles.profileBtn}>პირადი</button>
+          </Link>
+
           <WishlistPage />
           <BasketPage />
         </div>
