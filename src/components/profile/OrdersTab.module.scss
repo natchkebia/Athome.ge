@@ -1,0 +1,153 @@
+.ordersSection {
+  width: 100%;
+  h4 {
+    font-size: 16px;
+    font-weight: 510;
+    margin-bottom: 16px;
+    color: rgba(59, 63, 66, 1);
+    margin-top: 0px;
+    margin-bottom: 24px;
+  }
+}
+
+.ordersTable {
+  width: 100%;
+  border-spacing: 0;
+  background: #fff;
+  border-radius: 20px;
+  overflow: hidden;
+  color: rgba(247, 249, 251, 1);
+  border: 1px solid rgba(236, 242, 246, 1);
+
+  th,
+  td {
+    padding: 14px 18px;
+    font-size: 14px;
+    text-align: left;
+    color: rgba(59, 63, 66, 1);
+    border-bottom: 1px solid rgba(236, 242, 246, 1);
+    border-right: 1px solid rgba(236, 242, 246, 1);
+    text-align: center;
+  }
+
+  thead {
+    background-color: rgba(247, 249, 251, 1);
+    font-weight: 590;
+
+    th {
+      color: rgba(59, 63, 66, 1);
+      font-weight: 590;
+      font-size: 14px;
+      padding: 21px 0;
+    }
+  }
+
+  tbody tr:hover {
+    background: #f9fafa;
+  }
+
+  td p {
+    font-weight: 510;
+    margin: 0;
+    font-size: 14px;
+    color: rgba(59, 63, 66, 1);
+  }
+  .Colord {
+    color: rgba(13, 110, 183, 1);
+  }
+  td span {
+    font-size: 12px;
+    color: rgba(13, 110, 183, 1);
+  }
+
+  td img {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    opacity: 0.8;
+    transition: 0.2s;
+    &:hover {
+      opacity: 1;
+    }
+  }
+}
+
+.status {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-weight: 510;
+
+  &::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+  }
+
+  &.done {
+    color: #36b37e;
+    &::before {
+      background: #36b37e;
+    }
+  }
+
+  &.pending {
+    color: #ff9800;
+    &::before {
+      background: #ff9800;
+    }
+  }
+
+  &.canceled {
+    color: #f44336;
+    &::before {
+      background: #f44336;
+    }
+  }
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  max-width: 320px;
+  height: 56px;
+  margin: 0 auto;
+  margin-top: 48px;
+  background-color: rgba(255, 255, 255, 1);
+  border-radius: 32px;
+  border: 1px solid rgba(236, 242, 246, 1);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 8px;
+
+  button {
+    background: rgba(236, 242, 246, 1);
+    border: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    cursor: pointer;
+    color: rgba(16, 181, 192, 1);
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  span {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: rgba(59, 63, 66, 1);
+  }
+
+  .active {
+    color: rgba(16, 181, 192, 1);
+  }
+}

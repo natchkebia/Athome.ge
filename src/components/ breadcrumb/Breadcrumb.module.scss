@@ -1,0 +1,27 @@
+.breadcrumb {
+  max-width: 1440px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  font-size: 12px;
+  color: rgba(59, 63, 66, 1);
+  font-family: "SF Georgian Rounded", sans-serif;
+  margin-top: 244px;
+  margin-bottom: 24px;
+}
+
+.crumb {
+  display: flex;
+  align-items: center;
+}
+
+.label {
+  cursor: default;
+}
+
+.link {
+  &:hover {
+    text-decoration: underline;
+    cursor: pointer;
+  }
+}
