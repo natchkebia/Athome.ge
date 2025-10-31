@@ -46,7 +46,11 @@ export default function InfoTab() {
 
       <div className={styles.profileWrapper}>
         <div>
-          <img src="./icons/profilePerson.svg" alt="person" />
+          {user.gender === "მდედრობითი" ? (
+            <img src="./icons/profileWoman.svg" alt="user" />
+          ) : (
+            <img src="./icons/profilePerson.svg" alt="person" />
+          )}
         </div>
         <span>პროფილის ფოტო</span>
       </div>
@@ -73,10 +77,7 @@ export default function InfoTab() {
         ) : (
           <>
             {renderInput("companyName", user.companyName)}
-            {renderInput(
-              "contactName",
-              `${user.firstName} ${user.lastName}`
-            )}
+            {renderInput("contactName", `${user.firstName} ${user.lastName}`)}
             {renderInput("companyEmail", user.companyEmail, "email")}
             {renderInput("companyPhone", user.phone, "tel")}
             {renderInput("companyId", user.personalId)}
@@ -90,9 +91,11 @@ export default function InfoTab() {
           {["old", "new", "repeat"].map((field, i) => (
             <div key={field} className={styles.passwordField}>
               <input
-                type={showPasswords[field as "old" | "new" | "repeat"]
-                  ? "text"
-                  : "password"}
+                type={
+                  showPasswords[field as "old" | "new" | "repeat"]
+                    ? "text"
+                    : "password"
+                }
                 placeholder={
                   i === 0
                     ? "ძველი პაროლი"

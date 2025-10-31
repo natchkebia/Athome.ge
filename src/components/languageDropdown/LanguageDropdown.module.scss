@@ -2,6 +2,7 @@
 
 .dropdown {
   position: relative;
+  z-index: 2000;
   display: inline-block;
   font-family: "SF Georgian Rounded", sans-serif;
   width: 104px;
@@ -46,7 +47,7 @@
   border-radius: 8px;
   box-shadow: 0px 4px 14px -5px #c6cfdd80;
   margin-top: 10px;
-  z-index: 100;
+  z-index: 6000;
   overflow: hidden;
   display: flex;
   align-items: center;

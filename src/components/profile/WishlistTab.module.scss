@@ -1,0 +1,61 @@
+.grid {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+.title {
+  font-size: 16px;
+  font-weight: 510;
+  margin-bottom: 16px;
+  color: rgba(59, 63, 66, 1);
+  margin: 0;
+  margin-bottom: 24px;
+}
+
+.titleWrapper {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+.removeBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background-color: #fff;
+  cursor: pointer;
+}
+
+.summary {
+  margin-top: 50px;
+  border-top: 1px solid rgba(227, 237, 243, 1);
+  display: flex;
+  justify-content: flex-end;
+}
+.orderBtn {
+  width: 298px;
+  background: rgba(16, 181, 192, 1);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 14px 32px;
+  font-weight: 510;
+  font-size: 14px;
+  cursor: pointer;
+  transition: 0.2s ease;
+  margin-top: 30px;
+
+  &:hover {
+    background: #22a5a3;
+  }
+}
+
+.profileVariant .grid {
+  width: 1091px;
+  margin: 0 auto;
+}
+
+.pageVariant .grid {
+  width: 1462px;
+  margin: 0 auto;
+}

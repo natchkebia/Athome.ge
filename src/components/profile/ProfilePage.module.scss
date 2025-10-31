@@ -8,7 +8,6 @@
   margin-bottom: 52px;
 }
 
-/* ----- Sidebar ----- */
 .sidebar {
   width: 330px;
   background: #fff;
@@ -80,7 +79,6 @@
   }
 }
 
-/* ----- Menu ----- */
 .menu {
   list-style: none;
   padding: 0;
@@ -132,7 +130,6 @@
   }
 }
 
-/* ----- Optional logout button ----- */
 .save {
   width: 298px;
   padding: 10px 24px;
@@ -142,4 +139,31 @@
   border-radius: 8px;
   font-weight: 600;
   cursor: pointer;
+}
+
+.avatar {
+  position: relative;
+  overflow: hidden;
+
+  .cameraOverlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    opacity: 0;
+    transition: 0.3s ease;
+
+    img {
+      width: 32px;
+      height: 32px;
+      cursor: pointer;
+    }
+  }
+
+  &:hover .cameraOverlay {
+    opacity: 1;
+  }
 }

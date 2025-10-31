@@ -1,8 +1,15 @@
-.basketPage {
+.wishlistPage {
   display: flex;
   flex-direction: column;
   align-items: center;
   background-color: #ffffff;
+  max-width: 1440px;
+  margin: 0 auto;
+  > div {
+    width: 100%;
+    margin-top: 32px;
+    margin-bottom: 32px;
+  }
 }
 
 .title {
@@ -12,7 +19,7 @@
   font-size: 16px;
   font-weight: 510;
   color: #3b3f42;
-  margin-top: 257px;
+  margin-top: 32px;
 }
 
 .contentBox {

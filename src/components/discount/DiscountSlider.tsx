@@ -16,13 +16,18 @@ interface Product {
   oldPrice?: number;
   newPrice?: number;
   isNew?: boolean;
+  isWishlisted?: boolean; 
 }
 
 interface DiscountSliderProps {
   products: Product[];
+  onToggleWishlist?: (id: number) => void; 
 }
 
-export default function DiscountSlider({ products }: DiscountSliderProps) {
+export default function DiscountSlider({
+  products,
+  onToggleWishlist,
+}: DiscountSliderProps) {
   const [progress, setProgress] = useState(10);
   const sliderId = useId();
 
@@ -47,6 +52,7 @@ export default function DiscountSlider({ products }: DiscountSliderProps) {
           </div>
         </div>
       </div>
+
       <Swiper
         modules={[Navigation]}
         navigation={{
@@ -84,12 +90,15 @@ export default function DiscountSlider({ products }: DiscountSliderProps) {
         {products.map((item) => (
           <SwiperSlide key={item.id}>
             <DiscountCard
+              id={String(item.id)} 
               discount={item.discount}
               image={item.image}
               title={item.title}
               oldPrice={item.oldPrice}
               newPrice={item.newPrice}
               isNew={item.isNew}
+              isWishlisted={item.isWishlisted}
+              onToggleWishlist={(id) => onToggleWishlist?.(Number(id))} // ✅
             />
           </SwiperSlide>
         ))}

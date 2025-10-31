@@ -3,22 +3,28 @@
 import styles from "./DiscountCard.module.scss";
 import Image from "next/image";
 
-interface ProductCardProps {
+export interface ProductCardProps {
+  id: string;
   discount?: number;
   image: string;
   title: string;
   oldPrice?: number;
   newPrice?: number;
   isNew?: boolean;
+  isWishlisted?: boolean;
+  onToggleWishlist?: (id: string) => void;
 }
 
 export default function DiscountCard({
+  id,
   discount = 0,
   image,
   title,
   oldPrice,
   newPrice,
   isNew = false,
+  isWishlisted = false,
+  onToggleWishlist,
 }: ProductCardProps) {
   return (
     <div className={styles.card}>
@@ -33,8 +39,18 @@ export default function DiscountCard({
         )}
 
         <div className={styles.actions}>
-          <button className={styles.iconBtn}>
-            <img src="/icons/Heart.svg" alt="wishlist" />
+          <button
+            className={styles.iconBtn}
+            onClick={() => onToggleWishlist?.(id)}
+          >
+            <img
+              src={
+                isWishlisted
+                  ? "/icons/redHeart.svg" 
+                  : "/icons/Heart.svg" 
+              }
+              alt="wishlist"
+            />
           </button>
           <button className={styles.iconBtn}>
             <img src="/icons/Arrows.svg" alt="compare" />
