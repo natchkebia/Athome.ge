@@ -52,15 +52,7 @@ export default function CommerceList({
           <div className={styles.item} key={item.id}>
             <img src={item.image} alt={item.title} className={styles.image} />
 
-            <div
-              style={{
-                display: "flex",
-                alignItems: "flex-end",
-                justifyContent: "space-between",
-                width: "208px",
-                padding: "5px 0px",
-              }}
-            >
+            <div className={styles.wrapper}>
               <div className={styles.info}>
                 <h5 className={styles.title}>{item.title}</h5>
                 <div className={styles.prices}>
