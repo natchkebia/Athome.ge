@@ -1,0 +1,149 @@
+.box {
+  background: #fff;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 298px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 0;
+  padding: 0;
+
+  > h4 {
+    color: rgba(59, 63, 66, 1);
+    font-size: 14px;
+    font-weight: 590;
+  }
+  > span {
+    color: rgba(59, 63, 66, 1);
+    font-size: 12px;
+    font-weight: 400;
+  }
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  background-color: rgba(246, 248, 251, 1);
+  border-radius: 10px;
+  text-align: left;
+  max-height: 80px;
+}
+
+.image {
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
+  border-radius: 8px;
+}
+
+.info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+}
+
+.title {
+  font-size: 12px;
+  font-weight: 510;
+  color: rgba(59, 63, 66, 1);
+  margin: 0;
+  padding: 0;
+}
+
+.prices {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+
+  .new {
+    color: rgba(59, 63, 66, 1);
+    font-weight: 590;
+    font-size: 12px;
+  }
+
+  .old {
+    color: rgba(170, 170, 170, 1);
+    text-decoration: line-through;
+    font-size: 12px;
+    font-weight: 400;
+  }
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+}
+
+.quantity {
+  display: flex;
+  align-items: center;
+  width: 70px;
+  height: 24px;
+  border-radius: 12px;
+  background-color: rgba(16, 181, 192, 1);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  button {
+    border: none;
+    background: none;
+    font-size: 16px;
+    cursor: pointer;
+    color: #fff;
+  }
+
+  span {
+    width: 24px;
+    text-align: center;
+  }
+}
+
+.wishlistBtn {
+  border: none;
+  background: none;
+  cursor: pointer;
+  margin-top: -30px;
+}
+
+.footer {
+  text-align: center;
+  border-top: 1px solid #eee;
+  padding-top: 12px;
+
+  .actionBtn {
+    width: 100%;
+    margin-bottom: 10px;
+    background: #10b5c0;
+    color: #fff;
+    border: none;
+    padding: 10px;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+
+  p {
+    color: rgba(59, 63, 66, 1);
+    font-size: 14px;
+    font-weight: 400;
+
+    b {
+      font-size: 14px;
+      font-weight: 700;
+    }
+  }
+}
