@@ -12,7 +12,6 @@ export default function BasketFullPage() {
     router.push("/products");
   };
   const [cartItems, setCartItems] = useState([
-    // ცარიელი დატოვე საცდელად []
     {
       id: 14736,
       title: "INTEL® CORE™ I5 14400F / RTX 3070 8GB / 16GB",
