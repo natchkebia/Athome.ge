@@ -33,7 +33,7 @@ export default function AuthForm() {
                 <>
                   <div className={styles.titleWrapper}>
                     <div className={styles.imageWrapper}>
-                      <img src="./icons/password.svg" alt="password" />
+                      <img src="/icons/password.svg" alt="password" />
                     </div>
                     <h3 className={styles.mainTittle}>პაროლის აღდგენა</h3>
                     <p className={styles.desc}>
@@ -49,7 +49,7 @@ export default function AuthForm() {
                       onClick={() => setMethod("email")}
                     >
                       <div>
-                        <img src="./icons/passwordMail.svg" alt="email" />
+                        <img src="/icons/passwordMail.svg" alt="email" />
                       </div>
                       ელ. ფოსტა
                     </div>
@@ -60,7 +60,7 @@ export default function AuthForm() {
                       onClick={() => setMethod("phone")}
                     >
                       <div>
-                        <img src="./icons/phone1.svg" alt="phone" />
+                        <img src="/icons/phone1.svg" alt="phone" />
                       </div>
                       მობილური
                     </div>
@@ -78,7 +78,7 @@ export default function AuthForm() {
                     className={styles.back}
                     onClick={() => setActiveTab("login")}
                   >
-                    <img src="./icons/passwordArrow.svg" alt="Arrow" /> უკან
+                    <img src="/icons/passwordArrow.svg" alt="Arrow" /> უკან
                     დაბრუნება
                   </div>
                   <div className={styles.progressWrapper}>
@@ -99,9 +99,9 @@ export default function AuthForm() {
                   <div className={styles.titleWrapper}>
                     <div className={styles.imageWrapper}>
                       {method === "email" ? (
-                        <img src="./icons/passwordMail.svg" alt="mail" />
+                        <img src="/icons/passwordMail.svg" alt="mail" />
                       ) : (
-                        <img src="./icons/phone1.svg" alt="phone" />
+                        <img src="/icons/phone1.svg" alt="phone" />
                       )}
                     </div>
                     <h3 className={styles.mainTittle}>პაროლის აღდგენა</h3>
@@ -148,9 +148,9 @@ export default function AuthForm() {
                   <div className={styles.titleWrapper}>
                     <div className={styles.imageWrapper}>
                       {method === "email" ? (
-                        <img src="./icons/passwordMail.svg" alt="mail" />
+                        <img src="/icons/passwordMail.svg" alt="mail" />
                       ) : (
-                        <img src="./icons/phone1.svg" alt="phone" />
+                        <img src="/icons/phone1.svg" alt="phone" />
                       )}
                     </div>
                     <h3 className={styles.mainTittle}>
@@ -206,7 +206,7 @@ export default function AuthForm() {
                 <>
                   <div className={styles.titleWrapper}>
                     <div className={styles.imageWrapper}>
-                      <img src="./icons/newPassword.svg" alt="password" />
+                      <img src="/icons/newPassword.svg" alt="password" />
                     </div>
                     <h3 className={styles.mainTittle}>დააყენე ახალი პაროლი</h3>
                     <p className={styles.desc}>
@@ -230,8 +230,8 @@ export default function AuthForm() {
                       <img
                         src={
                           showResetPassword
-                            ? "./icons/Eye.svg"
-                            : "./icons/Closed-eye.svg"
+                            ? "/icons/Eye.svg"
+                            : "/icons/Closed-eye.svg"
                         }
                         alt="toggle"
                       />
@@ -253,8 +253,8 @@ export default function AuthForm() {
                       <img
                         src={
                           showResetRepeat
-                            ? "./icons/Eye.svg"
-                            : "./icons/Closed-eye.svg"
+                            ? "/icons/Eye.svg"
+                            : "/icons/Closed-eye.svg"
                         }
                         alt="toggle"
                       />
@@ -288,7 +288,7 @@ export default function AuthForm() {
                 <>
                   <div className={styles.titleWrapper}>
                     <div className={styles.imageWrapper}>
-                      <img src="./icons/passwordCheck.svg" alt="success" />
+                      <img src="/icons/passwordCheck.svg" alt="success" />
                     </div>
                     <h3 className={styles.mainTittle}>
                       პაროლი წარმატებით შეიცვალა
@@ -313,7 +313,7 @@ export default function AuthForm() {
               {activeTab === "login" ? (
                 <div className={styles.titleWrapper}>
                   <div className={styles.imageWrapper}>
-                    <img src="./icons/authorization.svg" alt="person" />
+                    <img src="/icons/authorization.svg" alt="person" />
                   </div>
                   <h3 className={styles.mainTittle}>ავტორიზაცია</h3>
                 </div>
@@ -363,11 +363,11 @@ export default function AuthForm() {
 
                   <div className={styles.socials}>
                     <button className={styles.facebook}>
-                      <img src="./icons/facebook.svg" alt="facebook" />
+                      <img src="/icons/facebook.svg" alt="facebook" />
                       Facebook - ით შესვლა
                     </button>
                     <button className={styles.google}>
-                      <img src="./icons/google.svg" alt="google" />
+                      <img src="/icons/google.svg" alt="google" />
                       Google - ით შესვლა
                     </button>
                   </div>
@@ -453,8 +453,8 @@ export default function AuthForm() {
                             <img
                               src={
                                 showPassword
-                                  ? "./icons/Eye.svg"
-                                  : "./icons/Closed-eye.svg"
+                                  ? "/icons/Eye.svg"
+                                  : "/icons/Closed-eye.svg"
                               }
                               alt="toggle"
                             />
@@ -479,8 +479,8 @@ export default function AuthForm() {
                             <img
                               src={
                                 showRepeatPassword
-                                  ? "./icons/Eye.svg"
-                                  : "./icons/Closed-eye.svg"
+                                  ? "/icons/Eye.svg"
+                                  : "/icons/Closed-eye.svg"
                               }
                               alt="toggle"
                             />
@@ -539,8 +539,8 @@ export default function AuthForm() {
                             <img
                               src={
                                 showPassword
-                                  ? "./icons/Eye.svg"
-                                  : "./icons/Closed-eye.svg"
+                                  ? "/icons/Eye.svg"
+                                  : "/icons/Closed-eye.svg"
                               }
                               alt="toggle"
                             />
@@ -565,8 +565,8 @@ export default function AuthForm() {
                             <img
                               src={
                                 showRepeatPassword
-                                  ? "./icons/Eye.svg"
-                                  : "./icons/Closed-eye.svg"
+                                  ? "/icons/Eye.svg"
+                                  : "/icons/Closed-eye.svg"
                               }
                               alt="toggle"
                             />

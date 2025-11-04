@@ -1,4 +1,4 @@
-@import "@/styles/colors";
+@use "@/styles/colors" as *;
 .navbar {
   width: 100%;
   background: #fff;

@@ -84,9 +84,9 @@ export default function ProfilePage() {
                 {profileImage ? (
                   <img src={profileImage} alt="user" />
                 ) : user.gender === "მდედრობითი" ? (
-                  <img src="./icons/profileWoman.svg" alt="user" />
+                  <img src="/icons/profileWoman.svg" alt="user" />
                 ) : (
-                  <img src="./icons/profilePerson.svg" alt="user" />
+                  <img src="/icons/profilePerson.svg" alt="user" />
                 )}
                 <label className={styles.cameraOverlay}>
                   <img src="/icons/profileCamera.svg" alt="upload" />

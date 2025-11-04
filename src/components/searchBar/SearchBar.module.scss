@@ -1,5 +1,4 @@
-@import "@/styles/colors";
-
+@use "@/styles/colors" as *;
 .searchBar {
   display: flex;
   align-items: center;

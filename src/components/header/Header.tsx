@@ -11,7 +11,7 @@ export default function Header() {
       <div className="site-wrapper">
         <Link href="/">
           <img
-            src="./icons/Logo.svg"
+            src="/icons/Logo.svg"
             alt="Eduverse Logo"
             className={styles.logo}
           />

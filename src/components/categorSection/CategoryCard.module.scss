@@ -27,3 +27,19 @@
   font-weight: 500;
   color: #333;
 }
+
+.cardLink {
+  text-decoration: none;
+  color: inherit;
+}
+
+.card {
+  cursor: pointer;
+  border-radius: 16px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+  }
+}

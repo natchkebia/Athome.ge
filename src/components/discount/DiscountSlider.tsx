@@ -45,10 +45,10 @@ export default function DiscountSlider({
 
         <div className={styles.navigation}>
           <div className={`discount-prev-${sliderId}`}>
-            <img src="./icons/DiscountArrow.svg" alt="Arrow Left" />
+            <img src="/icons/DiscountArrow.svg" alt="Arrow Left" />
           </div>
           <div className={`discount-next-${sliderId}`}>
-            <img src="./icons/DiscountArrowLeft.svg" alt="Arrow Right" />
+            <img src="/icons/DiscountArrowLeft.svg" alt="Arrow Right" />
           </div>
         </div>
       </div>

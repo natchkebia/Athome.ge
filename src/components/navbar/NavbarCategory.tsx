@@ -96,7 +96,6 @@ export default function NavbarCategory() {
   const [showSubmenu, setShowSubmenu] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (

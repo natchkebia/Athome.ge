@@ -54,7 +54,7 @@ export default function SearchBar() {
       <div className={styles.dropdown}>
         <button onClick={toggleDropdown}>
           {selectedCategory}
-          <img src="./icons/Arrow-down.svg" alt="arrow-down" />
+          <img src="/icons/Arrow-down.svg" alt="arrow-down" />
         </button>
 
         {isDropdownOpen && (

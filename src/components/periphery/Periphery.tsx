@@ -64,7 +64,7 @@ export default function PeripherySection() {
 
   return (
     <ProductSection
-      icon="./icons/Mouse.svg"
+      icon="/icons/Mouse.svg"
       title="პერიფერია"
       products={products}
     />

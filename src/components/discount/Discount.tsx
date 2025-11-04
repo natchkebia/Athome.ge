@@ -95,7 +95,7 @@ export default function Discount() {
       {/* ზედა ფილტრები — ვიზუალი რჩება */}
       <div className={styles.filtersWrapper}>
         <div className={styles.left}>
-          <img src="./icons/Percentage.svg" alt="Percentage" />
+          <img src="/icons/Percentage.svg" alt="Percentage" />
           <span className={styles.discountText}>ფასდაკლება</span>
         </div>
         <div className={styles.right}>

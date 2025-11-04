@@ -86,10 +86,10 @@ export default function Slider() {
 
           <div className={styles.controls}>
             <button onClick={handlePrev} className={styles.arrow}>
-              <img src="./icons/Arrow-left.svg" alt="arrow-left" />
+              <img src="/icons/Arrow-left.svg" alt="arrow-left" />
             </button>
             <button onClick={handleNext} className={styles.arrow}>
-              <img src="./icons/Arrow-right.svg" alt="arrow-right" />
+              <img src="/icons/Arrow-right.svg" alt="arrow-right" />
             </button>
           </div>
         </div>

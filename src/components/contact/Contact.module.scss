@@ -1,5 +1,4 @@
-@import "@/styles/colors";
-
+@use "@/styles/colors" as *;
 .container {
   display: flex;
   align-items: center;

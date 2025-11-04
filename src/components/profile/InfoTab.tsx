@@ -32,7 +32,7 @@ export default function InfoTab() {
     <div className={styles.editableField}>
       <input type={type} defaultValue={value} readOnly={!editable[name]} />
       <img
-        src="./icons/profileChange.svg"
+        src="/icons/profileChange.svg"
         alt="edit"
         onClick={() => toggleEdit(name)}
         className={editable[name] ? styles.activeIcon : ""}
@@ -47,9 +47,9 @@ export default function InfoTab() {
       <div className={styles.profileWrapper}>
         <div>
           {user.gender === "მდედრობითი" ? (
-            <img src="./icons/profileWoman.svg" alt="user" />
+            <img src="/icons/profileWoman.svg" alt="user" />
           ) : (
-            <img src="./icons/profilePerson.svg" alt="person" />
+            <img src="/icons/profilePerson.svg" alt="person" />
           )}
         </div>
         <span>პროფილის ფოტო</span>
@@ -107,8 +107,8 @@ export default function InfoTab() {
               <img
                 src={
                   showPasswords[field as "old" | "new" | "repeat"]
-                    ? "./icons/Eye.svg"
-                    : "./icons/Closed-eye.svg"
+                    ? "/icons/Eye.svg"
+                    : "/icons/Closed-eye.svg"
                 }
                 alt="toggle"
                 onClick={() =>

@@ -11,7 +11,7 @@ export default function SignIn() {
 
   return (
     <div className={styles.container} onClick={handleClick}>
-      <img src="./icons/person.svg" alt="person" />
+      <img src="/icons/person.svg" alt="person" />
       <span>შესვლა</span>
     </div>
   );

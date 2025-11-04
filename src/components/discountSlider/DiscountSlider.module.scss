@@ -1,4 +1,4 @@
-@import "@/styles/colors";
+@use "@/styles/colors" as *;
 .sliderContainer {
   max-width: 330px;
   width: 100%;

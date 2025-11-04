@@ -64,7 +64,7 @@ export default function MonitorsSection() {
 
   return (
     <ProductSection
-      icon="./icons/Monitor.svg"
+      icon="/icons/Monitor.svg"
       title="მონიტორები"
       products={products}
     />

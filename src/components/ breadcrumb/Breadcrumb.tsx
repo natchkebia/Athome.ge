@@ -31,7 +31,7 @@ export default function Breadcrumb({ items }: BreadcrumbProps) {
           </span>
 
           {index < items.length - 1 && (
-            <img src="./icons/Arrow.svg" alt="" />
+            <img src="/icons/Arrow.svg" alt="" />
           )}
         </span>
       ))}

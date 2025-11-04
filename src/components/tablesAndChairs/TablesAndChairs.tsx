@@ -64,7 +64,7 @@ export default function TablesAndChairs() {
 
   return (
     <ProductSection
-      icon="./icons/Table.svg"
+      icon="/icons/Table.svg"
       title="მაგიდები და სავარძლები"
       products={products}
     />

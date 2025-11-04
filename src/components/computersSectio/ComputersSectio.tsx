@@ -67,7 +67,7 @@ export default function ComputersSection() {
 
   return (
     <ProductSection
-      icon="./icons/Computer.svg"
+      icon="/icons/Computer.svg"
       title="კომპიუტერები"
       products={products}
     />
