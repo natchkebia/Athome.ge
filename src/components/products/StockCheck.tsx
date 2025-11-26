@@ -1,0 +1,87 @@
+"use client";
+
+import { useState } from "react";
+import styles from "./StockCheck.module.scss";
+
+interface StockCheckProps {
+  productId: string; // როცა დააჭერ, ეს წამოიღება props-ად
+}
+
+export default function StockCheck({ productId }: StockCheckProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [stockData, setStockData] = useState<any[]>([]);
+
+  const handleOpen = async () => {
+    setIsOpen(true);
+    setLoading(true);
+    try {
+      // აქ შეგიძლია ჩასვა შენი API:
+      // const res = await fetch(`/api/stock/${productId}`);
+      // const data = await res.json();
+      const data = [
+        {
+          city: "თბილისი",
+          address: "აკაკი წერეთლის გამზირი N115",
+          phone: "+995 599 09 32 09",
+          workHours: "ორშ - შაბ: 11:00:00 - 19:00:00 ",
+          inStock: true,
+        },
+        {
+          city: "თბილისი",
+          address: "მერაბ კოსტავას ქუჩა N76",
+          phone: "+995 599 09 32 09",
+          workHours: "ორშ - შაბ: 11:00:00 - 19:00:00 ",
+          inStock: false,
+        },
+      ];
+      setStockData(data);
+    } catch (err) {
+      console.error(err);
+    }
+    setLoading(false);
+  };
+
+  const handleClose = () => setIsOpen(false);
+
+  return (
+    <>
+      <button className={styles.checkBtn} onClick={handleOpen}>
+        შემოწმება <span className={styles.arrow}>›</span>
+      </button>
+
+      {isOpen && (
+        <div className={styles.overlay}>
+          <div className={styles.modal}>
+            <button className={styles.closeBtn} onClick={handleClose}>
+              ×
+            </button>
+            <h3 className={styles.title}>მარაგი ფილიალებში</h3>
+
+            {loading ? (
+              <p className={styles.loading}>იტვირთება...</p>
+            ) : (
+              <div className={styles.locations}>
+                {stockData.map((store, index) => (
+                  <div key={index} className={styles.card}>
+                    <div className={styles.addressWrapper}>
+                      <p className={styles.city}>{store.city}</p>
+                      <p className={styles.address}>{store.address}</p>
+                    </div>
+                    <div className={styles.contact}>
+                      <a href={`tel:${store.phone}`} className={styles.phone}>
+                        {store.phone}
+                      </a>
+
+                      <p className={styles.hours}>{store.workHours}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </>
+  );
+}

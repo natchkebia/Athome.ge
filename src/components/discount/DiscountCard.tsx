@@ -13,6 +13,8 @@ export interface ProductCardProps {
   isNew?: boolean;
   isWishlisted?: boolean;
   onToggleWishlist?: (id: string) => void;
+  category?: string; 
+  slug?: string;
 }
 
 export default function DiscountCard({
@@ -44,11 +46,7 @@ export default function DiscountCard({
             onClick={() => onToggleWishlist?.(id)}
           >
             <img
-              src={
-                isWishlisted
-                  ? "/icons/redHeart.svg" 
-                  : "/icons/Heart.svg" 
-              }
+              src={isWishlisted ? "/icons/redHeart.svg" : "/icons/Heart.svg"}
               alt="wishlist"
             />
           </button>

@@ -1,6 +1,6 @@
 "use client";
 
-import ProductSection from "../shared/ProductSection"; // ✅ საერთო კომპონენტი გამოვიყენოთ
+import ProductSection from "../shared/ProductSection"; 
 
 interface Product {
   id: number;

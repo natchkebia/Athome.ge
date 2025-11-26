@@ -1,0 +1,131 @@
+.checkBtn {
+  color: rgba(16, 181, 192, 1);
+  font-size: 14px;
+  font-weight: 510;
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+
+  .arrow {
+    font-size: 18px;
+    margin-bottom: 3px;
+  }
+}
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(33, 33, 33, 0.6);
+  backdrop-filter: blur(3px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.modal {
+  background: #fff;
+  border-radius: 24px;
+  width: 540px;
+  max-width: 100%;
+  padding: 24px;
+  position: relative;
+  box-sizing: border-box;
+  border: 1px solid rgba(16, 181, 192, 1);
+}
+
+.closeBtn {
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  font-size: 24px;
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 1);
+  cursor: pointer;
+  background: rgba(16, 181, 192, 1);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+}
+
+.title {
+  text-align: center;
+  font-size: 16px;
+  font-weight: 590;
+  color: rgba(59, 63, 66, 1);
+  margin-bottom: 24px;
+}
+
+.locations {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.card {
+  border: 1px solid rgba(16, 181, 192, 1);
+  border-radius: 14px;
+  padding: 16px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  background: #fff;
+  width: 492px;
+  height: 120px;
+  box-sizing: border-box;
+  background-color: rgba(246, 248, 251, 1);
+  cursor: pointer;
+}
+
+.addressWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.city {
+  font-weight: 590;
+  font-size: 16px;
+  color: rgba(59, 63, 66, 1);
+}
+
+.address {
+  color: rgba(59, 63, 66, 1);
+  font-size: 14px;
+  font-weight: 400;
+}
+
+.hours {
+  color: rgba(59, 63, 66, 1);
+  font-size: 14px;
+  font-weight: 510;
+}
+
+.contact {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+.phone {
+  color: rgba(16, 181, 192, 1);
+  text-decoration: none;
+  font-weight: 510;
+  font-size: 14px;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
