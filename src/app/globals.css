@@ -45,3 +45,7 @@ body {
 .fixed-header.scrolled + .page-content {
   margin-top: 140px;
 }
+
+* {
+  box-sizing: border-box;
+}

@@ -5,11 +5,20 @@ import styles from "./SearchBar.module.scss";
 
 export default function SearchBar() {
   const fakeCategories = [
-    "ტელეფონი",
-    "კომპიუტერი აქსესუარები",
-    "პლანშეტი",
-    "ტელევიზორი",
-    "პრინტერი",
+    "კომპიუტერები",
+    "კომპიუტერის ნაწილები",
+    "პერიფერიალები",
+    "კომპიუტერის აქსესუარები",
+    "მონიტორები",
+    "ტელევიზორები",
+    "პროექტორები",
+    "სავარძლები და მაგიდები",
+    "ნოუთბუქები",
+    "ნოუთბუქის ნაწილები",
+    "ნოუთბუქის აქსესუარები",
+    "კაბელები და ადაპტერები",
+    "მობილურის აქსესუარები",
+    'ქსელის აპარატურა'
   ];
 
   const [selectedCategory, setSelectedCategory] = useState("კატეგორია");
@@ -47,10 +56,7 @@ export default function SearchBar() {
   };
 
   return (
-    <div
-      className={styles.searchBar}
-      // style={{ width: selectedCategory.length > 15 ? "724px" : "auto" }}
-    >
+    <div className={styles.searchBar}>
       <div className={styles.dropdown}>
         <button onClick={toggleDropdown}>
           {selectedCategory}
@@ -62,7 +68,9 @@ export default function SearchBar() {
             {fakeCategories.map((cat) => (
               <li
                 key={cat}
-                className={styles.dropdownListItem}
+                className={`${styles.dropdownListItem} ${
+                  selectedCategory === cat ? styles.selected : ""
+                }`}
                 onClick={() => handleCategorySelect(cat)}
               >
                 {cat}

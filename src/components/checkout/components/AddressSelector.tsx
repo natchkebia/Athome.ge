@@ -226,7 +226,7 @@ export default function AddressSelector({ onSelect }: any) {
 
             <input
               className={styles.input}
-              placeholder="ქუჩა, გამზირი..."
+              placeholder="მისამართის დასახელება"
               value={addressName}
               onChange={(e) => {
                 setAddressName(e.target.value);
@@ -241,7 +241,7 @@ export default function AddressSelector({ onSelect }: any) {
 
             <input
               className={styles.input}
-              placeholder="ნომერი, ბინა, სართული..."
+              placeholder="კორპუსი, ბინა, სადარბაზო, სართული და ა.შ"
               value={fullAddress}
               onChange={(e) => {
                 setFullAddress(e.target.value);

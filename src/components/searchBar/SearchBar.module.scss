@@ -13,6 +13,10 @@
 
 .dropdown {
   position: relative;
+
+  img {
+    margin-top: -3px;
+  }
 }
 
 .dropdown button {
@@ -43,7 +47,7 @@
   font-size: 14px;
   font-weight: 400;
   list-style: none;
-  padding: 16px 41px 16px 20px;
+  padding: 16px 12px;
 }
 
 .dropdownListItem {
@@ -51,8 +55,14 @@
   cursor: pointer;
 }
 
+.dropdownListItem.selected {
+  color: rgba(16, 181, 192, 1);
+}
+
 .dropdownListItem:hover {
-  background-color: #eee;
+  background-color: rgba(16, 181, 192, 1);
+  color: white;
+  border-radius: 6px;
 }
 
 .searchInput {

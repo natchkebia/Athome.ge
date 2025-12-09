@@ -382,15 +382,23 @@ export default function AuthForm() {
                 </form>
               ) : (
                 <form className={styles.form} autoComplete="on">
-                  <select
-                    value={personType}
-                    onChange={(e) =>
-                      setPersonType(e.target.value as "physical" | "legal")
-                    }
-                  >
-                    <option value="physical">ფიზიკური პირი</option>
-                    <option value="legal">იურიდიული პირი</option>
-                  </select>
+                  <div className={styles.personTypeSwitch}>
+                    <button
+                      type="button"
+                      className={personType === "physical" ? styles.active : ""}
+                      onClick={() => setPersonType("physical")}
+                    >
+                      ფიზიკური პირი
+                    </button>
+
+                    <button
+                      type="button"
+                      className={personType === "legal" ? styles.active : ""}
+                      onClick={() => setPersonType("legal")}
+                    >
+                      იურიდიული პირი
+                    </button>
+                  </div>
 
                   {personType === "physical" ? (
                     <>
@@ -502,7 +510,7 @@ export default function AuthForm() {
                       />
                       <input
                         type="text"
-                        placeholder="სამართლებრივი მისამართი"
+                        placeholder="წარმომადგენლის სახელი და გვარი"
                         name="address"
                       />
 
@@ -577,7 +585,7 @@ export default function AuthForm() {
                   )}
 
                   <label className={styles.checkbox}>
-                    <input type="checkbox" /> ვეთანხმები წესებს და პირობებს
+                    <input type="checkbox" /> ვეთანხმები <a href="#">წესებს და პირობებს</a>
                   </label>
 
                   <button className={styles.submit}>რეგისტრაცია</button>

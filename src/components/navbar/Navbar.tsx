@@ -8,10 +8,10 @@ export default function Navbar() {
   const [open, setOpen] = useState(false);
 
   const menuItems = [
-    "კომპანიები",
+    "კონფიგურატორი",
     "ფასდაკლებები",
-    "მიმოხილვა",
-    "სახლები",
+    "მიწოდება",
+    "სიახლეები",
     "სერვისი",
     "კონტაქტი",
   ];
@@ -19,7 +19,7 @@ export default function Navbar() {
   return (
     <nav className={styles.navbar}>
       <div>
-        <NavbarCategory/>
+        <NavbarCategory />
         <ul className={styles.menuList}>
           {menuItems.map((item, index) => (
             <li key={index} className={styles.menuItem}>

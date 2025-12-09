@@ -3,6 +3,85 @@
 import React, { useState, useRef, useEffect } from "react";
 import styles from "./NavbarCategory.module.scss";
 
+export default function NavbarCategory() {
+  const [isOpen, setIsOpen] = useState(false);
+  const [activeCategory, setActiveCategory] = useState<number>(1);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(e.target as Node)
+      ) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const toggleDropdown = () => {
+    setIsOpen((prev) => !prev);
+  };
+
+  const handleCategoryClick = (id: number) => {
+    setActiveCategory(id);
+  };
+
+  const activeData = categories.find((c) => c.id === activeCategory);
+
+  return (
+    <div className={styles.navbarCategory} ref={dropdownRef}>
+      <div className={styles.header} onClick={toggleDropdown}>
+        <img src="/icons/Burger.svg" alt="burger" />
+        <span>კატეგორიები</span>
+      </div>
+
+      {isOpen && (
+        <div className={`${styles.dropdownPanel} ${styles.fullWidth}`}>
+          <div className={styles.leftMenu}>
+            {categories.map((cat) => (
+              <div
+                key={cat.id}
+                className={`${styles.menuItem} ${
+                  activeCategory === cat.id ? styles.active : ""
+                }`}
+                onClick={() => handleCategoryClick(cat.id)}
+              >
+                <div>
+                  <img src={cat.icon} alt={cat.title} />
+                  <span>{cat.title}</span>
+                </div>
+
+                {cat.subcategories.length > 0 && (
+                  <img
+                    className={styles.arrow}
+                    src="/icons/Arrow.svg"
+                    alt="arrow"
+                  />
+                )}
+              </div>
+            ))}
+          </div>
+          <div className={styles.rightPanel}>
+            <div className={styles.subMenu}>
+              {activeData?.subcategories?.map((sub) => (
+                <div key={sub} className={styles.subItem}>
+                  {sub}
+                </div>
+              ))}
+            </div>
+            <div className={styles.mouseIcon}>
+              <img src="/icons/Mouse2.svg" alt="mouse" />
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 const categories = [
   {
     id: 1,
@@ -89,105 +168,3 @@ const categories = [
     subcategories: ["რუტერები", "მოდემები", "ქსელის კაბელები"],
   },
 ];
-
-export default function NavbarCategory() {
-  const [isOpen, setIsOpen] = useState(false);
-  const [activeCategory, setActiveCategory] = useState<number | null>(null);
-  const [showSubmenu, setShowSubmenu] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(e.target as Node)
-      ) {
-        setIsOpen(false);
-        setShowSubmenu(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  const toggleDropdown = () => {
-    setIsOpen((prev) => !prev);
-    setShowSubmenu(false);
-  };
-
-  const handleCategoryClick = (catId: number, hasSubs: boolean) => {
-    if (hasSubs) {
-      if (activeCategory === catId && showSubmenu) {
-        setShowSubmenu(false);
-      } else {
-        setActiveCategory(catId);
-        setShowSubmenu(true);
-      }
-    } else {
-      setActiveCategory(catId);
-      setShowSubmenu(false);
-    }
-  };
-
-  return (
-    <div className={styles.navbarCategory} ref={dropdownRef}>
-      <div className={styles.header} onClick={toggleDropdown}>
-        <img src="/icons/Burger.svg" alt="burger" />
-        <span>კატეგორიები</span>
-      </div>
-
-      {isOpen && (
-        <div
-          className={`${styles.dropdownPanel} ${
-            showSubmenu ? styles.fullWidth : styles.smallWidth
-          }`}
-        >
-          {/* მარცხენა მენიუ */}
-          <div className={styles.leftMenu}>
-            {categories.map((cat) => (
-              <div
-                key={cat.id}
-                className={`${styles.menuItem} ${
-                  activeCategory === cat.id ? styles.active : ""
-                }`}
-                onClick={() =>
-                  handleCategoryClick(cat.id, cat.subcategories.length > 0)
-                }
-              >
-                <div>
-                  <img src={cat.icon} alt={cat.title} />
-                  <span>{cat.title}</span>
-                </div>
-
-                {cat.subcategories.length > 0 && (
-                  <img
-                    className={styles.arrow}
-                    src="/icons/Arrow.svg"
-                    alt="arrow"
-                  />
-                )}
-              </div>
-            ))}
-          </div>
-
-          {/* მარჯვენა ქვე-მენიუ */}
-          {showSubmenu && activeCategory !== null && (
-            <div className={styles.rightPanel}>
-              {categories
-                .filter((c) => c.id === activeCategory)
-                .map((c) => (
-                  <div key={c.id} className={styles.subMenu}>
-                    {c.subcategories.map((sub) => (
-                      <div key={sub} className={styles.subItem}>
-                        {sub}
-                      </div>
-                    ))}
-                  </div>
-                ))}
-            </div>
-          )}
-        </div>
-      )}
-    </div>
-  );
-}
