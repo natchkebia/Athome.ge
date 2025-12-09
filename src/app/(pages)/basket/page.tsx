@@ -4,6 +4,7 @@ import { useState } from "react";
 import styles from "./basket.module.scss";
 import CartTab from "@/components/profile/CartTab";
 import { useRouter } from "next/navigation";
+import CartSummary from "@/components/profile/CartSummary";
 
 export default function BasketFullPage() {
   const router = useRouter();
@@ -45,8 +46,11 @@ export default function BasketFullPage() {
           </div>
         </>
       ) : (
-        <div>
-          <CartTab />
+        <div className={styles.cartwrapper}>
+          <div className={styles.cartContainer}>
+            <CartTab showSummary={false} />
+          </div>
+          <CartSummary showItems={false}/>
         </div>
       )}
     </div>

@@ -22,7 +22,9 @@ export default function Header() {
           <Link href="/profile">
             <button className={styles.profileBtn}>პირადი</button>
           </Link>
-
+          <Link href="/delivery">
+            <button className={styles.profileBtn}>ყიდვა</button>
+          </Link>
           <WishlistPage />
           <BasketPage />
         </div>

@@ -1,0 +1,40 @@
+.pagination {
+  display: flex;
+  align-items: center;
+}
+
+.stepWrapper {
+  display: flex;
+  align-items: center;
+}
+
+.circle {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 1px solid rgba(217, 226, 232, 1);
+  color: rgba(217, 226, 232, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 400;
+  font-size: 12px;
+  transition: all 0.2s ease;
+}
+
+.active {
+  border-color: rgba(16, 181, 192, 1);
+  color: rgba(16, 181, 192, 1);
+}
+
+.completed {
+  background-color: #11c4cd;
+  border-color: #11c4cd;
+  color: #fff;
+}
+
+.line {
+  width: 55px;
+  height: 1px;
+  background-color: rgba(217, 226, 232, 1);
+}

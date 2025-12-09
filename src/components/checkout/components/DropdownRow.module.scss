@@ -1,0 +1,31 @@
+.wrapper {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  cursor: pointer;
+  margin-bottom: 14px;
+}
+
+.label {
+  font-size: 14px;
+  color: #6d6d6d;
+  margin-bottom: 6px;
+}
+
+.row {
+  width: 100%;
+  background: #f7f9fa;
+  border-radius: 10px;
+  padding: 14px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.placeholder {
+  color: #9e9e9e;
+}
+
+.value {
+  color: #222;
+}

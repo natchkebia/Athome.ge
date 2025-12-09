@@ -1,0 +1,307 @@
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.header {
+  display: flex;
+  img {
+    margin-bottom: 10px;
+    margin-right: 10px;
+  }
+}
+
+.title {
+  font-size: 18px;
+  font-weight: 590;
+  margin-bottom: 24px;
+  color: rgba(59, 63, 66, 1);
+}
+
+.back {
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
+.methods {
+  display: flex;
+  gap: 25px;
+}
+
+.methodCard {
+  flex: 1;
+  width: 274px;
+  border: 1px solid rgba(236, 242, 246, 1);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  position: relative;
+  background: white;
+  transition: 0.2s;
+  padding-top: 45px;
+}
+
+.methodCard p {
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.active {
+  border-color: rgba(16, 181, 192, 1);
+}
+
+.checkCircle {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1px solid rgba(16, 181, 192, 1);
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.checkdiv {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: rgba(16, 181, 192, 1);
+}
+
+.bankList {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.bank {
+  border: 1px solid rgba(236, 242, 246, 1);
+  border-radius: 14px;
+  width: 872px;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  padding: 0 32px 0 21px;
+  box-sizing: border-box;
+}
+
+.bankWrapper {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+}
+
+.bankActive {
+  border-color: #10b5c0;
+}
+
+.bankIcon {
+  width: 160px;
+}
+
+.bankIcon1 {
+  width: 206px;
+  height: 36px;
+}
+
+.radio {
+  width: 12px;
+  height: 12px;
+  border: 1px solid rgba(16, 181, 192, 1);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.radio div {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: rgba(16, 181, 192, 1);
+}
+
+.cards {
+  display: flex;
+  gap: 10px;
+}
+.termsBox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 510;
+  > input {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 16px;
+    height: 16px;
+    border: 1px solid #10b5c0;
+    border-radius: 4px;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.2s ease;
+    &:checked {
+      background-color: #10b5c0;
+      border-color: #10b5c0;
+    }
+    &:checked::after {
+      content: "✔";
+      position: absolute;
+      top: 2px;
+      left: 4px;
+      font-size: 10px;
+      font-weight: 400;
+      color: #fff;
+    }
+  }
+  span {
+    color: rgba(59, 63, 66, 1);
+  }
+  .termsLink {
+    border: none;
+    outline: none;
+    background-color: #fff;
+    color: rgba(57, 105, 225, 1);
+    border-bottom: 1px solid rgba(57, 105, 225, 1);
+    cursor: pointer;
+  }
+}
+
+.nextBtn {
+  width: 100%;
+  background: rgba(16, 181, 192, 1);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 16px;
+  font-size: 17px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* ---- MODAL ---- */
+
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(3px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  z-index: 99999;
+}
+
+.modal {
+  width: 100%;
+  max-width: 760px;
+  background: white;
+  border-radius: 18px;
+  padding: 34px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  max-height: 90vh;
+}
+
+.modal h3 {
+  font-size: 18px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.modalContent {
+  overflow-y: auto;
+  max-height: 65vh;
+  font-size: 14px;
+  line-height: 1.6;
+  padding-right: 12px;
+}
+
+.modalConfirm {
+  background: rgba(16, 181, 192, 1);
+  color: white;
+  border: none;
+  border-radius: 14px;
+  padding: 14px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  width: 100%;
+}
+
+/* Disabled state */
+.nextBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.modalContent h4 {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 14px;
+}
+
+.modalContent h5 {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 24px 0 10px;
+}
+
+.modalContent h6 {
+  font-size: 15px;
+  font-weight: 600;
+  margin: 14px 0 8px;
+}
+
+.modalContent p {
+  font-size: 14px;
+  line-height: 1.65;
+  margin-bottom: 12px;
+  color: rgba(40, 40, 40, 1);
+}
+
+.modalContent ul {
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.modalContent ul.contact li a {
+  color: #fa597a;
+  font-weight: 600;
+}
+
+.modalContent a {
+  color: rgba(16, 181, 192, 1);
+  text-decoration: underline;
+  font-weight: 500;
+}
+
+.emailBox {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  input {
+    padding: 14px 16px;
+    border-radius: 10px;
+    border: 1px solid rgba(236, 242, 246, 1);
+  }
+}
+.invoice {
+  color: rgba(59, 63, 66, 1);
+  font-size: 14px;
+  margin-top: -10px;
+}

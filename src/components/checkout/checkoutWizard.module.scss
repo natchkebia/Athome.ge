@@ -1,0 +1,22 @@
+.container {
+  position: relative;
+  width: 920px;
+  background: #fff;
+  padding: 24px;
+  border-radius: 28px;
+  border: 1px solid rgba(236, 242, 246, 1);
+  box-sizing: border-box;
+  min-height: 481px;
+}
+
+.paginationWrapper {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end; 
+}

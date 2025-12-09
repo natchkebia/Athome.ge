@@ -1,0 +1,18 @@
+.wrapper {
+  width: 1440px;
+  box-sizing: border-box;
+  display: flex;
+  margin: 0 auto;
+}
+
+.container {
+  max-width: 920px;
+  box-sizing: border-box;
+  margin: 0 auto;
+  margin-top: -230px;
+  margin-bottom: 230px;
+}
+
+.cartSummary {
+  margin-top: 20px;
+}

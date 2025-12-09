@@ -1,8 +1,15 @@
 "use client";
 import { useState } from "react";
 import styles from "./CartTab.module.scss";
+import { useRouter } from "next/navigation";
 
-export default function CartTab() {
+interface CartTabProps {
+  showSummary?: boolean; // <-- აქედან მართავ Summary-ს გამოჩენას
+}
+
+export default function CartTab({ showSummary = true }: CartTabProps) {
+   const router = useRouter();
+   
   const [cartItems, setCartItems] = useState([
     {
       id: 14736,
@@ -109,13 +116,14 @@ export default function CartTab() {
               </div>
             ))}
           </div>
-
-          <div className={styles.summary}>
-            <div className={styles.total}>
-              ჯამური თანხა: <strong>{total.toLocaleString()} ₾</strong>
+          {showSummary && (
+            <div className={styles.summary}>
+              <div className={styles.total}>
+                ჯამური თანხა: <strong>{total.toLocaleString()} ₾</strong>
+              </div>
+              <button className={styles.orderBtn}  onClick={() => router.push("/delivery")}>შეკვეთის გაფორმება</button>
             </div>
-            <button className={styles.orderBtn}>შეკვეთის გაფორმება</button>
-          </div>
+          )}
         </>
       )}
     </div>

@@ -1,0 +1,258 @@
+.container {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* ---- LABEL ---- */
+.label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #2c2c2c;
+  margin-bottom: 6px;
+  display: block;
+}
+
+/* ---- DROPDOWN WRAPPER ---- */
+.dropdown {
+  position: relative;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+
+  .label {
+    font-size: 16px;
+    font-weight: 510;
+    color: rgba(59, 63, 66, 1);
+    margin-left: 5px;
+  }
+}
+
+/* ---- INPUT ROW ---- */
+.inputRow {
+  width: 872px;
+  background: rgba(255, 255, 255, 1);
+  border: 1px solid rgba(236, 242, 246, 1);
+  color: rgba(59, 63, 66, 1);
+  border-radius: 10px;
+  padding: 14px 16px;
+  font-size: 14px;
+  font-weight: 510;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-sizing: border-box;
+  cursor: pointer;
+  transition: 0.15s ease;
+
+  svg {
+    font-size: 18px;
+    color: #7e7e7e;
+  }
+
+  &:hover {
+    background: #f7f9fb;
+  }
+}
+
+/* ---- DROPDOWN LIST ---- */
+.dropdownList {
+  width: 100%;
+  background: #ffffff;
+  border: 1px solid #e8e8e8;
+  border-radius: 12px;
+  margin-top: 6px;
+  padding: 6px 0;
+
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 20;
+
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.08);
+
+  max-height: 260px;
+  overflow-y: auto;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: #c9c9c9;
+    border-radius: 10px;
+  }
+}
+
+/* ---- OPTION ---- */
+.option {
+  padding: 5px 16px;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: rgba(59, 63, 66, 1);
+  &:hover {
+    background: rgba(244, 250, 251, 1);
+  }
+}
+
+/* ---- MODAL OVERLAY ---- */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 5000;
+}
+
+/* ---- MODAL BOX ---- */
+.modal {
+  width: 920px;
+  height: 756px;
+  background: rgba(255, 255, 255, 1);
+  padding: 32px 20px;
+  border-radius: 36px;
+  border: 1px solid rgba(16, 181, 192, 1);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+
+  h3 {
+    font-size: 16px;
+    font-weight: 590;
+    color: rgba(59, 63, 66, 1);
+    margin: 0;
+  }
+
+  .modalHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    margin-left: 15px;
+  }
+}
+
+/* ---- INPUTS INSIDE MODAL ---- */
+.input {
+  width: 856px;
+  height: 52px;
+  padding: 14px 16px;
+  background: #ffffff;
+  border: 1px solid rgba(236, 242, 246, 1);
+  border-radius: 10px;
+  font-size: 14px;
+  color: rgba(131, 138, 143, 1);
+  transition: 0.15s;
+  box-sizing: border-box;
+  margin: 0 auto;
+  font-family: SF Georgian Rounded;
+
+  &:focus {
+    outline: none;
+    border-color: rgba(16, 181, 192, 1);
+  }
+}
+
+/* ---- MAP BOX ---- */
+.mapBox {
+  width: 856px;
+  height: 412px;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid rgba(236, 242, 246, 1);
+  box-sizing: border-box;
+  margin: 0 auto;
+}
+
+/* ---- SAVE BUTTON ---- */
+.saveBtn {
+  background: rgba(16, 181, 192, 1);
+  width: 856px;
+  height: 48px;
+  border-radius: 10px;
+  box-sizing: border-box;
+  border: none;
+  cursor: pointer;
+  margin: 0 auto;
+
+  &:hover {
+    background: rgba(15, 161, 171, 1);
+  }
+}
+
+/* ---- CLOSE BUTTON ---- */
+.closeBtn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: rgba(16, 181, 192, 1);
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 1);
+  cursor: pointer;
+}
+
+.addressRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 12px;
+  margin: 10px;
+  background: rgba(244, 250, 251, 1);
+  border-radius: 10px;
+  cursor: pointer;
+  margin-bottom: 6px;
+  transition: 0.15s ease;
+}
+
+.addressText {
+  font-size: 14px;
+  font-weight: 400;
+  color: rgba(59, 63, 66, 1);
+  flex: 1;
+
+  :active {
+    border: 1px solid rgba(16, 181, 192, 1);
+  }
+}
+
+.editIcon {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: 0.15s;
+}
+
+.addNew {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: rgb(64, 66, 59);
+  font-weight: 400;
+  font-size: 14px;
+  cursor: pointer;
+  margin-top: 2px;
+  background-color: rgba(244, 250, 251, 1);
+  padding: 14px 12px;
+  margin: 10px;
+  border-radius: 10px;
+}
+.active {
+  border: 1px solid rgba(16, 181, 192, 1);
+}

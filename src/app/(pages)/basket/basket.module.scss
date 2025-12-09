@@ -1,7 +1,7 @@
 .basketPage {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
   background-color: #ffffff;
   max-width: 1440px;
   margin: 0 auto;
@@ -60,4 +60,15 @@
   &:hover {
     background-color: #0e9fa9;
   }
+}
+
+.cartwrapper {
+  display: flex;
+  gap: 24px;
+}
+
+.cartContainer {
+  width: 988px;
+  box-sizing: border-box;
+  margin-bottom: 200px;
 }
