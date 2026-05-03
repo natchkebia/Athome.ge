@@ -12,7 +12,7 @@ export default function Header() {
         <Link href="/">
           <img
             src="/icons/Logo.svg"
-            alt="Eduverse Logo"
+            alt="Ethome Logo"
             className={styles.logo}
           />
         </Link>

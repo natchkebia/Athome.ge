@@ -1,0 +1,103 @@
+.gamingSection {
+  max-width: 1440px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 0px 24px;
+}
+
+.gamingGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 16px;
+  height: 580px;
+}
+
+.middleGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.gamingCard {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  border-radius: 16px;
+  background: #16070c;
+  text-decoration: none;
+  color: #fff;
+}
+
+.gamingCard img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.35s ease;
+}
+
+.gamingCard:hover img {
+  transform: scale(1.05);
+}
+
+.gamingCard::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.72), rgba(0, 0, 0, 0.04));
+  z-index: 1;
+}
+
+.gamingCard span {
+  position: absolute;
+  left: 18px;
+  bottom: 16px;
+  z-index: 2;
+  font-size: 15px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.large {
+  height: 100%;
+}
+
+.small {
+  min-height: 187px;
+}
+
+.wide {
+  grid-column: span 2;
+  min-height: 187px;
+}
+
+@media (max-width: 992px) {
+  .gamingGrid {
+    grid-template-columns: 1fr;
+    height: auto;
+  }
+
+  .large {
+    height: 280px;
+  }
+}
+
+@media (max-width: 576px) {
+  .middleGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .wide {
+    grid-column: span 1;
+  }
+
+  .large,
+  .small,
+  .wide {
+    height: 230px;
+    min-height: 230px;
+  }
+
+  .gamingCard span {
+    font-size: 14px;
+  }
+}

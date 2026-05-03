@@ -8,6 +8,8 @@ import MonitorsSection from "@/components/monitors/Monitors";
 import PeripherySection from "@/components/periphery/Periphery";
 import TablesAndChairs from "@/components/tablesAndChairs/TablesAndChairs";
 import BrandSlider from "@/components/brands/BrandSlider";
+import GamingSection from "@/components/gaming/GamingSection";
+import ConfiguratorBanner from "@/components/ConfiguratorBanner/ConfiguratorBanner";
 
 export default function Home() {
   return (
@@ -19,6 +21,8 @@ export default function Home() {
         <Service />
         <ComputersSection />
         <MonitorsSection />
+        <GamingSection />
+        <ConfiguratorBanner />
         <PeripherySection />
         <TablesAndChairs />
         <BrandSlider />

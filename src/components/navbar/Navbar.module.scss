@@ -1,8 +1,12 @@
 @use "@/styles/colors" as *;
+
 .navbar {
   width: 100%;
   background: #fff;
+  border-top: 1px solid #ecf2f6;
+  border-bottom: 1px solid #ecf2f6;
 }
+
 .navbar > div {
   width: 1400px;
   display: flex;
@@ -23,10 +27,30 @@
 }
 
 .menuItem {
+  list-style: none;
+}
+
+.menuLink {
   font-family: "SF Georgian Rounded", sans-serif;
   font-weight: 510;
   font-size: 14px;
   color: $darker;
+  text-decoration: none;
   cursor: pointer;
   transition: color 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+
+  &:hover {
+    color: $darker;
+  }
+
+  &:visited {
+    color: $darker;
+  }
+
+  &.active {
+    color: rgba(16, 181, 192, 1);
+    font-weight: 600;
+  }
 }

@@ -3,14 +3,22 @@
 import React from "react";
 import styles from "./MinimalProductItem.module.scss";
 
-export interface ProductItem {
+export type ProductItem = {
   id: number;
   title: string;
   image: string;
   price: number;
   oldPrice?: number;
   quantity: number;
-}
+  isSystem?: boolean;
+  systemProducts?: {
+    id: number;
+    title: string;
+    image: string;
+    price: number;
+    quantity: number;
+  }[];
+};
 
 interface MinimalProductItemProps {
   item: ProductItem;

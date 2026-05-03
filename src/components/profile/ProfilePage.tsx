@@ -1,27 +1,57 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import styles from "./ProfilePage.module.scss";
 import InfoTab from "./InfoTab";
 import OrdersTab from "./OrdersTab";
 import CartTab from "./CartTab";
 import Breadcrumb from "../ breadcrumb/Breadcrumb";
 import WishlistTab from "./WishlistTab";
+import SavedConfigurationsTab from "./SavedConfigurationsTab";
+
+type ProfileTab =
+  | "info"
+  | "orders"
+  | "cart"
+  | "wishlist"
+  | "configurations"
+  | "logout";
 
 export default function ProfilePage() {
-  const [activeTab, setActiveTab] = useState<
-    "info" | "orders" | "cart" | "wishlist" | "logout"
-  >("info");
+  const searchParams = useSearchParams();
+
+  const [activeTab, setActiveTab] = useState<ProfileTab>("info");
   const [profileImage, setProfileImage] = useState<string | null>(null);
+
+  useEffect(() => {
+    const tab = searchParams.get("tab");
+
+    if (
+      tab === "info" ||
+      tab === "orders" ||
+      tab === "cart" ||
+      tab === "wishlist" ||
+      tab === "configurations" ||
+      tab === "logout"
+    ) {
+      setActiveTab(tab);
+    }
+  }, [searchParams]);
 
   const user = {
     id: "000095214",
     firstName: "გიორგი",
     lastName: "ბაგრატიონი",
-    gender: "მამრობითი", 
+    gender: "მამრობითი",
   };
 
-  const menuItems = [
+  const menuItems: {
+    id: ProfileTab;
+    label: string;
+    icon: string;
+    badge?: number;
+  }[] = [
     {
       id: "info",
       label: "პერსონალური ინფორმაცია",
@@ -40,6 +70,11 @@ export default function ProfilePage() {
       icon: "/icons/profile4.svg",
       badge: 28,
     },
+    {
+      id: "configurations",
+      label: "შენახული სისტემები",
+      icon: "/icons/Computer-black.svg",
+    },
     { id: "logout", label: "გასვლა", icon: "/icons/profile5.svg" },
   ];
 
@@ -53,6 +88,8 @@ export default function ProfilePage() {
         return "ჩემი კალათა";
       case "wishlist":
         return "სურვილების სია";
+      case "configurations":
+        return "შენახული სისტემები";
       case "logout":
         return "გასვლა";
       default:
@@ -64,8 +101,10 @@ export default function ProfilePage() {
     { label: "მთავარი გვერდი", href: "/" },
     { label: getBreadcrumbLabel() },
   ];
+
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+
     if (file) {
       const reader = new FileReader();
       reader.onload = () => setProfileImage(reader.result as string);
@@ -76,6 +115,7 @@ export default function ProfilePage() {
   return (
     <>
       <Breadcrumb items={breadcrumbs} />
+
       <div className={styles.container}>
         <div className={styles.wrapper}>
           <aside className={styles.sidebar}>
@@ -88,6 +128,7 @@ export default function ProfilePage() {
                 ) : (
                   <img src="/icons/profilePerson.svg" alt="user" />
                 )}
+
                 <label className={styles.cameraOverlay}>
                   <img src="/icons/profileCamera.svg" alt="upload" />
                   <input
@@ -98,9 +139,11 @@ export default function ProfilePage() {
                   />
                 </label>
               </div>
+
               <h3>
                 {user.firstName} {user.lastName}
               </h3>
+
               <p className={styles.userId}>ID {user.id}</p>
             </div>
 
@@ -108,7 +151,7 @@ export default function ProfilePage() {
               {menuItems.map((item) => (
                 <li
                   key={item.id}
-                  onClick={() => setActiveTab(item.id as any)}
+                  onClick={() => setActiveTab(item.id)}
                   className={activeTab === item.id ? styles.active : ""}
                 >
                   <img
@@ -116,7 +159,9 @@ export default function ProfilePage() {
                     alt={item.label}
                     className={styles.icon}
                   />
+
                   {item.label}
+
                   {item.badge && (
                     <span className={styles.badge}>{item.badge}</span>
                   )}
@@ -124,11 +169,13 @@ export default function ProfilePage() {
               ))}
             </ul>
           </aside>
+
           <section className={styles.content}>
             {activeTab === "info" && <InfoTab />}
             {activeTab === "orders" && <OrdersTab />}
             {activeTab === "cart" && <CartTab />}
             {activeTab === "wishlist" && <WishlistTab variant="profile" />}
+            {activeTab === "configurations" && <SavedConfigurationsTab />}
           </section>
         </div>
       </div>

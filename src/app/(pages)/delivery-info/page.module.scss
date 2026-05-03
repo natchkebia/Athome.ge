@@ -1,0 +1,151 @@
+.deliveryPage {
+  width: 100%;
+  padding: 28px 16px 60px;
+}
+
+.breadcrumb {
+  max-width: 1390px;
+  margin: 0 auto 32px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #7b838a;
+}
+
+.deliveryLayout {
+  max-width: 1390px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 420px 1fr;
+  gap: 24px;
+}
+
+.leftBox {
+  min-height: 680px;
+  border-radius: 16px;
+  background: #f5f7fa;
+}
+
+.cards {
+  padding: 22px;
+  border-radius: 16px;
+  background: #f5f7fa;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.card {
+  display: grid;
+  grid-template-columns: 58px 1fr;
+  gap: 18px;
+  align-items: flex-start;
+  padding: 26px 24px;
+  border-radius: 14px;
+  background: #fff;
+  border: 1px solid #eef1f4;
+}
+
+.iconBox {
+  width: 46px;
+  height: 46px;
+  border-radius: 10px;
+  background: #f5f7fa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+
+  img {
+    max-width: 32px;
+    max-height: 32px;
+    object-fit: contain;
+  }
+}
+
+.delivoIcon {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  background: #ffe500;
+  color: #111;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px !important;
+  font-weight: 800;
+}
+
+.content {
+  h2 {
+    margin: 0 0 20px;
+    font-size: 15px;
+    line-height: 1.45;
+    font-weight: 800;
+    color: #30363a;
+  }
+
+  p {
+    margin: 0 0 10px;
+    font-size: 13px;
+    line-height: 1.7;
+    color: #565f66;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+}
+
+.bold {
+  font-weight: 800;
+  color: #252a2e !important;
+}
+
+.warning {
+  color: #ff315f !important;
+  font-weight: 700;
+}
+
+.price {
+  font-weight: 800;
+  color: #252a2e !important;
+}
+
+@media (max-width: 1050px) {
+  .deliveryLayout {
+    grid-template-columns: 1fr;
+  }
+
+  .leftBox {
+    min-height: 260px;
+  }
+}
+
+@media (max-width: 620px) {
+  .deliveryPage {
+    padding: 20px 12px 45px;
+  }
+
+  .cards {
+    padding: 12px;
+    gap: 14px;
+  }
+
+  .card {
+    grid-template-columns: 1fr;
+    padding: 20px 16px;
+  }
+
+  .content {
+    h2 {
+      font-size: 14px;
+      margin-bottom: 14px;
+    }
+
+    p {
+      font-size: 12px;
+    }
+  }
+}
