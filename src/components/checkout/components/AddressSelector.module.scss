@@ -32,7 +32,7 @@
 
 /* ---- INPUT ROW ---- */
 .inputRow {
-  width: 872px;
+  width: 100%;
   background: rgba(255, 255, 255, 1);
   border: 1px solid rgba(236, 242, 246, 1);
   color: rgba(59, 63, 66, 1);
@@ -115,8 +115,8 @@
 
 /* ---- MODAL BOX ---- */
 .modal {
-  width: 920px;
-  height: 756px;
+  width: min(920px, calc(100vw - 32px));
+  height: min(756px, calc(100vh - 32px));
   background: rgba(255, 255, 255, 1);
   padding: 32px 20px;
   border-radius: 36px;
@@ -144,7 +144,7 @@
 
 /* ---- INPUTS INSIDE MODAL ---- */
 .input {
-  width: 856px;
+  width: 100%;
   height: 52px;
   padding: 14px 16px;
   background: #ffffff;
@@ -165,7 +165,7 @@
 
 /* ---- MAP BOX ---- */
 .mapBox {
-  width: 856px;
+  width: 100%;
   height: 412px;
   border-radius: 10px;
   overflow: hidden;
@@ -177,7 +177,7 @@
 /* ---- SAVE BUTTON ---- */
 .saveBtn {
   background: rgba(16, 181, 192, 1);
-  width: 856px;
+  width: 100%;
   height: 48px;
   border-radius: 10px;
   box-sizing: border-box;
@@ -255,4 +255,39 @@
 }
 .active {
   border: 1px solid rgba(16, 181, 192, 1);
+}
+
+@media (max-width: 768px) {
+  .dropdown {
+    gap: 16px;
+  }
+
+  .inputRow {
+    padding: 12px 14px;
+  }
+
+  .modalOverlay {
+    padding: 12px;
+  }
+
+  .modal {
+    width: 100%;
+    height: auto;
+    max-height: calc(100vh - 24px);
+    border-radius: 20px;
+    padding: 20px 14px;
+    overflow-y: auto;
+
+    .modalHeader {
+      margin-left: 0;
+    }
+  }
+
+  .input {
+    height: 48px;
+  }
+
+  .mapBox {
+    height: 280px;
+  }
 }

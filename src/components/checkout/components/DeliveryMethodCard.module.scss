@@ -1,5 +1,5 @@
 .card {
-  width: 872px;
+  width: 100%;
   background-color: rgba(255, 255, 255, 1);
   border: 1px solid rgba(236, 242, 246, 1);
   border-radius: 12px;
@@ -18,6 +18,7 @@
   display: flex;
   align-items: center;
   gap: 16px;
+  min-width: 0;
 }
 
 .icon {
@@ -34,11 +35,14 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
+  min-width: 0;
 }
 
 .title {
   font-size: 15px;
   font-weight: 600;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
 }
 
 .desc {
@@ -83,4 +87,41 @@
 
 .expandedWrapper {
   margin-left: 90px;
+}
+
+@media (max-width: 768px) {
+  .card {
+    padding: 18px 14px;
+  }
+
+  .header {
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .icon {
+    width: 42px;
+    height: 42px;
+    flex: 0 0 42px;
+
+    img {
+      max-width: 42px;
+      max-height: 42px;
+      object-fit: contain;
+    }
+  }
+
+  .title {
+    font-size: 13px;
+  }
+
+  .expandedWrapper {
+    margin-left: 0;
+    margin-top: 12px;
+  }
+
+  .expanded {
+    font-size: 12px;
+    line-height: 1.45;
+  }
 }

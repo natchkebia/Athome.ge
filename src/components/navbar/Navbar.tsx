@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import styles from "./Navbar.module.scss";
@@ -7,6 +8,7 @@ import NavbarCategory from "./NavbarCategory";
 
 export default function Navbar() {
   const pathname = usePathname();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const menuItems = [
     { title: "კონფიგურატორი", href: "/configurator" },
@@ -22,7 +24,21 @@ export default function Navbar() {
       <div>
         <NavbarCategory />
 
-        <ul className={styles.menuList}>
+        <button
+          type="button"
+          className={`${styles.mobileMenuButton} ${
+            isMenuOpen ? styles.openButton : ""
+          }`}
+          onClick={() => setIsMenuOpen((prev) => !prev)}
+          aria-label="მენიუს გახსნა"
+          aria-expanded={isMenuOpen}
+        >
+          <img src="/icons/Burger.svg" alt="" />
+        </button>
+
+        <ul
+          className={`${styles.menuList} ${isMenuOpen ? styles.openMenu : ""}`}
+        >
           {menuItems.map((item) => {
             const isActive =
               pathname === item.href || pathname.startsWith(`${item.href}/`);
@@ -34,6 +50,7 @@ export default function Navbar() {
                   className={`${styles.menuLink} ${
                     isActive ? styles.active : ""
                   }`}
+                  onClick={() => setIsMenuOpen(false)}
                 >
                   {item.title}
                 </Link>

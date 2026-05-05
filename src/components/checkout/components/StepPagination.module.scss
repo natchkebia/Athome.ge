@@ -38,3 +38,14 @@
   height: 1px;
   background-color: rgba(217, 226, 232, 1);
 }
+
+@media (max-width: 480px) {
+  .circle {
+    width: 24px;
+    height: 24px;
+  }
+
+  .line {
+    width: 34px;
+  }
+}

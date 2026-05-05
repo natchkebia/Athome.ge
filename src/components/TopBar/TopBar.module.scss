@@ -1,4 +1,16 @@
 .container {
   border-bottom: 1px solid #ecf2f6;
   padding: 9px 24px;
+
+  :global(.site-wrapper) {
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: nowrap;
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 8px 12px;
+  }
 }

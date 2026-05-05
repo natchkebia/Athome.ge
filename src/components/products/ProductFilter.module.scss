@@ -2,6 +2,13 @@
   display: flex;
   flex-direction: column;
   margin-top: -38px;
+
+  @media (max-width: 992px) {
+    width: 100%;
+    max-width: 720px;
+    align-items: center;
+    margin-top: 0;
+  }
 }
 .header {
   display: flex;
@@ -31,6 +38,10 @@
   gap: 24px;
   font-family: "SF Georgian Rounded", sans-serif;
   box-sizing: border-box;
+
+  @media (max-width: 992px) {
+    width: 100%;
+  }
 }
 
 .resetBtn {
@@ -68,6 +79,10 @@
   height: 6px;
   display: flex;
   align-items: center;
+
+  @media (max-width: 992px) {
+    width: 100%;
+  }
 
   .rangeTrack {
     position: absolute;
@@ -118,6 +133,12 @@
   display: flex;
   align-items: center;
   gap: 12px;
+
+  @media (max-width: 992px) {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   input {
     width: 141px;
     height: 48px;
@@ -129,6 +150,10 @@
     outline: none;
     transition: 0.2s;
     box-sizing: border-box;
+
+    @media (max-width: 992px) {
+      width: 100%;
+    }
 
     &:focus {
       border-color: rgba(16, 181, 192, 1);
@@ -150,6 +175,11 @@
   border: 1px solid rgba(236, 242, 246, 1);
   border-end-start-radius: 18px;
   border-end-end-radius: 18px;
+
+  @media (max-width: 992px) {
+    width: calc(100% + 32px);
+    margin-left: -16px;
+  }
 
   .dropdownHeader {
     width: 100%;

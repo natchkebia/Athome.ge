@@ -7,4 +7,50 @@
   display: flex;
   align-items: center;
   gap: 24px;
+  flex: 0 0 auto;
+}
+
+.profileBtn {
+  white-space: nowrap;
+}
+
+@media (max-width: 1180px) {
+  .container {
+    padding: 18px 0;
+  }
+
+  .wrapper {
+    gap: 14px;
+  }
+}
+
+@media (max-width: 900px) {
+  .wrapper {
+    gap: 12px;
+    margin-left: auto;
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 14px 0;
+  }
+
+  .wrapper {
+    width: 100%;
+    justify-content: space-between;
+    order: 3;
+    gap: 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .wrapper {
+    gap: 8px;
+  }
+
+  .profileBtn {
+    min-width: 58px;
+    padding: 0 8px;
+  }
 }

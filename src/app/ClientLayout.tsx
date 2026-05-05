@@ -14,12 +14,21 @@ export default function ClientLayout({
   const [hideTopBar, setHideTopBar] = useState(false);
 
   useEffect(() => {
-    const handleScroll = () => {
-      setHideTopBar(window.scrollY > 80);
+    const desktopQuery = window.matchMedia("(min-width: 1025px)");
+
+    const updateHeaderState = () => {
+      setHideTopBar(desktopQuery.matches && window.scrollY > 80);
     };
 
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+    updateHeaderState();
+
+    window.addEventListener("scroll", updateHeaderState);
+    desktopQuery.addEventListener("change", updateHeaderState);
+
+    return () => {
+      window.removeEventListener("scroll", updateHeaderState);
+      desktopQuery.removeEventListener("change", updateHeaderState);
+    };
   }, []);
 
   return (

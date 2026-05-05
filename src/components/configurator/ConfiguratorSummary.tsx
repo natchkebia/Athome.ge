@@ -17,7 +17,7 @@ export default function ConfiguratorSummary({
   );
 
   return (
-    <div>
+    <div className={styles.summaryColumn}>
       <aside className={styles.summary}>
         <div className={styles.summaryImage}>
           <img src="/images/case.svg" alt="PC Case" />

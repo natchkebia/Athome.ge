@@ -6,10 +6,13 @@
   gap: 24px;
   font-family: "SF Georgian Rounded", sans-serif;
   margin-bottom: 52px;
+  padding: 0 16px;
+  box-sizing: border-box;
 }
 
 .sidebar {
   width: 330px;
+  flex: 0 0 330px;
   background: #fff;
   border-radius: 20px;
   border: 1px solid rgba(236, 242, 246, 1);
@@ -23,13 +26,15 @@
 }
 
 .content {
-  width: 1034px;
+  flex: 1 1 0;
+  min-width: 0;
+  max-width: 1034px;
 }
 
 .profileCard {
   text-align: center;
   background-color: rgba(247, 249, 251, 1);
-  width: 298px;
+  width: min(298px, 100%);
   height: 240px;
   border-radius: 12px;
   display: flex;
@@ -131,7 +136,7 @@
 }
 
 .save {
-  width: 298px;
+  width: min(298px, 100%);
   padding: 10px 24px;
   background: #26b6b3;
   color: #fff;
@@ -165,5 +170,81 @@
 
   &:hover .cameraOverlay {
     opacity: 1;
+  }
+}
+
+@media (max-width: 900px) {
+  .wrapper {
+    flex-direction: column;
+    align-items: center;
+    padding: 0 12px;
+    gap: 18px;
+  }
+
+  .sidebar {
+    width: 100%;
+    max-width: 520px;
+    flex-basis: auto;
+    height: auto;
+    gap: 18px;
+  }
+
+  .content {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .profileCard {
+    height: auto;
+    min-height: 190px;
+    padding: 18px 12px;
+  }
+
+  .menu {
+    width: 100%;
+    margin-left: 0;
+    align-self: stretch;
+    gap: 8px;
+  }
+}
+
+@media (max-width: 560px) {
+  .sidebar {
+    padding: 12px;
+    border-radius: 16px;
+  }
+
+  .profileCard {
+    min-height: 164px;
+
+    .avatar {
+      width: 92px;
+      height: 92px;
+
+      &::before {
+        width: 97px;
+        height: 97px;
+      }
+    }
+
+    h3 {
+      font-size: 14px;
+      margin-top: 14px;
+    }
+
+    .userId {
+      font-size: 12px;
+    }
+  }
+
+  .menu {
+    max-height: 220px;
+    overflow-y: auto;
+    padding-right: 4px;
+
+    li {
+      font-size: 13px;
+      padding: 8px 10px;
+    }
   }
 }

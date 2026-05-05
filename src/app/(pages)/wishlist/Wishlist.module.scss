@@ -3,8 +3,10 @@
   flex-direction: column;
   align-items: center;
   background-color: #ffffff;
-  max-width: 1440px;
+  width: min(1440px, 100%);
   margin: 0 auto;
+  padding: 0 16px;
+
   > div {
     width: 100%;
     margin-top: 32px;
@@ -14,7 +16,7 @@
 
 .title {
   align-self: flex-start;
-  width: 1440px;
+  width: 100%;
   margin: 0 auto;
   font-size: 16px;
   font-weight: 510;
@@ -27,8 +29,9 @@
   flex-direction: column;
   align-items: center;
   text-align: center;
+
   > div {
-    width: 289px;
+    width: min(289px, 100%);
   }
 }
 .subtitle {
@@ -59,5 +62,20 @@
   cursor: pointer;
   &:hover {
     background-color: #0e9fa9;
+  }
+}
+
+@media (max-width: 768px) {
+  .wishlistPage {
+    padding: 0 12px;
+
+    > div {
+      margin-top: 20px;
+      margin-bottom: 24px;
+    }
+  }
+
+  .title {
+    margin-top: 20px;
   }
 }

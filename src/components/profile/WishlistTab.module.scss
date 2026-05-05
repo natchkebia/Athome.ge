@@ -1,8 +1,22 @@
-.grid {
-  display: flex;
-  gap: 24px;
-  flex-wrap: wrap;
+.wrapper {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
 }
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 330px));
+  gap: 24px;
+  justify-content: center;
+  width: 100%;
+}
+
+.cardWrapper {
+  width: 100%;
+  min-width: 0;
+}
+
 .title {
   font-size: 16px;
   font-weight: 510;
@@ -16,7 +30,9 @@
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
+  gap: 16px;
 }
+
 .removeBtn {
   display: flex;
   align-items: center;
@@ -51,11 +67,48 @@
 }
 
 .profileVariant .grid {
-  width: 1091px;
   margin: 0 auto;
 }
 
 .pageVariant .grid {
-  width: 1462px;
   margin: 0 auto;
+}
+
+@media (max-width: 768px) {
+  .wrapper {
+    max-width: 100%;
+  }
+
+  .titleWrapper {
+    align-items: center;
+  }
+
+  .grid {
+    grid-template-columns: repeat(auto-fill, minmax(260px, 330px));
+    gap: 16px;
+  }
+
+  .summary {
+    justify-content: center;
+    margin-top: 32px;
+  }
+
+  .orderBtn {
+    width: min(298px, 100%);
+  }
+}
+
+@media (max-width: 420px) {
+  .titleWrapper {
+    gap: 10px;
+  }
+
+  .removeBtn {
+    font-size: 12px;
+    white-space: nowrap;
+  }
+
+  .grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }

@@ -1,8 +1,25 @@
 .hero {
+  width: 100%;
   margin: 0 auto;
   display: flex;
   justify-content: center;
   gap: 30px;
-  padding: 48px 0;
+  padding: 0 16px 48px;
   background-color: #f6f8fb;
+  overflow: hidden;
+}
+
+@media (max-width: 1100px) {
+  .hero {
+    align-items: center;
+    flex-direction: column;
+    gap: 20px;
+    padding: 28px 12px;
+  }
+}
+
+@media (max-width: 560px) {
+  .hero {
+    padding: 20px 12px;
+  }
 }

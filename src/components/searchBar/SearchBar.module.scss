@@ -2,7 +2,9 @@
 .searchBar {
   display: flex;
   align-items: center;
-  width: 724px;
+  width: min(724px, 100%);
+  min-width: 0;
+  flex: 1 1 360px;
   height: 48px;
   border: 1.2px solid #10b5c0;
   border-radius: 10px;
@@ -13,6 +15,8 @@
 
 .dropdown {
   position: relative;
+  flex: 0 0 auto;
+  min-width: 0;
 
   img {
     margin-top: -3px;
@@ -31,6 +35,9 @@
   margin-left: 16px;
   font-size: 14px;
   font-weight: 510;
+  max-width: 180px;
+  min-width: 0;
+  gap: 8px;
 }
 
 .dropdownList {
@@ -67,6 +74,7 @@
 
 .searchInput {
   flex: 1;
+  min-width: 0;
   height: 100%;
   border: none;
   padding: 0 12px;
@@ -81,6 +89,7 @@
 
 .searchBtn {
   width: 90px;
+  flex: 0 0 90px;
   height: 100%;
   margin: 0 auto;
   border: none;
@@ -91,4 +100,52 @@
   font-weight: 510;
   border-top-right-radius: 9px;
   border-bottom-right-radius: 9px;
+}
+
+@media (max-width: 900px) {
+  .searchBar {
+    order: 2;
+    flex-basis: 100%;
+    width: 100%;
+  }
+}
+
+@media (max-width: 560px) {
+  .searchBar {
+    height: auto;
+    min-height: 46px;
+    flex-wrap: wrap;
+  }
+
+  .dropdown {
+    width: calc(100% - 72px);
+  }
+
+  .dropdown button {
+    width: 100%;
+    max-width: none;
+    height: 46px;
+    justify-content: space-between;
+    margin-left: 0;
+    padding: 0 12px;
+  }
+
+  .searchInput {
+    order: 3;
+    flex: 1 1 100%;
+    height: 46px;
+    border-top: 1px solid #ecf2f6;
+  }
+
+  .searchBtn {
+    width: 72px;
+    flex-basis: 72px;
+    height: 46px;
+    border-top-right-radius: 9px;
+    border-bottom-right-radius: 0;
+  }
+
+  .dropdownList {
+    width: min(232px, calc(100vw - 24px));
+  }
 }

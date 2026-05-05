@@ -41,28 +41,45 @@ export default function NavbarCategory() {
       {isOpen && (
         <div className={`${styles.dropdownPanel} ${styles.fullWidth}`}>
           <div className={styles.leftMenu}>
-            {categories.map((cat) => (
-              <div
-                key={cat.id}
-                className={`${styles.menuItem} ${
-                  activeCategory === cat.id ? styles.active : ""
-                }`}
-                onClick={() => handleCategoryClick(cat.id)}
-              >
-                <div>
-                  <img src={cat.icon} alt={cat.title} />
-                  <span>{cat.title}</span>
-                </div>
+            {categories.map((cat) => {
+              const isActive = activeCategory === cat.id;
+              const hasSubcategories = cat.subcategories.length > 0;
 
-                {cat.subcategories.length > 0 && (
-                  <img
-                    className={styles.arrow}
-                    src="/icons/Arrow.svg"
-                    alt="arrow"
-                  />
-                )}
-              </div>
-            ))}
+              return (
+                <div key={cat.id} className={styles.menuGroup}>
+                  <button
+                    type="button"
+                    className={`${styles.menuItem} ${
+                      isActive ? styles.active : ""
+                    }`}
+                    onClick={() => handleCategoryClick(cat.id)}
+                  >
+                    <div>
+                      <img src={cat.icon} alt={cat.title} />
+                      <span>{cat.title}</span>
+                    </div>
+
+                    {hasSubcategories && (
+                      <img
+                        className={styles.arrow}
+                        src="/icons/Arrow.svg"
+                        alt="arrow"
+                      />
+                    )}
+                  </button>
+
+                  {hasSubcategories && isActive && (
+                    <div className={styles.mobileSubMenu}>
+                      {cat.subcategories.map((sub) => (
+                        <div key={sub} className={styles.subItem}>
+                          {sub}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
           <div className={styles.rightPanel}>
             <div className={styles.subMenu}>

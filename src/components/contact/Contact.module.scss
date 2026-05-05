@@ -15,9 +15,41 @@
   font-size: 14px;
   font-weight: 400;
   color: $dark;
+  margin: 0;
 }
 .container > span {
   font-size: 14px;
   font-weight: 510;
   color: $red-normal-hover;
+}
+
+@media (max-width: 768px) {
+  .container {
+    gap: 8px;
+    min-width: 0;
+  }
+
+  .wrapper {
+    gap: 6px;
+    min-width: 0;
+
+    img {
+      width: 18px;
+      height: 18px;
+      flex: 0 0 auto;
+    }
+  }
+
+  .wrapper > h2,
+  .container > span {
+    font-size: 12px;
+    line-height: 1.2;
+    white-space: nowrap;
+  }
+}
+
+@media (max-width: 420px) {
+  .wrapper > h2 {
+    display: none;
+  }
 }

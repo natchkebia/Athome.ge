@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import styles from "./page.module.scss";
 import { blogs } from "@/data/blogs";
@@ -6,40 +5,14 @@ import Breadcrumb from "@/components/ breadcrumb/Breadcrumb";
 import BlogComments from "@/components/blogComments/BlogComments";
 
 type Props = {
-  params: {
+  params: Promise<{
     slug: string;
-  };
+  }>;
 };
 
-const comments = [
-  {
-    name: "დათო",
-    date: "2 მაისი, 2022",
-    text: "ძალიან საინტერესო სტატიაა.",
-    avatar: "/images/avatar.png",
-  },
-  {
-    name: "გიორგი",
-    date: "25 ივნისი, 2022",
-    text: "კარგად არის ახსნილი.",
-    avatar: "",
-  },
-  {
-    name: "Barbare Bula",
-    date: "25 ივნისი, 2022",
-    text: "მადლობა ინფორმაციისთვის.",
-    avatar: "",
-  },
-  {
-    name: "თემო",
-    date: "2 მაისი, 2022",
-    text: "COOL",
-    avatar: "",
-  },
-];
-
-export default function NewsDetailPage({ params }: Props) {
-  const blog = blogs.find((item) => item.slug === params.slug);
+export default async function NewsDetailPage({ params }: Props) {
+  const { slug } = await params;
+  const blog = blogs.find((item) => item.slug === slug);
 
   if (!blog) {
     notFound();
@@ -52,7 +25,7 @@ export default function NewsDetailPage({ params }: Props) {
 
   return (
     <>
-      <div style={{ marginLeft: "30px" }}>
+      <div className={styles.breadcrumbWrap}>
         <Breadcrumb items={breadcrumbs} />
       </div>
       <main className={styles.detailPage}>

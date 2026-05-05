@@ -13,7 +13,7 @@ export default function Header() {
           <img
             src="/icons/Logo.svg"
             alt="Ethome Logo"
-            className={styles.logo}
+            className="header-logo"
           />
         </Link>
         <SearchBar />

@@ -226,7 +226,7 @@ export default function Configurator() {
 
   return (
     <>
-      <div style={{ marginLeft: "30px" }}>
+      <div className={styles.breadcrumbWrap}>
         <Breadcrumb items={breadcrumbs} />
       </div>
 

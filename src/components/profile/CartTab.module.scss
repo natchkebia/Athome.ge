@@ -2,6 +2,8 @@
   display: flex;
   flex-direction: column;
   gap: 24px;
+  width: 100%;
+  min-width: 0;
 
   h4 {
     font-size: 16px;
@@ -20,9 +22,10 @@
 
 .cartCard {
   width: 100%;
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
   align-items: center;
-  justify-content: space-between;
+  gap: 24px;
   background: rgba(246, 248, 251, 1);
   border-radius: 12px;
   padding: 32px;
@@ -34,6 +37,7 @@
   display: flex;
   align-items: center;
   gap: 21px;
+  min-width: 0;
 
   img {
     width: 56px;
@@ -42,6 +46,8 @@
   }
 
   .info {
+    min-width: 0;
+
     p {
       font-size: 12px;
       color: rgba(105, 108, 110, 1);
@@ -53,6 +59,7 @@
       color: rgba(59, 63, 66, 1);
       font-weight: 510;
       margin: 0;
+      overflow-wrap: anywhere;
     }
   }
 }
@@ -89,6 +96,7 @@
   display: flex;
   align-items: center;
   gap: 24px;
+  justify-content: flex-end;
 
   .priceBlock {
     display: flex;
@@ -159,6 +167,67 @@
 
     &:hover {
       background: rgba(15, 161, 171, 1);
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .cartSection {
+    gap: 16px;
+  }
+
+  .cartCard {
+    grid-template-columns: 1fr;
+    gap: 16px;
+    padding: 18px;
+  }
+
+  .left {
+    align-items: flex-start;
+    gap: 14px;
+
+    img {
+      width: 64px;
+      height: 64px;
+      flex: 0 0 64px;
+    }
+  }
+
+  .center {
+    justify-self: start;
+  }
+
+  .right {
+    width: 100%;
+    justify-content: space-between;
+    gap: 12px;
+
+    .priceBlock {
+      flex-wrap: wrap;
+      gap: 6px 10px;
+    }
+  }
+
+  .summary {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+    margin-top: 32px;
+    padding: 24px 0 0;
+
+    .total {
+      margin-top: 0;
+      text-align: center;
+
+      strong {
+        display: block;
+        margin: 8px 0 0;
+      }
+    }
+
+    .orderBtn {
+      width: min(298px, 100%);
+      margin: 0 auto;
     }
   }
 }

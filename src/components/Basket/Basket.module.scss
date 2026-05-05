@@ -26,7 +26,7 @@
   position: absolute;
   top: 45px;
   right: 0;
-  width: 330px;
+  width: min(330px, calc(100vw - 24px));
   height: 330px;
   background-color: #fff;
   box-shadow: 0px 2px 8px 0px #204e511a;
@@ -61,7 +61,7 @@
 }
 
 .dropdownButton {
-  width: 298px;
+  width: min(298px, calc(100% - 32px));
   height: 40px;
   background-color: #10b5c0;
   border-radius: 8px;
@@ -74,4 +74,10 @@
   border: none;
   margin-bottom: 16px;
   cursor: pointer;
+}
+
+@media (max-width: 480px) {
+  .dropdownBox {
+    right: 0;
+  }
 }

@@ -13,7 +13,7 @@
   margin-bottom: 24px;
 }
 .company {
-  width: 872px;
+  width: 100%;
 
   .input {
     width: 100%;
@@ -37,10 +37,10 @@
   }
 }
 .select {
-  width: 872px;
+  width: 100%;
 }
 .input {
-  width: 424px;
+  width: 100%;
 }
 .errorInput {
   border-color: red;
@@ -91,5 +91,31 @@
   img {
     margin-bottom: 10px;
     margin-right: 10px;
+  }
+}
+
+@media (max-width: 768px) {
+  .row {
+    grid-template-columns: 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+
+  .title {
+    font-size: 16px;
+  }
+
+  .input,
+  .select {
+    padding: 14px 16px;
+    font-size: 14px;
+  }
+
+  .footer {
+    justify-content: stretch;
+  }
+
+  .submit {
+    width: 100%;
   }
 }

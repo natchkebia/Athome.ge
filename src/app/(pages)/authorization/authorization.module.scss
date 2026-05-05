@@ -1,15 +1,16 @@
 .wrapper {
-  width: 1440px;
+  width: min(1440px, 100%);
   margin: 0 auto;
-  margin-top: 220px;
-  height: 800px;
+  min-height: 800px;
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 40px 16px 80px;
+  box-sizing: border-box;
 }
 .authWrapper {
-  width: 920px;
-  height: 694px;
+  width: min(920px, 100%);
+  min-height: 694px;
   display: flex;
   background: #fff;
   border-radius: 18px;
@@ -26,6 +27,7 @@
 }
 .rightSide {
   flex: 1;
+  min-width: 0;
   padding: 40px 50px;
   display: flex;
   flex-direction: column;
@@ -40,7 +42,7 @@
   }
 }
 .tabs {
-  width: 408px;
+  width: 100%;
   display: flex;
   gap: 16px;
   button {
@@ -48,7 +50,7 @@
     background: transparent;
     color: #3b3f42;
     height: 48px;
-    width: 196px;
+    flex: 1 1 0;
     border-radius: 8px;
     font-size: 14px;
     cursor: pointer;
@@ -63,7 +65,7 @@
   display: flex;
   flex-direction: column;
   gap: 14px;
-  width: 408px;
+  width: 100%;
   input,
   select {
     border: 1px solid #ecf2f6;
@@ -80,7 +82,7 @@
     display: flex;
     gap: 10px;
     > input {
-      width: 196px;
+      width: 100%;
     }
   }
   .genderGroup {
@@ -142,7 +144,9 @@
       appearance: none;
       -webkit-appearance: none;
       width: 16px;
+      min-width: 16px;
       height: 16px;
+      flex: 0 0 16px;
       border: 1px solid #10b5c0;
       border-radius: 4px;
       cursor: pointer;
@@ -192,18 +196,36 @@
   .socials {
     display: flex;
     gap: 16px;
+
     button {
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 5px;
-      width: 196px;
-      height: 48px;
+      gap: 10px;
+      flex: 1 1 0;
+      min-width: 0;
+      height: 46px;
       border: 1px solid #ecf2f6;
-      border-radius: 8px;
-      font-size: 12px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 510;
       cursor: pointer;
       background-color: #fff;
+      color: #3b3f42;
+      transition: border-color 0.2s ease, background-color 0.2s ease,
+        transform 0.2s ease;
+
+      img {
+        width: 26px;
+        height: 26px;
+        flex: 0 0 26px;
+      }
+
+      &:hover {
+        background-color: #f8fbfc;
+        border-color: #dce9ef;
+        transform: translateY(-1px);
+      }
     }
   }
   .footerText {
@@ -224,7 +246,7 @@
   .personTypeSwitch {
     display: flex;
     button {
-      width: 204px;
+      flex: 1 1 0;
       height: 63px;
       border: none;
       outline: none;
@@ -245,13 +267,13 @@
 
   .passwordField {
     position: relative;
-    width: 400px;
+    width: 100%;
     display: flex;
     input {
-      width: 196px;
+      width: 100%;
     }
     .secondPassword {
-      margin-left: 10px;
+      margin-left: 0;
     }
     .eyeButton {
       position: absolute;
@@ -403,7 +425,7 @@
 }
 
 .next {
-  width: 408px;
+  width: 100%;
   height: 48px;
   border-radius: 8px;
   border: 0;
@@ -444,5 +466,109 @@
     &.active {
       background: rgba(16, 181, 192, 1);
     }
+  }
+}
+
+@media (max-width: 900px) {
+  .wrapper {
+    min-height: auto;
+    padding: 28px 12px 64px;
+  }
+
+  .authWrapper {
+    min-height: auto;
+    max-width: 520px;
+  }
+
+  .leftSide {
+    display: none;
+  }
+
+  .rightSide {
+    padding: 28px 20px;
+    gap: 22px;
+  }
+}
+
+@media (max-width: 560px) {
+  .authWrapper {
+    border-radius: 16px;
+  }
+
+  .rightSide {
+    padding: 24px 14px;
+  }
+
+  .tabs {
+    gap: 8px;
+
+    button {
+      height: 44px;
+      font-size: 13px;
+    }
+  }
+
+  .form {
+    gap: 12px;
+
+    .row,
+    .password,
+    .socials {
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .socials {
+      button {
+        width: 100%;
+        height: 48px;
+        font-size: 14px;
+      }
+    }
+
+    .genderGroup {
+      flex-wrap: wrap;
+      gap: 10px 18px;
+    }
+
+    .personTypeSwitch {
+      button {
+        height: 52px;
+        font-size: 13px;
+      }
+    }
+
+    .checkbox {
+      align-items: flex-start;
+      line-height: 1.45;
+    }
+
+    .footerText {
+      margin-top: 20px;
+    }
+  }
+
+  .methods {
+    flex-direction: column;
+
+    .method {
+      width: 100%;
+      height: 112px;
+    }
+  }
+
+  .progressWrapper {
+    position: static;
+    width: 100%;
+    margin-top: 8px;
+
+    .progressStep {
+      flex: 1 1 0;
+      width: auto;
+    }
+  }
+
+  .mainTittle {
+    text-align: center;
   }
 }

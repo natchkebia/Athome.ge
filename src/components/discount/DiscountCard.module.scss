@@ -1,5 +1,6 @@
 .card {
-  width: 330px;
+  width: 100%;
+  max-width: 100%;
   height: 400px;
   border-radius: 18px;
   background: #fff;
@@ -16,7 +17,7 @@
   }
 }
 .cardWrapper {
-  width: 314px;
+  width: 100%;
   height: 236px;
   background-color: #f6f8fb;
   border-radius: 12px;
@@ -82,8 +83,8 @@
 }
 
 .title {
-  width: 200px;
-  height: 34px;
+  width: min(260px, 100%);
+  min-height: 34px;
   text-align: center;
   font-weight: 410;
   font-size: 14px;
@@ -91,13 +92,81 @@
   margin-top: 20px;
   margin-bottom: 46px;
   text-transform: uppercase;
+  overflow: hidden;
 }
 .priceWrapper {
-  width: 298px;
+  width: 100%;
   display: flex;
   align-items: center;
   justify-content: space-between;
   margin-bottom: 16px;
+}
+
+@media (max-width: 768px) {
+  .card {
+    height: 390px;
+    border-radius: 16px;
+  }
+
+  .cardWrapper {
+    height: 228px;
+  }
+
+  .title {
+    margin-top: 16px;
+    margin-bottom: 34px;
+  }
+}
+
+@media (max-width: 420px) {
+  .card {
+    height: 374px;
+    padding: 8px;
+  }
+
+  .cardWrapper {
+    height: 214px;
+  }
+
+  .discountBadge {
+    top: 22px;
+    left: 22px;
+  }
+
+  .newBadge {
+    top: 22px;
+    left: 22px;
+  }
+
+  .actions {
+    top: 18px;
+    right: 18px;
+  }
+
+  .imageWrapper {
+    margin-top: 28px;
+
+    img {
+      width: 150px;
+      height: 150px;
+      object-fit: contain;
+    }
+  }
+
+  .title {
+    width: 100%;
+    font-size: 13px;
+    margin-bottom: 24px;
+  }
+
+  .priceWrapper {
+    gap: 10px;
+  }
+
+  .addBtn {
+    width: 108px;
+    font-size: 13px;
+  }
 }
 
 .priceBox {

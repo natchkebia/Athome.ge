@@ -29,7 +29,19 @@ export default function DiscountSlider({
   onToggleWishlist,
 }: DiscountSliderProps) {
   const [progress, setProgress] = useState(10);
-  const sliderId = useId();
+  const sliderId = useId().replace(/:/g, "");
+
+  const updateProgress = (swiper: {
+    activeIndex: number;
+    slides: unknown[];
+    slidesPerViewDynamic: () => number;
+  }) => {
+    const visibleSlides = swiper.slidesPerViewDynamic();
+    const total = swiper.slides.length - visibleSlides;
+    const rawProgress = total > 0 ? (swiper.activeIndex / total) * 100 : 100;
+
+    setProgress(swiper.activeIndex === 0 ? 10 : Math.min(rawProgress, 100));
+  };
 
   return (
     <div className={styles.sliderWrapper}>
@@ -59,32 +71,22 @@ export default function DiscountSlider({
           nextEl: `.discount-next-${sliderId}`,
           prevEl: `.discount-prev-${sliderId}`,
         }}
-        slidesPerView={4}
+        slidesPerView="auto"
         spaceBetween={24}
+        breakpoints={{
+          0: {
+            spaceBetween: 12,
+          },
+          640: {
+            spaceBetween: 16,
+          },
+          1024: {
+            spaceBetween: 24,
+          },
+        }}
         loop={false}
-        onSlideChange={(swiper) => {
-          const slidesPerView = Number(swiper.params.slidesPerView) || 1;
-          const total = swiper.slides.length - slidesPerView;
-
-          const rawProgress =
-            total > 0 ? (swiper.activeIndex / total) * 100 : 100;
-
-          const progressValue =
-            swiper.activeIndex === 0
-              ? 10
-              : rawProgress > 100
-              ? 100
-              : rawProgress;
-
-          setProgress(progressValue);
-        }}
-        onAfterInit={(swiper) => {
-          const slidesPerView = Number(swiper.params.slidesPerView) || 1;
-          const total = swiper.slides.length - slidesPerView;
-          const progressValue =
-            total > 0 ? Math.max((swiper.activeIndex / total) * 100, 10) : 100;
-          setProgress(progressValue);
-        }}
+        onSlideChange={updateProgress}
+        onAfterInit={updateProgress}
         className={styles.swiper}
       >
         {products.map((item) => (
