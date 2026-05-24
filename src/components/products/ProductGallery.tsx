@@ -1,9 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import styles from "./ProductGallery.module.scss";
 import Image from "next/image";
-import { ChevronLeft, ChevronRight } from "react-bootstrap-icons";
 
 interface ProductGalleryProps {
   images: string[];
@@ -11,6 +10,15 @@ interface ProductGalleryProps {
 
 export default function ProductGallery({ images }: ProductGalleryProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const thumbnailRefs = useRef<(HTMLButtonElement | null)[]>([]);
+
+  useEffect(() => {
+    thumbnailRefs.current[currentIndex]?.scrollIntoView({
+      behavior: "smooth",
+      block: "nearest",
+      inline: "center",
+    });
+  }, [currentIndex]);
 
   const handlePrev = () => {
     setCurrentIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
@@ -53,6 +61,9 @@ export default function ProductGallery({ images }: ProductGalleryProps) {
           {images.map((img, i) => (
             <button
               key={i}
+              ref={(element) => {
+                thumbnailRefs.current[i] = element;
+              }}
               onClick={() => handleSelect(i)}
               className={`${styles.thumbBox} ${
                 currentIndex === i ? styles.active : ""

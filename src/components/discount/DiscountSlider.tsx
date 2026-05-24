@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useId } from "react";
+import Link from "next/link";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation } from "swiper/modules";
 import "swiper/css";
@@ -17,6 +18,8 @@ interface Product {
   newPrice?: number;
   isNew?: boolean;
   isWishlisted?: boolean; 
+  category?: string;
+  slug?: string;
 }
 
 interface DiscountSliderProps {
@@ -91,17 +94,36 @@ export default function DiscountSlider({
       >
         {products.map((item) => (
           <SwiperSlide key={item.id}>
-            <DiscountCard
-              id={String(item.id)} 
-              discount={item.discount}
-              image={item.image}
-              title={item.title}
-              oldPrice={item.oldPrice}
-              newPrice={item.newPrice}
-              isNew={item.isNew}
-              isWishlisted={item.isWishlisted}
-              onToggleWishlist={(id) => onToggleWishlist?.(Number(id))} // ✅
-            />
+            {item.category && item.slug ? (
+              <Link
+                href={`/products/${item.category}/${item.slug}`}
+                className={styles.cardLink}
+              >
+                <DiscountCard
+                  id={String(item.id)}
+                  discount={item.discount}
+                  image={item.image}
+                  title={item.title}
+                  oldPrice={item.oldPrice}
+                  newPrice={item.newPrice}
+                  isNew={item.isNew}
+                  isWishlisted={item.isWishlisted}
+                  onToggleWishlist={(id) => onToggleWishlist?.(Number(id))}
+                />
+              </Link>
+            ) : (
+              <DiscountCard
+                id={String(item.id)}
+                discount={item.discount}
+                image={item.image}
+                title={item.title}
+                oldPrice={item.oldPrice}
+                newPrice={item.newPrice}
+                isNew={item.isNew}
+                isWishlisted={item.isWishlisted}
+                onToggleWishlist={(id) => onToggleWishlist?.(Number(id))}
+              />
+            )}
           </SwiperSlide>
         ))}
       </Swiper>

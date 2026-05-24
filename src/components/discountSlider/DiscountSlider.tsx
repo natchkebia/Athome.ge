@@ -1,7 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import styles from "./DiscountSlider.module.scss";
+import {
+  getStorefrontBanners,
+  StorefrontBanner,
+} from "@/lib/api/storefront";
 
 const discountProducts = [
   {
@@ -27,18 +31,69 @@ const discountProducts = [
 ];
 
 export default function DiscountSlider() {
+  const [promotionBanners, setPromotionBanners] = useState<StorefrontBanner[]>(
+    []
+  );
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    getStorefrontBanners("promotion")
+      .then((items) => {
+        if (!isMounted) return;
+
+        console.log("[storefront/banners?type=promotion]", items);
+        setPromotionBanners(
+          [...items].sort((a, b) => a.sortOrder - b.sortOrder)
+        );
+        setCurrentIndex(0);
+      })
+      .catch(() => {
+        console.log("[storefront/banners?type=promotion] fallback static data");
+        if (isMounted) setPromotionBanners([]);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(max-width: 560px)");
+
+    const updateIsMobile = () => {
+      setIsMobile(mediaQuery.matches);
+    };
+
+    updateIsMobile();
+    mediaQuery.addEventListener("change", updateIsMobile);
+
+    return () => {
+      mediaQuery.removeEventListener("change", updateIsMobile);
+    };
+  }, []);
+
+  const hasPromotionBanners = promotionBanners.length > 0;
+  const slideCount = hasPromotionBanners
+    ? promotionBanners.length
+    : discountProducts.length;
+  const currentPromotion = promotionBanners[currentIndex];
+  const promotionImage = useMemo(() => {
+    if (!currentPromotion) return "";
+
+    return isMobile && currentPromotion.mobileImageUrl
+      ? currentPromotion.mobileImageUrl
+      : currentPromotion.imageUrl;
+  }, [currentPromotion, isMobile]);
 
   const handlePrev = () => {
-    setCurrentIndex((prev) =>
-      prev === 0 ? discountProducts.length - 1 : prev - 1
-    );
+    setCurrentIndex((prev) => (prev === 0 ? slideCount - 1 : prev - 1));
   };
 
   const handleNext = () => {
-    setCurrentIndex((prev) =>
-      prev === discountProducts.length - 1 ? 0 : prev + 1
-    );
+    setCurrentIndex((prev) => (prev === slideCount - 1 ? 0 : prev + 1));
   };
 
   const handleDotClick = (index: number) => {
@@ -46,8 +101,23 @@ export default function DiscountSlider() {
   };
 
   return (
-    <div className={styles.sliderContainer}>
-      <h3 className={styles.title}>საუკეთესო ფასდაკლებები</h3>
+    <div
+      className={`${styles.sliderContainer} ${
+        hasPromotionBanners ? styles.promotionContainer : ""
+      }`}
+      style={
+        hasPromotionBanners
+          ? {
+              backgroundImage: `url(${promotionImage})`,
+            }
+          : undefined
+      }
+    >
+      <h3 className={styles.title}>
+        {hasPromotionBanners
+          ? currentPromotion.title
+          : "საუკეთესო ფასდაკლებები"}
+      </h3>
 
       <div className={styles.sliderContent}>
         <button
@@ -57,22 +127,29 @@ export default function DiscountSlider() {
           &#10094;
         </button>
 
-        <div className={styles.productCard}>
-          <img
-            src={discountProducts[currentIndex].image}
-            alt="product"
-            className={styles.productImage}
-          />
+        {hasPromotionBanners ? (
+          <a className={styles.promotionLink} href={currentPromotion.linkUrl}>
+            <span>{currentPromotion.subtitle}</span>
+            {currentPromotion.ctaLabel && <strong>{currentPromotion.ctaLabel}</strong>}
+          </a>
+        ) : (
+          <div className={styles.productCard}>
+            <img
+              src={discountProducts[currentIndex].image}
+              alt="product"
+              className={styles.productImage}
+            />
 
-          <div className={styles.priceBox}>
-            <span className={styles.newPrice}>
-              {discountProducts[currentIndex].newPrice.toFixed(2)} ₾
-            </span>
-            <span className={styles.oldPrice}>
-              {discountProducts[currentIndex].oldPrice.toFixed(2)} ₾
-            </span>
+            <div className={styles.priceBox}>
+              <span className={styles.newPrice}>
+                {discountProducts[currentIndex].newPrice.toFixed(2)} ₾
+              </span>
+              <span className={styles.oldPrice}>
+                {discountProducts[currentIndex].oldPrice.toFixed(2)} ₾
+              </span>
+            </div>
           </div>
-        </div>
+        )}
 
         <button
           onClick={handleNext}
@@ -83,7 +160,7 @@ export default function DiscountSlider() {
       </div>
 
       <div className={styles.dots}>
-        {discountProducts.map((_, index) => (
+        {Array.from({ length: slideCount }).map((_, index) => (
           <span
             key={index}
             onClick={() => handleDotClick(index)}

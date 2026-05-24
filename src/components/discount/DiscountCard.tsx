@@ -56,7 +56,13 @@ export default function DiscountCard({
         </div>
 
         <div className={styles.imageWrapper}>
-          <Image src={image} alt={title} width={172} height={172} />
+          <Image
+            className={styles.productImage}
+            src={image}
+            alt={title}
+            width={172}
+            height={172}
+          />
         </div>
       </div>
 

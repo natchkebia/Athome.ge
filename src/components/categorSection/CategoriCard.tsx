@@ -8,12 +8,15 @@ interface CategoryCardProps {
   title: string;
   image: string;
   bgColor: string;
+  slug: string;
 }
 
-export default function CategoryCard({ title, image, bgColor }: CategoryCardProps) {
-  // URL-safe ფორმატისთვის, encodeURIComponent ვიყენებთ
-  const slug = encodeURIComponent(title);
-
+export default function CategoryCard({
+  title,
+  image,
+  bgColor,
+  slug,
+}: CategoryCardProps) {
   return (
     <Link href={`/products/${slug}`} className={styles.cardLink}>
       <div className={styles.card} style={{ backgroundColor: bgColor }}>

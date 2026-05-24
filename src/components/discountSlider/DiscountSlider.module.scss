@@ -18,10 +18,36 @@
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 }
 
+.promotionContainer {
+  justify-content: flex-start;
+  background-size: cover;
+  background-position: center;
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(
+      180deg,
+      rgba(0, 0, 0, 0.45) 0%,
+      rgba(0, 0, 0, 0.08) 44%,
+      rgba(0, 0, 0, 0.38) 100%
+    );
+  }
+
+  > * {
+    position: relative;
+    z-index: 1;
+  }
+}
+
 .title {
   font-size: 16px;
   font-weight: 590;
   text-align: center;
+  min-height: 20px;
+  padding: 0 20px;
 }
 
 .sliderContent {
@@ -50,6 +76,34 @@
   width: 172px;
   height: 172px;
   object-fit: contain;
+}
+
+.promotionLink {
+  width: calc(100% - 56px);
+  min-height: 332px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-end;
+  gap: 12px;
+  color: #fff;
+  text-decoration: none;
+
+  span {
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1.35;
+  }
+
+  strong {
+    display: inline-flex;
+    align-items: center;
+    min-height: 38px;
+    padding: 0 16px;
+    border-radius: 8px;
+    background: #10b5c0;
+    font-size: 14px;
+  }
 }
 
 .priceBox {
@@ -141,6 +195,11 @@
     height: 270px;
     gap: 24px;
   }
+
+  .promotionLink {
+    width: calc(100% - 72px);
+    min-height: 270px;
+  }
 }
 
 @media (max-width: 560px) {
@@ -160,6 +219,11 @@
   .productCard {
     width: min(230px, calc(100vw - 84px));
     height: 238px;
+  }
+
+  .promotionLink {
+    width: calc(100% - 56px);
+    min-height: 238px;
   }
 
   .productImage {

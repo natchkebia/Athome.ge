@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import styles from "./StockCheck.module.scss";
+import AtHomeLoader from "../shared/AtHomeLoader";
 
 interface StockCheckProps {
   productId: string; // როცა დააჭერ, ეს წამოიღება props-ად
@@ -59,7 +60,7 @@ export default function StockCheck({ productId }: StockCheckProps) {
             <h3 className={styles.title}>მარაგი ფილიალებში</h3>
 
             {loading ? (
-              <p className={styles.loading}>იტვირთება...</p>
+              <AtHomeLoader variant="inline" />
             ) : (
               <div className={styles.locations}>
                 {stockData.map((store, index) => (

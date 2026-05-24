@@ -10,7 +10,7 @@ interface Product {
   title: string;
   oldPrice?: number;
   newPrice?: number;
-  category: string;
+  category?: string;
   isNew?: boolean;
 }
 

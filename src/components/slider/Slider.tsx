@@ -1,9 +1,22 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import styles from "./Slider.module.scss";
+import {
+  getStorefrontBanners,
+  StorefrontBanner,
+} from "@/lib/api/storefront";
 
-const sliderData = [
+type Slide = {
+  id: number;
+  image: string;
+  title?: string;
+  subtitle?: string;
+  linkUrl?: string;
+  ctaLabel?: string;
+};
+
+const sliderData: Slide[] = [
   {
     id: 1,
     image:
@@ -52,24 +65,94 @@ const sliderData = [
 ];
 
 export default function Slider() {
+  const [banners, setBanners] = useState<StorefrontBanner[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    getStorefrontBanners("hero")
+      .then((items) => {
+        if (!isMounted) return;
+
+        console.log("[storefront/banners]", items);
+        setBanners([...items].sort((a, b) => a.sortOrder - b.sortOrder));
+        setCurrentIndex(0);
+      })
+      .catch(() => {
+        console.log("[storefront/banners] fallback static slider data");
+        if (isMounted) setBanners([]);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(max-width: 560px)");
+
+    const updateIsMobile = () => {
+      setIsMobile(mediaQuery.matches);
+    };
+
+    updateIsMobile();
+    mediaQuery.addEventListener("change", updateIsMobile);
+
+    return () => {
+      mediaQuery.removeEventListener("change", updateIsMobile);
+    };
+  }, []);
+
+  const slides = useMemo(
+    (): Slide[] =>
+      banners.length > 0
+        ? banners.map((banner) => ({
+            id: banner.id,
+            image:
+              isMobile && banner.mobileImageUrl
+                ? banner.mobileImageUrl
+                : banner.imageUrl,
+            title: banner.title,
+            subtitle: banner.subtitle,
+            linkUrl: banner.linkUrl,
+            ctaLabel: banner.ctaLabel,
+          }))
+        : sliderData,
+    [banners, isMobile]
+  );
 
   const handlePrev = () => {
-    setCurrentIndex((prev) => (prev === 0 ? sliderData.length - 1 : prev - 1));
+    setCurrentIndex((prev) => (prev === 0 ? slides.length - 1 : prev - 1));
   };
 
   const handleNext = () => {
-    setCurrentIndex((prev) => (prev === sliderData.length - 1 ? 0 : prev + 1));
+    setCurrentIndex((prev) => (prev === slides.length - 1 ? 0 : prev + 1));
   };
+
+  const currentSlide = slides[currentIndex] ?? slides[0];
 
   return (
     <div
       className={styles.sliderContainer}
       style={{
-        backgroundImage: `url(${sliderData[currentIndex].image})`,
+        backgroundImage: `url(${currentSlide.image})`,
       }}
     >
       <div className={styles.overlay}>
+        {currentSlide.title && (
+          <div className={styles.content}>
+            <h1>{currentSlide.title}</h1>
+            {currentSlide.subtitle && <p>{currentSlide.subtitle}</p>}
+            {currentSlide.linkUrl && (
+              <a href={currentSlide.linkUrl}>
+                {currentSlide.ctaLabel || "ნახვა"}
+              </a>
+            )}
+          </div>
+        )}
+
         <div className={styles.rightControls}>
           <div className={styles.range}>
             <span>{String(currentIndex + 1).padStart(2, "0")}</span>
@@ -77,11 +160,11 @@ export default function Slider() {
               <div
                 className={styles.progress}
                 style={{
-                  height: `${((currentIndex + 1) / sliderData.length) * 100}%`,
+                  height: `${((currentIndex + 1) / slides.length) * 100}%`,
                 }}
               />
             </div>
-            <span> {String(sliderData.length).padStart(2, "0")}</span>
+            <span> {String(slides.length).padStart(2, "0")}</span>
           </div>
 
           <div className={styles.controls}>

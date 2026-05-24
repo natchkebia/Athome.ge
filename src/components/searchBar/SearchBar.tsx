@@ -1,79 +1,147 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import {
+  getStorefrontCategories,
+  getStorefrontSearchSuggestions,
+  StorefrontCategory,
+  StorefrontSearchSuggestion,
+} from "@/lib/api/storefront";
 import styles from "./SearchBar.module.scss";
 
 export default function SearchBar() {
-  const fakeCategories = [
-    "კომპიუტერები",
-    "კომპიუტერის ნაწილები",
-    "პერიფერიალები",
-    "კომპიუტერის აქსესუარები",
-    "მონიტორები",
-    "ტელევიზორები",
-    "პროექტორები",
-    "სავარძლები და მაგიდები",
-    "ნოუთბუქები",
-    "ნოუთბუქის ნაწილები",
-    "ნოუთბუქის აქსესუარები",
-    "კაბელები და ადაპტერები",
-    "მობილურის აქსესუარები",
-    'ქსელის აპარატურა'
-  ];
-
-  const [selectedCategory, setSelectedCategory] = useState("კატეგორია");
+  const router = useRouter();
+  const searchRef = useRef<HTMLDivElement>(null);
+  const [categories, setCategories] = useState<StorefrontCategory[]>([]);
+  const [selectedCategory, setSelectedCategory] =
+    useState<StorefrontCategory | null>(null);
   const [query, setQuery] = useState("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [suggestions, setSuggestions] = useState<StorefrontSearchSuggestion[]>(
+    []
+  );
+  const [suggestionsOpen, setSuggestionsOpen] = useState(false);
+  const trimmedQuery = query.trim();
+  const categoryLabel = selectedCategory?.name || "კატეგორია";
 
   const toggleDropdown = () => setIsDropdownOpen(!isDropdownOpen);
 
-  const executeSearch = (searchQuery: string, category: string) => {
-    if (category === "კატეგორია") {
-      console.log("ძებნა:", searchQuery);
-    } else {
-      console.log("ძებნა:", selectedCategory.length, "კატეგორიაში:", category);
-    }
+  const searchUrl = useMemo(() => {
+    const params = new URLSearchParams();
+
+    if (trimmedQuery) params.set("query", trimmedQuery);
+    if (selectedCategory?.slug) params.set("categorySlug", selectedCategory.slug);
+
+    return params.toString() ? `/search?${params.toString()}` : "/search";
+  }, [selectedCategory?.slug, trimmedQuery]);
+
+  const executeSearch = () => {
+    if (!trimmedQuery && !selectedCategory) return;
+
+    setSuggestionsOpen(false);
+    router.push(searchUrl);
   };
 
-  const handleCategorySelect = (category: string) => {
+  const handleCategorySelect = (category: StorefrontCategory | null) => {
     setSelectedCategory(category);
     setIsDropdownOpen(false);
-    executeSearch(query, category);
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setQuery(e.target.value);
   };
 
-  const handleSearch = () => {
-    executeSearch(query, selectedCategory);
-  };
-
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
-      executeSearch(query, selectedCategory);
+      executeSearch();
     }
   };
 
+  const handleSuggestionClick = (suggestion: StorefrontSearchSuggestion) => {
+    setSuggestionsOpen(false);
+    setQuery(suggestion.label);
+
+    if (suggestion.type === "brand") {
+      router.push(`/products/brand/${suggestion.slug}`);
+      return;
+    }
+
+    if (suggestion.type === "category") {
+      router.push(`/products/${suggestion.slug}`);
+      return;
+    }
+
+    router.push(`/products/search/${suggestion.slug}`);
+  };
+
+  useEffect(() => {
+    getStorefrontCategories()
+      .then(setCategories)
+      .catch(() => setCategories([]));
+  }, []);
+
+  useEffect(() => {
+    if (trimmedQuery.length < 2) {
+      setSuggestions([]);
+      return;
+    }
+
+    const timeout = window.setTimeout(() => {
+      getStorefrontSearchSuggestions(trimmedQuery)
+        .then((items) => {
+          setSuggestions(items);
+          setSuggestionsOpen(items.length > 0);
+        })
+        .catch(() => {
+          setSuggestions([]);
+          setSuggestionsOpen(false);
+        });
+    }, 250);
+
+    return () => window.clearTimeout(timeout);
+  }, [trimmedQuery]);
+
+  useEffect(() => {
+    const handlePointerDown = (event: PointerEvent) => {
+      if (!searchRef.current?.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
+        setSuggestionsOpen(false);
+      }
+    };
+
+    document.addEventListener("pointerdown", handlePointerDown);
+
+    return () => document.removeEventListener("pointerdown", handlePointerDown);
+  }, []);
+
   return (
-    <div className={styles.searchBar}>
+    <div className={styles.searchBar} ref={searchRef}>
       <div className={styles.dropdown}>
         <button onClick={toggleDropdown}>
-          {selectedCategory}
+          <span>{categoryLabel}</span>
           <img src="/icons/Arrow-down.svg" alt="arrow-down" />
         </button>
 
         {isDropdownOpen && (
           <ul className={styles.dropdownList}>
-            {fakeCategories.map((cat) => (
+            <li
+              className={`${styles.dropdownListItem} ${
+                !selectedCategory ? styles.selected : ""
+              }`}
+              onClick={() => handleCategorySelect(null)}
+            >
+              ყველა კატეგორია
+            </li>
+            {categories.map((cat) => (
               <li
-                key={cat}
+                key={cat.slug}
                 className={`${styles.dropdownListItem} ${
-                  selectedCategory === cat ? styles.selected : ""
+                  selectedCategory?.slug === cat.slug ? styles.selected : ""
                 }`}
                 onClick={() => handleCategorySelect(cat)}
               >
-                {cat}
+                {cat.name}
               </li>
             ))}
           </ul>
@@ -86,11 +154,33 @@ export default function SearchBar() {
         value={query}
         onChange={handleInputChange}
         onKeyDown={handleKeyPress}
+        onFocus={() => setSuggestionsOpen(suggestions.length > 0)}
       />
 
-      <button className={styles.searchBtn} onClick={handleSearch}>
+      <button className={styles.searchBtn} onClick={executeSearch}>
         ძებნა
       </button>
+
+      {suggestionsOpen && suggestions.length > 0 && (
+        <div className={styles.suggestions}>
+          {suggestions.map((suggestion) => (
+            <button
+              key={`${suggestion.type}-${suggestion.slug}`}
+              type="button"
+              onClick={() => handleSuggestionClick(suggestion)}
+            >
+              <span>{suggestion.label}</span>
+              <small>
+                {suggestion.type === "brand"
+                  ? "ბრენდი"
+                  : suggestion.type === "category"
+                  ? "კატეგორია"
+                  : "პროდუქტი"}
+              </small>
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

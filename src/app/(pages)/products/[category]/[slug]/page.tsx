@@ -1,8 +1,14 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-// import styles from "./page.module.scss";
 import ProductDetail from "@/components/products/ProductDetail";
+import {
+  getStorefrontProduct,
+  StorefrontProductDetail,
+} from "@/lib/api/storefront";
+import EmptyState from "@/components/products/EmptyState";
+import AtHomeLoader from "@/components/shared/AtHomeLoader";
 
 type Params = {
   category: string;
@@ -10,39 +16,33 @@ type Params = {
 };
 
 export default function ProductDetailPage() {
-  const { category, slug } = useParams<Params>();
+  const { slug } = useParams<Params>();
+  const [product, setProduct] = useState<StorefrontProductDetail | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  // --- დროებითი fake მონაცემი ვიზუალისთვის
-  const product = {
-    id: "105035",
-    slug: slug,
-    category: category,
-    brand: "Razer",
-    title: "Razer Headset BlackShark V2 X 7.1 USB Black",
-    price: 150,
-    oldPrice: 260,
-    images: [
-      "/icons/product1.svg",
-      "/icons/product2.svg",
-      "/icons/product3.svg",
-      "/icons/product4.svg",
-    ],
-    specs: [
-      { label: "ბრენდი:", value: "ASUS" },
-      { label: "მოდელი:", value: "M3604YA-MB106" },
-      { label: "ფერი:", value: "შავი" },
-      { label: "პროცესორის მწარმოებელი:", value: "AMD" },
-      { label: "პროცესორის/ჩიპის ტიპი:", value: "AMD Ryzen 7 7730U" },
-      { label: "პროცესორის მოდელი:", value: "7730U" },
-      { label: "ბირთვების რაოდენობა:", value: "8" },
-      { label: "პროცესორის ნაკადი:", value: "16" },
-      { label: "პროცესორის სიჩქარე", value: "2000 MHz" },
-      { label: "პროცესორის მაქსიმალური სიჩქარე", value: "4500 MHz" },
-      { label: "ვიდეო ადაპტერის ტიპი:", value: "ინტეგრირებული" },
-      { label: "გრაფიკული პროცესორი:", value: "AMD Radeon Graphics" },
-      { label: "ინტეგრირებული გრაფიკული ბარათი:", value: "დიახ" },
-    ],
-  };
+  useEffect(() => {
+    let isMounted = true;
+
+    setLoading(true);
+
+    getStorefrontProduct(slug)
+      .then((details) => {
+        if (isMounted) setProduct(details);
+      })
+      .catch(() => {
+        if (isMounted) setProduct(null);
+      })
+      .finally(() => {
+        if (isMounted) setLoading(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [slug]);
+
+  if (loading) return <AtHomeLoader variant="page" />;
+  if (!product) return <EmptyState />;
 
   return (
     <div>

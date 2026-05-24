@@ -1,4 +1,5 @@
 "use client";
+import { useState } from "react";
 import styles from "./BrandCard.module.scss";
 
 interface BrandCardProps {
@@ -7,9 +8,21 @@ interface BrandCardProps {
 }
 
 export default function BrandCard({ image, alt = "brand" }: BrandCardProps) {
+  const [failed, setFailed] = useState(false);
+
   return (
     <div className={styles.wrapper}>
-      <img src={image} alt={alt} />
+      {failed ? (
+        <span className={styles.fallback}>{alt}</span>
+      ) : (
+        <img
+          src={image}
+          alt={alt}
+          onError={() => {
+            setFailed(true);
+          }}
+        />
+      )}
     </div>
   );
 }
