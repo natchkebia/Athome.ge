@@ -1,8 +1,12 @@
 import { notFound } from "next/navigation";
 import styles from "./page.module.scss";
-import { blogs } from "@/data/blogs";
 import Breadcrumb from "@/components/ breadcrumb/Breadcrumb";
 import BlogComments from "@/components/blogComments/BlogComments";
+import {
+  formatBlogDate,
+  getBlogParagraphs,
+  getStorefrontBlogPost,
+} from "@/lib/storefront/blog";
 
 type Props = {
   params: Promise<{
@@ -12,11 +16,12 @@ type Props = {
 
 export default async function NewsDetailPage({ params }: Props) {
   const { slug } = await params;
-  const blog = blogs.find((item) => item.slug === slug);
+  const blog = await getStorefrontBlogPost(slug);
 
   if (!blog) {
     notFound();
   }
+  const paragraphs = getBlogParagraphs(blog.body || blog.summary);
   const breadcrumbs = [
     { label: "მთავარი გვერდი", href: "/" },
     { label: "სიახლეები", href: "/news" },
@@ -33,7 +38,9 @@ export default async function NewsDetailPage({ params }: Props) {
           <div className={styles.heroInfo}>
             <h1>{blog.title}</h1>
 
-            <span className={styles.dateBadge}>{blog.detailDate}</span>
+            <span className={styles.dateBadge}>
+              {formatBlogDate(blog.publishedAt)}
+            </span>
 
             <div className={styles.share}>
               <span>გაზიარება</span>
@@ -43,8 +50,8 @@ export default async function NewsDetailPage({ params }: Props) {
           </div>
 
           <div className={styles.heroImage}>
-            {blog.image ? (
-              <img src={blog.image} alt={blog.title} />
+            {blog.thumbnailUrl ? (
+              <img src={blog.thumbnailUrl} alt={blog.title} />
             ) : (
               <div className={styles.placeholder}>
                 <span>▧</span>
@@ -54,7 +61,7 @@ export default async function NewsDetailPage({ params }: Props) {
         </section>
 
         <article className={styles.article}>
-          {blog.content.map((paragraph, index) => (
+          {paragraphs.map((paragraph, index) => (
             <p key={index}>{paragraph}</p>
           ))}
         </article>

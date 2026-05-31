@@ -15,6 +15,7 @@ import {
   mapStorefrontProductToCard,
   StorefrontProductCard,
 } from "@/lib/storefront/products";
+import { useCommerce } from "@/contexts/CommerceContext";
 
 const PRODUCT_LIMIT = 24;
 
@@ -34,6 +35,7 @@ export default function BrandProductsPage() {
   const [loading, setLoading] = useState(true);
   const [filtersActive, setFiltersActive] = useState(false);
   const [visibleCount, setVisibleCount] = useState(9);
+  const { wishlistProductIds, toggleWishlist, addToCart } = useCommerce();
 
   const params = useParams();
   const brandSlug = decodeURIComponent(params.brandSlug as string);
@@ -157,7 +159,13 @@ export default function BrandProductsPage() {
                   className={styles.cardLink}
                   style={{ textDecoration: "none", color: "inherit" }}
                 >
-                  <DiscountCard {...item} id={String(item.id)} />
+                  <DiscountCard
+                    {...item}
+                    id={String(item.id)}
+                    isWishlisted={wishlistProductIds.has(item.id)}
+                    onToggleWishlist={(id) => toggleWishlist(Number(id))}
+                    onAddToCart={(id) => addToCart(Number(id))}
+                  />
                 </Link>
               ))}
             </div>

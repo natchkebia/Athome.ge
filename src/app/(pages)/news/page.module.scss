@@ -105,26 +105,41 @@
   gap: 18px;
 
   span,
-  button {
+  a {
     border: 0;
     background: transparent;
     color: #33383d;
     font-size: 12px;
     cursor: pointer;
+    text-decoration: none;
   }
+}
 
-  button {
-    width: 34px;
-    height: 34px;
-    border-radius: 50%;
-    background: #f4f7fa;
-    color: rgba(16, 181, 192, 1);
-  }
+.pagination > span:first-child,
+.pagination > span:last-child,
+.pagination > a:first-child,
+.pagination > a:last-child {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: #f4f7fa;
+  color: rgba(16, 181, 192, 1);
+  display: grid;
+  place-items: center;
 }
 
 .active {
   color: rgba(16, 181, 192, 1) !important;
   font-weight: 800;
+}
+
+.empty {
+  max-width: 1390px;
+  margin: 0 auto;
+  padding: 70px 16px;
+  text-align: center;
+  color: #66717a;
+  font-size: 14px;
 }
 
 @media (max-width: 1050px) {

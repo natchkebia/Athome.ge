@@ -6,6 +6,7 @@ import {
   getStorefrontBanners,
   StorefrontBanner,
 } from "@/lib/api/storefront";
+import { normalizeMediaUrl } from "@/lib/storefront/products";
 
 type Slide = {
   id: number;
@@ -16,79 +17,37 @@ type Slide = {
   ctaLabel?: string;
 };
 
-const sliderData: Slide[] = [
-  {
-    id: 1,
-    image:
-      "https://www.shutterstock.com/image-vector/upgrade-repair-desktop-computers-concept-260nw-2136088153.jpg",
-  },
-  {
-    id: 2,
-    image:
-      "https://www.shutterstock.com/image-vector/hardware-software-computer-technology-background-600nw-2048513402.jpg",
-  },
-  {
-    id: 3,
-    image:
-      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSuI4zhMLj4akJu-U-97ql6hO4bnPC-nOEodjK9mum0u-RKpQfgsyjLcObeKoVn5R6aWN8&usqp=CAU",
-  },
-  {
-    id: 4,
-    image:
-      "https://png.pngtree.com/thumb_back/fh260/background/20241001/pngtree-technology-and-digital-circuit-blue-computer-motherboard-abstract-hardware-science-background-image_16290499.jpg",
-  },
-  {
-    id: 5,
-    image:
-      "https://cdn.shopify.com/s/files/1/0329/9865/3996/t/5/assets/computer_hardware_background_images_hd-bzSuBZ.True?v=1707743765",
-  },
-  {
-    id: 6,
-    image:
-      "https://e0.pxfuel.com/wallpapers/690/225/desktop-wallpaper-electronic-chip-electronics-hardware-computer-hardware-keyboard-resized-computer-components.jpg",
-  },
-  {
-    id: 7,
-    image:
-      "https://www.shutterstock.com/image-vector/upgrade-repair-desktop-computers-concept-260nw-2136088153.jpg",
-  },
-  {
-    id: 8,
-    image:
-      "https://img.freepik.com/premium-photo/fragment-computer-hardware-components-inside-powerful-processor_407240-1421.jpg",
-  },
-  {
-    id: 9,
-    image:
-      "https://www.shutterstock.com/image-vector/upgrade-repair-desktop-computers-concept-260nw-2136088153.jpg",
-  },
-];
+type SliderProps = {
+  banners?: StorefrontBanner[];
+};
 
-export default function Slider() {
-  const [banners, setBanners] = useState<StorefrontBanner[]>([]);
+export default function Slider({ banners: providedBanners }: SliderProps) {
+  const [fetchedBanners, setFetchedBanners] = useState<StorefrontBanner[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
+    if (providedBanners) return;
+
     let isMounted = true;
 
     getStorefrontBanners("hero")
       .then((items) => {
         if (!isMounted) return;
 
-        console.log("[storefront/banners]", items);
-        setBanners([...items].sort((a, b) => a.sortOrder - b.sortOrder));
+        setFetchedBanners([...items].sort((a, b) => a.sortOrder - b.sortOrder));
         setCurrentIndex(0);
       })
       .catch(() => {
-        console.log("[storefront/banners] fallback static slider data");
-        if (isMounted) setBanners([]);
+        if (isMounted) setFetchedBanners([]);
       });
 
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [providedBanners]);
+
+  const banners = providedBanners ?? fetchedBanners;
 
   useEffect(() => {
     const mediaQuery = window.matchMedia("(max-width: 560px)");
@@ -107,21 +66,25 @@ export default function Slider() {
 
   const slides = useMemo(
     (): Slide[] =>
-      banners.length > 0
-        ? banners.map((banner) => ({
-            id: banner.id,
-            image:
-              isMobile && banner.mobileImageUrl
-                ? banner.mobileImageUrl
-                : banner.imageUrl,
-            title: banner.title,
-            subtitle: banner.subtitle,
-            linkUrl: banner.linkUrl,
-            ctaLabel: banner.ctaLabel,
-          }))
-        : sliderData,
+      banners
+        .map((banner) => ({
+          id: banner.id,
+          image:
+            isMobile && banner.mobileImageUrl
+              ? normalizeMediaUrl(banner.mobileImageUrl, "")
+              : normalizeMediaUrl(banner.imageUrl, ""),
+          title: banner.title,
+          subtitle: banner.subtitle,
+          linkUrl: banner.linkUrl,
+          ctaLabel: banner.ctaLabel,
+        }))
+        .filter((slide) => slide.image),
     [banners, isMobile]
   );
+
+  if (slides.length === 0) {
+    return null;
+  }
 
   const handlePrev = () => {
     setCurrentIndex((prev) => (prev === 0 ? slides.length - 1 : prev - 1));

@@ -1,20 +1,21 @@
 .wrapper {
   width: 100%;
-  max-width: 1400px;
-  margin: 0 auto;
+  max-width: none;
+  margin: 0;
 }
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 330px));
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 24px;
-  justify-content: center;
+  justify-content: stretch;
   width: 100%;
 }
 
 .cardWrapper {
   width: 100%;
   min-width: 0;
+  max-width: 330px;
 }
 
 .title {
@@ -64,14 +65,20 @@
   &:hover {
     background: rgba(15, 161, 171, 1);
   }
+
+  &:disabled {
+    cursor: wait;
+    opacity: 0.75;
+  }
 }
 
 .profileVariant .grid {
-  margin: 0 auto;
+  margin: 0;
 }
 
 .pageVariant .grid {
   margin: 0 auto;
+  max-width: 1068px;
 }
 
 @media (max-width: 768px) {

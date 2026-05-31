@@ -55,11 +55,16 @@
 .inputGroup {
   display: flex;
   flex-direction: column;
+
   label {
     margin-bottom: 8px;
     color: #444;
     font-size: 14px;
   }
+}
+
+.fullWidth {
+  grid-column: 1 / -1;
 }
 
 .footer {

@@ -8,7 +8,7 @@ interface Step1Props {
   onNext?: (data: FormValues) => void;
 }
 
-interface FormValues {
+export interface FormValues {
   type: "individual" | "company";
   firstName: string;
   lastName: string;
@@ -115,7 +115,7 @@ export default function Step1Contact({ onNext }: Step1Props) {
       </div>
 
       <div className={styles.row}>
-        <div className={styles.inputGroup}>
+        <div className={`${styles.inputGroup} ${styles.fullWidth}`}>
           <select
             name="type"
             value={form.type}
@@ -159,7 +159,7 @@ export default function Step1Contact({ onNext }: Step1Props) {
       {form.type === "company" && (
         <>
           <div className={styles.row}>
-            <div className={styles.company}>
+            <div className={`${styles.company} ${styles.fullWidth}`}>
               <input
                 name="companyName"
                 value={form.companyName}

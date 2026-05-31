@@ -1,9 +1,17 @@
+html,
+body {
+  min-height: 100%;
+}
+
 body {
   margin: 0;
   padding: 0;
   width: 100%;
+  min-height: 100vh;
   overflow-x: hidden;
   font-family: "SF Georgian Rounded", sans-serif;
+  display: flex;
+  flex-direction: column;
 }
 
 .site-wrapper {
@@ -40,6 +48,7 @@ body {
 .page-content {
   margin-top: 200px;
   transition: margin-top 0.3s ease;
+  flex: 1 0 auto;
 }
 
 .fixed-header.scrolled + .page-content {
@@ -52,6 +61,10 @@ body {
 
 html {
   overflow-x: hidden;
+}
+
+footer {
+  flex-shrink: 0;
 }
 
 img {

@@ -9,18 +9,6 @@ import {
   StorefrontBrand,
 } from "@/lib/api/storefront";
 
-const fallbackBrands = [
-  { slug: "sony", name: "Sony", logoUrl: "/icons/sony.svg" },
-  { slug: "lenovo", name: "Lenovo", logoUrl: "/icons/lenovo.svg" },
-  { slug: "asus", name: "Asus", logoUrl: "/icons/asus.svg" },
-  { slug: "apple", name: "Apple", logoUrl: "/icons/apple.svg" },
-  { slug: "philips", name: "Philips", logoUrl: "/icons/philips.svg" },
-  { slug: "tplink", name: "TP-Link", logoUrl: "/icons/tplink.svg" },
-  { slug: "sony-2", name: "Sony", logoUrl: "/icons/sony.svg" },
-  { slug: "lenovo-2", name: "Lenovo", logoUrl: "/icons/lenovo.svg" },
-  { slug: "asus-2", name: "Asus", logoUrl: "/icons/asus.svg" },
-];
-
 function normalizeLogoUrl(logoUrl: string) {
   if (logoUrl.startsWith("/media/http")) {
     return logoUrl.replace("/media/", "");
@@ -42,7 +30,6 @@ export default function BrandSlider() {
         setBrands([...items].sort((a, b) => a.displayOrder - b.displayOrder));
       })
       .catch(() => {
-        console.log("[storefront/brands/featured] fallback static brands");
         if (isMounted) setBrands([]);
       });
 
@@ -53,15 +40,15 @@ export default function BrandSlider() {
 
   const slides = useMemo(
     () =>
-      brands.length > 0
-        ? brands.map((brand) => ({
+      brands.map((brand) => ({
             slug: brand.slug,
             name: brand.name,
             logoUrl: normalizeLogoUrl(brand.logoUrl),
-          }))
-        : fallbackBrands,
+          })),
     [brands]
   );
+  if (slides.length === 0) return null;
+
   const loopSlides = [...slides, ...slides];
 
   return (

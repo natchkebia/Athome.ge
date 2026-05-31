@@ -8,6 +8,7 @@ import "swiper/css";
 import "swiper/css/navigation";
 import styles from "./DiscountSlider.module.scss";
 import DiscountCard from "./DiscountCard";
+import { useCommerce } from "@/contexts/CommerceContext";
 
 interface Product {
   id: number;
@@ -33,6 +34,7 @@ export default function DiscountSlider({
 }: DiscountSliderProps) {
   const [progress, setProgress] = useState(10);
   const sliderId = useId().replace(/:/g, "");
+  const { wishlistProductIds, toggleWishlist, addToCart } = useCommerce();
 
   const updateProgress = (swiper: {
     activeIndex: number;
@@ -107,8 +109,15 @@ export default function DiscountSlider({
                   oldPrice={item.oldPrice}
                   newPrice={item.newPrice}
                   isNew={item.isNew}
-                  isWishlisted={item.isWishlisted}
-                  onToggleWishlist={(id) => onToggleWishlist?.(Number(id))}
+                  isWishlisted={
+                    item.isWishlisted ?? wishlistProductIds.has(item.id)
+                  }
+                  onToggleWishlist={(id) =>
+                    onToggleWishlist
+                      ? onToggleWishlist(Number(id))
+                      : toggleWishlist(Number(id))
+                  }
+                  onAddToCart={(id) => addToCart(Number(id))}
                 />
               </Link>
             ) : (
@@ -120,8 +129,15 @@ export default function DiscountSlider({
                 oldPrice={item.oldPrice}
                 newPrice={item.newPrice}
                 isNew={item.isNew}
-                isWishlisted={item.isWishlisted}
-                onToggleWishlist={(id) => onToggleWishlist?.(Number(id))}
+                isWishlisted={
+                  item.isWishlisted ?? wishlistProductIds.has(item.id)
+                }
+                onToggleWishlist={(id) =>
+                  onToggleWishlist
+                    ? onToggleWishlist(Number(id))
+                    : toggleWishlist(Number(id))
+                }
+                onAddToCart={(id) => addToCart(Number(id))}
               />
             )}
           </SwiperSlide>

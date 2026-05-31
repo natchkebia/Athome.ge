@@ -2,28 +2,19 @@
 
 import { useRouter } from "next/navigation";
 import styles from "./Wishlist.module.scss";
-import { useState } from "react";
 import WishlistTab from "@/components/profile/WishlistTab";
+import { useCommerce } from "@/contexts/CommerceContext";
 
 export default function WishlistPage() {
   const router = useRouter();
+  const { wishlist } = useCommerce();
 
   const handleGoToProducts = () => {
     router.push("/products");
   };
-  const [wishlist, setWishlist] = useState([
-    {
-      id: "1",
-      image: "/images/DiscountHeadphone.png",
-      title: "Lenovo IdeaPad 3",
-      oldPrice: 2000,
-      newPrice: 1599,
-    },
-  ]);
-
   return (
     <div className={styles.wishlistPage}>
-      {wishlist.length === 0 ? (
+      {wishlist.items.length === 0 ? (
         <>
           <h1 className={styles.title}>სურვილების სია</h1>
 

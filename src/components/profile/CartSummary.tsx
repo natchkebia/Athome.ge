@@ -1,9 +1,11 @@
 "use client";
 
-import { useState } from "react";
 import styles from "./CartSummary.module.scss";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 import MinimalProductItem, { ProductItem } from "./MinimalProductItem";
+import { useCommerce } from "@/contexts/CommerceContext";
+import { normalizeMediaUrl } from "@/lib/storefront/products";
 
 interface CartSummaryProps {
   showItems?: boolean;
@@ -11,42 +13,18 @@ interface CartSummaryProps {
 
 export default function CartSummary({ showItems = true }: CartSummaryProps) {
   const router = useRouter();
-
-  const [cartItems, setCartItems] = useState<ProductItem[]>([
-    {
-      id: 14736,
-      title: "INTEL® CORE™ I5 14400F / RTX 3070 8GB / 16GB",
-      image: "/images/discountPc.png",
-      price: 6500,
-      oldPrice: 9500,
-      quantity: 22,
-    },
-    {
-      id: 14737,
-      title: "INTEL® CORE™ I5 14400F / RTX 3070 8GB / 16GB",
-      image: "/images/discountPc.png",
-      price: 6500,
-      oldPrice: 9500,
-      quantity: 22,
-    },
-    {
-      id: 14738,
-      title: "INTEL® CORE™ I5 14400F / RTX 3070 8GB / 16GB",
-      image: "/images/discountPc.png",
-      price: 6500,
-      oldPrice: 9500,
-      quantity: 22,
-    },
-    {
-      id: 14739,
-      title: "INTEL® CORE™ I5 14400F / RTX 3070 8GB / 16GB",
-      image: "/images/discountPc.png",
-      price: 6500,
-      oldPrice: 9500,
-      quantity: 22,
-    },
-  ]);
-
+  const [isContinuing, setIsContinuing] = useState(false);
+  const { cart } = useCommerce();
+  const cartItems: ProductItem[] = cart.items
+    .filter((item) => item.productName)
+    .map((item) => ({
+      id: item.productId,
+      title: item.productName,
+      image: normalizeMediaUrl(item.imageUrl),
+      price: item.sellingPrice,
+      oldPrice: item.oldPrice,
+      quantity: item.quantity,
+    }));
 
   const totalQuantity = cartItems.reduce((sum, item) => sum + item.quantity, 0);
   const totalPrice = cartItems.reduce(
@@ -60,6 +38,7 @@ export default function CartSummary({ showItems = true }: CartSummaryProps) {
   const totalDiscount = totalOldPrice - totalPrice;
 
   const handleContinue = () => {
+    setIsContinuing(true);
     router.push("/delivery");
   };
 
@@ -102,11 +81,13 @@ export default function CartSummary({ showItems = true }: CartSummaryProps) {
         </div>
         {!showItems && (
           <button
-            className={styles.button}
+            className={`${styles.button} ${isContinuing ? styles.loading : ""}`}
             onClick={handleContinue}
+            disabled={isContinuing}
             style={{ marginTop: showItems ? "" : "10px" }}
           >
-            ყიდვის გაგრძელება
+            {isContinuing && <span className={styles.spinner} />}
+            <span>ყიდვის გაგრძელება</span>
           </button>
         )}
       </div>

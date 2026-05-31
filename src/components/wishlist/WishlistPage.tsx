@@ -4,53 +4,23 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import CommerceList, { ProductItem } from "@/components/commerce/CommerceList";
 import styles from "./WishlistPage.module.scss";
+import { useCommerce } from "@/contexts/CommerceContext";
+import { normalizeMediaUrl } from "@/lib/storefront/products";
 
 export default function WishlistPage() {
-  const [wishlist, setWishlist] = useState<ProductItem[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
-
-  useEffect(() => {
-    const initialWishlist: ProductItem[] = [
-      {
-        id: "1",
-        image: "/images/DiscountHeadphone.png",
-        title: "Lenovo IdeaPad 3",
-        oldPrice: 2000,
-        newPrice: 1599,
-      },
-      {
-        id: "2",
-        image: "/images/DiscountHeadphone.png",
-        title: "iPhone 15 Pro Max",
-        oldPrice: 4800,
-        newPrice: 4599,
-      },
-      {
-        id: "3",
-        image: "/images/DiscountHeadphone.png",
-        title: "Sony WH-1000XM5",
-        oldPrice: 1200,
-        newPrice: 990,
-      },
-      {
-        id: "4",
-        image: "/images/DiscountHeadphone.png",
-        title: "Sony WH-1000XM5",
-        oldPrice: 1200,
-        newPrice: 990,
-      },
-      {
-        id: "5",
-        image: "/images/DiscountHeadphone.png",
-        title: "Sony WH-1000XM5",
-        oldPrice: 1200,
-        newPrice: 990,
-      },
-    ];
-    setWishlist(initialWishlist);
-  }, []);
+  const { wishlist, toggleWishlist } = useCommerce();
+  const wishlistItems: ProductItem[] = wishlist.items
+    .filter((item) => item.productName)
+    .map((item) => ({
+      id: String(item.productId),
+      image: normalizeMediaUrl(item.imageUrl),
+      title: item.productName,
+      oldPrice: item.oldPrice,
+      newPrice: item.sellingPrice,
+    }));
 
   const handleHeartClick = () => setIsOpen((prev) => !prev);
 
@@ -76,7 +46,7 @@ export default function WishlistPage() {
   };
 
   const handleRemove = (id: string) => {
-    setWishlist((prev) => prev.filter((item) => item.id !== id));
+    toggleWishlist(Number(id));
   };
 
   return (
@@ -88,13 +58,13 @@ export default function WishlistPage() {
         onClick={handleHeartClick}
       />
 
-      {wishlist.length > 0 && (
-        <div className={styles.badge}>{wishlist.length}</div>
+      {wishlist.totalItems > 0 && (
+        <div className={styles.badge}>{wishlist.totalItems}</div>
       )}
 
       {isOpen && (
         <div className={styles.dropdownBox}>
-          {wishlist.length === 0 ? (
+          {wishlistItems.length === 0 ? (
             <>
               <div>
                 <p className={styles.dropdownText}>სურვილების სია ცარიელია</p>
@@ -116,7 +86,7 @@ export default function WishlistPage() {
             <>
               <CommerceList
                 type="wishlist"
-                items={wishlist}
+                items={wishlistItems}
                 onRemove={handleRemove}
               />
             </>

@@ -3,17 +3,21 @@
 .dropdown {
   position: relative;
   z-index: 2000;
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
   font-family: "SF Georgian Rounded", sans-serif;
   width: 104px;
-  height: 24px;
+  height: 28px;
+  transform: translateY(-2px);
 }
 
 .button {
   width: 100%;
+  height: 28px;
   display: flex;
   align-items: center;
   gap: 12px;
+  padding: 0;
   border: none;
   background-color: white;
   cursor: pointer;

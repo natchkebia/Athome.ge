@@ -59,6 +59,31 @@
   margin: 0 auto;
   margin-bottom: 24px;
   cursor: pointer;
+  gap: 10px;
+  transition: background-color 0.2s ease, opacity 0.2s ease;
+
+  &:disabled {
+    cursor: default;
+  }
+}
+
+.loading {
+  opacity: 0.9;
+}
+
+.spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255, 255, 255, 0.45);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: buttonSpin 0.7s linear infinite;
+}
+
+@keyframes buttonSpin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @media (max-width: 1180px) {

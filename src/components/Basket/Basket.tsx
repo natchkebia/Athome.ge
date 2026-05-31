@@ -4,58 +4,29 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import CommerceList, { ProductItem } from "@/components/commerce/CommerceList";
 import styles from "./Basket.module.scss";
+import { useCommerce } from "@/contexts/CommerceContext";
+import { normalizeMediaUrl } from "@/lib/storefront/products";
 
 export default function BasketPage() {
-  const [basket, setBasket] = useState<ProductItem[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
+  const { cart, updateCartQuantity, removeFromCart } = useCommerce();
+  const basket: ProductItem[] = cart.items
+    .filter((item) => item.productName)
+    .map((item) => ({
+      id: String(item.productId),
+      title: item.productName,
+      image: normalizeMediaUrl(item.imageUrl),
+      oldPrice: item.oldPrice,
+      newPrice: item.sellingPrice,
+      quantity: item.quantity,
+    }));
 
-  // 🧩 ინიციალური მონაცემები (simulate)
-  useEffect(() => {
-    const initialBasket: ProductItem[] = [
-      {
-        id: "14736",
-        title: "INTEL® CORE™ I5 14400F / RTX 3070 8GB / 16GB",
-        image: "/images/discountPc.png",
-        oldPrice: 9500,
-        newPrice: 6500,
-        quantity: 22,
-      },
-      {
-        id: "14737",
-        title: "INTEL® CORE™ I5 14400F / RTX 3070 8GB / 16GB",
-        image: "/images/discountPc.png",
-        oldPrice: 9500,
-        newPrice: 6500,
-        quantity: 22,
-      },
-      {
-        id: "14738",
-        title: "INTEL® CORE™ I5 14400F / RTX 3070 8GB / 16GB",
-        image: "/images/discountPc.png",
-        oldPrice: 9500,
-        newPrice: 6500,
-        quantity: 22,
-      },
-      {
-        id: " 14739",
-        title: "INTEL® CORE™ I5 14400F / RTX 3070 8GB / 16GB",
-        image: "/images/discountPc.png",
-        oldPrice: 9500,
-        newPrice: 6500,
-        quantity: 22,
-      },
-    ];
-    setBasket(initialBasket);
-  }, []);
-
-  // კალათის ღილაკზე დაჭერა
   const handleCartClick = () => {
     setIsOpen((prev) => !prev);
   };
 
-  // გარეთ დაკლიკებისას დახურვა
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -77,29 +48,21 @@ export default function BasketPage() {
     };
   }, [isOpen]);
 
-  // კალათის გვერდზე გადასვლა
   const handleGoToBasket = () => {
     setIsOpen(false);
     router.push("/basket");
   };
 
-  // რაოდენობის შეცვლა
   const handleQuantityChange = (id: string, newQty: number) => {
-    setBasket((prev) =>
-      prev.map((item) =>
-        item.id === id ? { ...item, quantity: newQty } : item
-      )
-    );
+    updateCartQuantity(Number(id), newQty);
   };
 
-  // პროდუქტის წაშლა
   const handleRemove = (id: string) => {
-    setBasket((prev) => prev.filter((item) => item.id !== id));
+    removeFromCart(Number(id));
   };
 
   return (
     <div className={styles.basketWrapper} ref={dropdownRef}>
-      {/* 🛒 Cart icon */}
       <img
         src="/icons/Cart.svg"
         alt="cart"
@@ -107,10 +70,10 @@ export default function BasketPage() {
         onClick={handleCartClick}
       />
 
-      {/* 🔢 Counter */}
-      {basket.length > 0 && <div className={styles.badge}>{basket.length}</div>}
+      {cart.totalItems > 0 && (
+        <div className={styles.badge}>{cart.totalItems}</div>
+      )}
 
-      {/* ⬇ Dropdown content */}
       {isOpen && (
         <div className={styles.dropdownBox}>
           {basket.length === 0 ? (

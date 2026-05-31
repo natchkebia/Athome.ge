@@ -15,6 +15,7 @@ import {
   normalizeMediaUrl,
   StorefrontProductCard,
 } from "@/lib/storefront/products";
+import { useCommerce } from "@/contexts/CommerceContext";
 
 interface Spec {
   label: string;
@@ -27,6 +28,7 @@ export interface ProductDetailProps {
 
 export default function ProductDetail({ product }: ProductDetailProps) {
   const [showAll, setShowAll] = useState(false);
+  const { addToCart } = useCommerce();
   const [fallbackRelatedProducts, setFallbackRelatedProducts] = useState<
     StorefrontProductCard[]
   >([]);
@@ -143,11 +145,14 @@ export default function ProductDetail({ product }: ProductDetailProps) {
                   </span>
                 )}
               </div>
-              <button>ყიდვა</button>
+              <button onClick={() => addToCart(product.id)}>ყიდვა</button>
             </div>
 
             <div className={styles.actions}>
-              <button className={styles.buyBtn}>
+              <button
+                className={styles.buyBtn}
+                onClick={() => addToCart(product.id)}
+              >
                 <img src="/icons/Cart.svg" alt="Cart.svg" />
                 <span>დამატება</span>
               </button>

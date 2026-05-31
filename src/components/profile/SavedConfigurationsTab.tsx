@@ -4,9 +4,11 @@ import { useEffect, useState } from "react";
 import styles from "./SavedConfigurationsTab.module.scss";
 import { SavedConfiguration } from "../configurator/configuratorTypes";
 import { useRouter } from "next/navigation";
+import { useCommerce } from "@/contexts/CommerceContext";
 
 export default function SavedConfigurationsTab() {
   const router = useRouter();
+  const { addToCart } = useCommerce();
   const [configurations, setConfigurations] = useState<SavedConfiguration[]>(
     [],
   );
@@ -38,30 +40,10 @@ export default function SavedConfigurationsTab() {
     );
   };
 
-  const handleBuySystem = (config: SavedConfiguration) => {
-    const cartItem = {
-      id: config.id,
-      title: `შენახული სისტემა #${config.id}`,
-      image: config.products[0]?.image || "/images/case.svg",
-      price: config.totalPrice,
-      oldPrice: config.totalPrice,
-      quantity: 1,
-      isSystem: true,
-      systemProducts: config.products,
-    };
-
-    const oldCartItems = JSON.parse(localStorage.getItem("cartItems") || "[]");
-
-    const alreadyInCart = oldCartItems.some(
-      (item: { id: number }) => item.id === config.id,
-    );
-
-    const updatedCartItems = alreadyInCart
-      ? oldCartItems
-      : [cartItem, ...oldCartItems];
-
-    localStorage.setItem("cartItems", JSON.stringify(updatedCartItems));
-    window.dispatchEvent(new Event("cart-updated"));
+  const handleBuySystem = async (config: SavedConfiguration) => {
+    for (const product of config.products) {
+      await addToCart(product.id, product.quantity || 1);
+    }
 
     router.push("/basket");
   };

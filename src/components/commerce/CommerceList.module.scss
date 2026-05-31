@@ -6,10 +6,12 @@
 }
 .wrapper {
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: space-between;
   width: 208px;
+  min-width: 0;
   padding: 5px 0;
+  gap: 8px;
 }
 
 .header {
@@ -41,13 +43,16 @@
 .item {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 12px;
   background-color: rgba(246, 248, 251, 1);
   border-radius: 10px;
   text-align: left;
-  max-height: 80px;
+  min-height: 80px;
+  height: 80px;
+  padding: 8px;
   position: relative;
+  overflow: hidden;
 }
 
 .image {
@@ -59,28 +64,39 @@
 
 .info {
   flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 11px;
+  gap: 6px;
 }
 
 .title {
   font-size: 12px;
   font-weight: 510;
+  line-height: 15px;
   color: rgba(59, 63, 66, 1);
   margin: 0;
   padding: 0;
+  min-height: 30px;
+  max-height: 30px;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow-wrap: anywhere;
 }
 
 .prices {
   display: flex;
   gap: 6px;
   align-items: center;
+  min-width: 0;
 
   .new {
     color: rgba(59, 63, 66, 1);
     font-weight: 590;
     font-size: 12px;
+    white-space: nowrap;
   }
 
   .old {
@@ -88,12 +104,14 @@
     text-decoration: line-through;
     font-size: 12px;
     font-weight: 400;
+    white-space: nowrap;
   }
 }
 
 .actions {
   display: flex;
   align-items: center;
+  flex: 0 0 auto;
 }
 
 .quantity {
@@ -126,8 +144,10 @@
   background: none;
   cursor: pointer;
   position: absolute;
-  top: 5;
-  right: 5;
+  top: 6px;
+  right: 8px;
+  font-size: 13px;
+  line-height: 1;
 }
 
 .footer {

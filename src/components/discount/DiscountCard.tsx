@@ -13,6 +13,7 @@ export interface ProductCardProps {
   isNew?: boolean;
   isWishlisted?: boolean;
   onToggleWishlist?: (id: string) => void;
+  onAddToCart?: (id: string) => void;
   category?: string; 
   slug?: string;
 }
@@ -27,6 +28,7 @@ export default function DiscountCard({
   isNew = false,
   isWishlisted = false,
   onToggleWishlist,
+  onAddToCart,
 }: ProductCardProps) {
   return (
     <div className={styles.card}>
@@ -43,14 +45,27 @@ export default function DiscountCard({
         <div className={styles.actions}>
           <button
             className={styles.iconBtn}
-            onClick={() => onToggleWishlist?.(id)}
+            onClick={(event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              onToggleWishlist?.(id);
+            }}
+            aria-pressed={isWishlisted}
+            aria-label="wishlist"
           >
             <img
               src={isWishlisted ? "/icons/redHeart.svg" : "/icons/Heart.svg"}
               alt="wishlist"
             />
           </button>
-          <button className={styles.iconBtn}>
+          <button
+            className={styles.iconBtn}
+            onClick={(event) => {
+              event.preventDefault();
+              event.stopPropagation();
+            }}
+            aria-label="compare"
+          >
             <img src="/icons/Arrows.svg" alt="compare" />
           </button>
         </div>
@@ -78,7 +93,14 @@ export default function DiscountCard({
           )}
         </div>
 
-        <button className={styles.addBtn}>
+        <button
+          className={styles.addBtn}
+          onClick={(event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            onAddToCart?.(id);
+          }}
+        >
           <img src="/icons/CartWhite.svg" alt="cart" />
           დამატება
         </button>

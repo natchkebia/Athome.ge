@@ -6,12 +6,9 @@
 .wrapper {
   display: flex;
   align-items: center;
-  gap: 24px;
+  gap: 28px;
   flex: 0 0 auto;
-}
-
-.profileBtn {
-  white-space: nowrap;
+  margin-left: 20px;
 }
 
 @media (max-width: 1180px) {
@@ -47,10 +44,5 @@
 @media (max-width: 480px) {
   .wrapper {
     gap: 8px;
-  }
-
-  .profileBtn {
-    min-width: 58px;
-    padding: 0 8px;
   }
 }

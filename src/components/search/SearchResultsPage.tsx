@@ -12,6 +12,7 @@ import {
 } from "@/lib/api/storefront";
 import { mapStorefrontSearchProductToCard } from "@/lib/storefront/products";
 import styles from "./SearchResultsPage.module.scss";
+import { useCommerce } from "@/contexts/CommerceContext";
 
 type SearchResultsPageProps = {
   initialQuery: string;
@@ -26,6 +27,7 @@ export default function SearchResultsPage({
 }: SearchResultsPageProps) {
   const [data, setData] = useState<StorefrontSearchResponse | null>(null);
   const [loading, setLoading] = useState(true);
+  const { wishlistProductIds, toggleWishlist, addToCart } = useCommerce();
   const query = initialQuery.trim();
 
   useEffect(() => {
@@ -115,7 +117,13 @@ export default function SearchResultsPage({
                 href={`/products/search/${item.slug}`}
                 className={styles.cardLink}
               >
-                <DiscountCard {...item} id={String(item.id)} />
+                <DiscountCard
+                  {...item}
+                  id={String(item.id)}
+                  isWishlisted={wishlistProductIds.has(item.id)}
+                  onToggleWishlist={(id) => toggleWishlist(Number(id))}
+                  onAddToCart={(id) => addToCart(Number(id))}
+                />
               </Link>
             ))}
           </div>

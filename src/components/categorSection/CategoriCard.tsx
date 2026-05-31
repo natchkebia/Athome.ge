@@ -6,7 +6,7 @@ import styles from "./CategoryCard.module.scss";
 
 interface CategoryCardProps {
   title: string;
-  image: string;
+  image?: string;
   bgColor: string;
   slug: string;
 }
@@ -20,7 +20,13 @@ export default function CategoryCard({
   return (
     <Link href={`/products/${slug}`} className={styles.cardLink}>
       <div className={styles.card} style={{ backgroundColor: bgColor }}>
-        <img src={image} alt={title} className={styles.image} />
+        {image ? (
+          <img src={image} alt={title} className={styles.image} />
+        ) : (
+          <span className={styles.placeholder} aria-hidden="true">
+            {title.slice(0, 1)}
+          </span>
+        )}
         <p className={styles.label}>{title}</p>
       </div>
     </Link>

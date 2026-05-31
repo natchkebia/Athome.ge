@@ -13,4 +13,27 @@
   border: 1px solid #ecf2f6;
   border-radius: 10px;
   cursor: pointer;
+
+  img {
+    width: 18px;
+    height: 18px;
+    object-fit: contain;
+  }
+}
+
+.authorized {
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  overflow: hidden;
+  border-radius: 50%;
+  background: #f7f9fb;
+  border-color: #10b5c0;
+
+  img {
+    width: 30px;
+    height: 34px;
+    object-fit: contain;
+    object-position: center bottom;
+  }
 }

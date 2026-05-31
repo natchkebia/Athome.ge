@@ -3,8 +3,9 @@
   display: flex;
   align-items: center;
   width: min(724px, 100%);
+  max-width: 724px;
   min-width: 0;
-  flex: 1 1 360px;
+  flex: 0 1 724px;
   height: 48px;
   border: 1.2px solid #10b5c0;
   border-radius: 10px;

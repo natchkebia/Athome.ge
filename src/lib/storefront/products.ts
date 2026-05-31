@@ -5,8 +5,11 @@ export type StorefrontProductCard = Omit<ProductCardProps, "id"> & {
   id: number;
 };
 
-export function normalizeMediaUrl(url?: string) {
-  if (!url) return "/images/discountPc.png";
+export function normalizeMediaUrl(
+  url?: string,
+  fallback = "/images/discountPc.png"
+) {
+  if (!url) return fallback;
 
   if (url.startsWith("/media/http")) {
     return url.replace("/media/", "");
@@ -47,8 +50,11 @@ export function mapStorefrontProductToCard(
 export function mapStorefrontSearchProductToCard(
   product: StorefrontSearchProduct
 ): StorefrontProductCard {
+  const fallbackId =
+    Number(product.sku.replace(/\D/g, "").slice(-8)) || product.slug.length;
+
   return {
-    id: Number(product.sku.replace(/\D/g, "").slice(-8)) || product.slug.length,
+    id: product.id ?? fallbackId,
     image: normalizeMediaUrl(product.thumbnailUrl),
     title: product.name,
     oldPrice: product.oldPrice,

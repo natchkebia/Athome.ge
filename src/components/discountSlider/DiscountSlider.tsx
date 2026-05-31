@@ -5,60 +5,43 @@ import styles from "./DiscountSlider.module.scss";
 import {
   getStorefrontBanners,
   StorefrontBanner,
+  StorefrontPromotionBanner,
 } from "@/lib/api/storefront";
+import { normalizeMediaUrl } from "@/lib/storefront/products";
 
-const discountProducts = [
-  {
-    id: 1,
-    image: "https://imgstore.alta.ge/images/400/116/116630_110_1.webp",
-    oldPrice: 9500,
-    newPrice: 7500,
-  },
-  {
-    id: 2,
-    image:
-      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTw3Ya7iTtyJ7AcneXQa6VymQ6hB6h6vULcKtvsoV69hecvK5WBzZO752VLXAWDdHPFuwI&usqp=CAU",
-    oldPrice: 8200,
-    newPrice: 6990,
-  },
-  {
-    id: 3,
-    image:
-      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRylp0H1d0tM0Au_cOHsyl-pt0yOcDl8mq0h4BiFIhBQpQDDkiW_8NQ_1eKn_yP7Myqopk&usqp=CAU",
-    oldPrice: 10500,
-    newPrice: 8990,
-  },
-];
+type DiscountSliderProps = {
+  banners?: StorefrontPromotionBanner[];
+};
 
-export default function DiscountSlider() {
-  const [promotionBanners, setPromotionBanners] = useState<StorefrontBanner[]>(
-    []
-  );
+export default function DiscountSlider({
+  banners: providedBanners,
+}: DiscountSliderProps) {
+  const [fetchedBanners, setFetchedBanners] = useState<StorefrontBanner[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
+    if (providedBanners) return;
+
     let isMounted = true;
 
-    getStorefrontBanners("promotion")
+    getStorefrontBanners("promotional")
       .then((items) => {
         if (!isMounted) return;
 
-        console.log("[storefront/banners?type=promotion]", items);
-        setPromotionBanners(
+        setFetchedBanners(
           [...items].sort((a, b) => a.sortOrder - b.sortOrder)
         );
         setCurrentIndex(0);
       })
       .catch(() => {
-        console.log("[storefront/banners?type=promotion] fallback static data");
-        if (isMounted) setPromotionBanners([]);
+        if (isMounted) setFetchedBanners([]);
       });
 
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [providedBanners]);
 
   useEffect(() => {
     const mediaQuery = window.matchMedia("(max-width: 560px)");
@@ -75,17 +58,20 @@ export default function DiscountSlider() {
     };
   }, []);
 
-  const hasPromotionBanners = promotionBanners.length > 0;
-  const slideCount = hasPromotionBanners
-    ? promotionBanners.length
-    : discountProducts.length;
+  const promotionBanners = providedBanners ?? fetchedBanners;
+  const slideCount = promotionBanners.length;
   const currentPromotion = promotionBanners[currentIndex];
   const promotionImage = useMemo(() => {
     if (!currentPromotion) return "";
 
-    return isMobile && currentPromotion.mobileImageUrl
-      ? currentPromotion.mobileImageUrl
-      : currentPromotion.imageUrl;
+    const mobileImageUrl =
+      "mobileImageUrl" in currentPromotion
+        ? currentPromotion.mobileImageUrl
+        : undefined;
+
+    return isMobile && mobileImageUrl
+      ? normalizeMediaUrl(mobileImageUrl, "")
+      : normalizeMediaUrl(currentPromotion.imageUrl, "");
   }, [currentPromotion, isMobile]);
 
   const handlePrev = () => {
@@ -100,24 +86,18 @@ export default function DiscountSlider() {
     setCurrentIndex(index);
   };
 
+  if (!currentPromotion || !promotionImage) {
+    return null;
+  }
+
   return (
     <div
-      className={`${styles.sliderContainer} ${
-        hasPromotionBanners ? styles.promotionContainer : ""
-      }`}
-      style={
-        hasPromotionBanners
-          ? {
-              backgroundImage: `url(${promotionImage})`,
-            }
-          : undefined
-      }
+      className={`${styles.sliderContainer} ${styles.promotionContainer}`}
+      style={{
+        backgroundImage: `url(${promotionImage})`,
+      }}
     >
-      <h3 className={styles.title}>
-        {hasPromotionBanners
-          ? currentPromotion.title
-          : "საუკეთესო ფასდაკლებები"}
-      </h3>
+      <h3 className={styles.title}>{currentPromotion.title}</h3>
 
       <div className={styles.sliderContent}>
         <button
@@ -127,29 +107,16 @@ export default function DiscountSlider() {
           &#10094;
         </button>
 
-        {hasPromotionBanners ? (
-          <a className={styles.promotionLink} href={currentPromotion.linkUrl}>
-            <span>{currentPromotion.subtitle}</span>
-            {currentPromotion.ctaLabel && <strong>{currentPromotion.ctaLabel}</strong>}
-          </a>
-        ) : (
-          <div className={styles.productCard}>
-            <img
-              src={discountProducts[currentIndex].image}
-              alt="product"
-              className={styles.productImage}
-            />
-
-            <div className={styles.priceBox}>
-              <span className={styles.newPrice}>
-                {discountProducts[currentIndex].newPrice.toFixed(2)} ₾
-              </span>
-              <span className={styles.oldPrice}>
-                {discountProducts[currentIndex].oldPrice.toFixed(2)} ₾
-              </span>
-            </div>
-          </div>
-        )}
+        <a className={styles.promotionLink} href={currentPromotion.linkUrl}>
+          <span>
+            {"subtitle" in currentPromotion
+              ? currentPromotion.subtitle
+              : currentPromotion.title}
+          </span>
+          {"ctaLabel" in currentPromotion && currentPromotion.ctaLabel && (
+            <strong>{currentPromotion.ctaLabel}</strong>
+          )}
+        </a>
 
         <button
           onClick={handleNext}

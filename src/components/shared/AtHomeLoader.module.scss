@@ -21,75 +21,151 @@
   width: auto;
   min-height: 48px;
   padding: 8px 0;
-  gap: 10px;
 
   .mark {
-    width: 34px;
-    height: 34px;
+    width: 174px;
+    height: 58px;
   }
+}
 
-  .label {
-    font-size: 13px;
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 7000;
+  min-height: 100vh;
+  flex-direction: column;
+  gap: 18px;
+  background: rgba(255, 255, 255, 0.78);
+  backdrop-filter: blur(6px);
+
+  .mark {
+    width: 238px;
+    height: 86px;
   }
 }
 
 .mark {
-  width: 48px;
-  height: 48px;
+  width: 196px;
+  height: 68px;
   position: relative;
-  border-radius: 16px;
-  background: #f6f8fb;
-  box-shadow: inset 0 0 0 1px #e4e8eb;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: transparent;
+  filter: drop-shadow(0 18px 28px rgba(16, 181, 192, 0.16));
+  overflow: visible;
 }
 
-.wing {
-  position: absolute;
-  left: 11px;
-  top: 12px;
-  width: 24px;
-  height: 24px;
-  background: linear-gradient(135deg, #ef0d4a 0%, #10b5c0 72%);
-  clip-path: polygon(0 0, 100% 42%, 38% 55%, 22% 100%);
-  transform-origin: 62% 56%;
-  animation: loader-flight 1.1s ease-in-out infinite;
+.mark::after {
+  content: none;
 }
 
-.dot {
+.orbit {
   position: absolute;
-  right: 10px;
-  top: 11px;
+  width: 202px;
+  height: 58px;
+  border-radius: 50%;
+  border: 1px solid rgba(16, 181, 192, 0.2);
+  transform: rotate(-6deg);
+  animation: loader-orbit-breathe 1.8s ease-in-out infinite;
+}
+
+.orbit::before,
+.orbit::after,
+.particleOne,
+.particleTwo {
+  content: "";
+  position: absolute;
   width: 7px;
   height: 7px;
   border-radius: 50%;
+  pointer-events: none;
+}
+
+.orbit::before {
+  left: 12px;
+  top: -4px;
   background: #10b5c0;
-  animation: loader-pulse 1.1s ease-in-out infinite;
+  animation: loader-dot-horizontal 1.5s ease-in-out infinite;
 }
 
-.label {
-  font-size: 15px;
-  font-weight: 700;
+.orbit::after {
+  right: 18px;
+  bottom: -4px;
+  background: #ef0d4a;
+  animation: loader-dot-horizontal 1.5s ease-in-out infinite reverse;
 }
 
-@keyframes loader-flight {
+.particleOne {
+  left: 28px;
+  bottom: 17px;
+  background: rgba(16, 181, 192, 0.75);
+  animation: loader-particle 1.3s ease-in-out infinite;
+}
+
+.particleTwo {
+  right: 30px;
+  top: 18px;
+  background: rgba(239, 13, 74, 0.72);
+  animation: loader-particle 1.3s ease-in-out infinite reverse;
+}
+
+.logo {
+  position: relative;
+  z-index: 1;
+  width: 142px;
+  height: auto;
+  object-fit: contain;
+  animation: loader-logo-slide 1.55s ease-in-out infinite;
+  filter: drop-shadow(0 7px 12px rgba(59, 63, 66, 0.1));
+}
+
+@keyframes loader-logo-slide {
   0%,
   100% {
-    transform: translate3d(0, 0, 0) rotate(-8deg);
+    transform: translateX(-4px) scale(1);
   }
 
   50% {
-    transform: translate3d(4px, -3px, 0) rotate(8deg);
+    transform: translateX(4px) scale(1.025);
   }
 }
 
-@keyframes loader-pulse {
+@keyframes loader-orbit-breathe {
   0%,
   100% {
+    transform: rotate(-6deg) scaleX(1);
     opacity: 0.45;
-    transform: scale(0.82);
   }
 
   50% {
+    transform: rotate(4deg) scaleX(1.05);
+    opacity: 0.85;
+  }
+}
+
+@keyframes loader-dot-horizontal {
+  0%,
+  100% {
+    transform: translateX(0);
+    opacity: 0.55;
+  }
+
+  50% {
+    transform: translateX(34px);
     opacity: 1;
-    transform: scale(1.16);
+  }
+}
+
+@keyframes loader-particle {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(0.82);
+    opacity: 0.38;
+  }
+
+  50% {
+    transform: translate3d(8px, -3px, 0) scale(1.12);
+    opacity: 0.9;
   }
 }

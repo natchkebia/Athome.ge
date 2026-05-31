@@ -1,9 +1,30 @@
 import Link from "next/link";
 import styles from "./page.module.scss";
-import { blogs } from "@/data/blogs";
 import Breadcrumb from "@/components/ breadcrumb/Breadcrumb";
+import {
+  formatBlogDate,
+  getStorefrontBlogPosts,
+} from "@/lib/storefront/blog";
 
-export default function NewsPage() {
+type Props = {
+  searchParams?: Promise<{
+    page?: string;
+    search?: string;
+    tag?: string;
+  }>;
+};
+
+export default async function NewsPage({ searchParams }: Props) {
+  const params = await searchParams;
+  const page = Math.max(Number(params?.page ?? 1) || 1, 1);
+  const blogResponse = await getStorefrontBlogPosts({
+    page,
+    pageSize: 9,
+    search: params?.search,
+    tag: params?.tag,
+  });
+  const blogs = blogResponse?.items ?? [];
+  const totalPages = blogResponse?.totalPages ?? 0;
   const breadcrumbs = [
     { label: "მთავარი გვერდი", href: "/" },
     { label: "სიახლეები" },
@@ -15,44 +36,68 @@ export default function NewsPage() {
         <Breadcrumb items={breadcrumbs} />
       </div>
       <main className={styles.newsPage}>
-        <section className={styles.newsGrid}>
-          {blogs.map((blog) => (
-            <article className={styles.card} key={blog.id}>
-              <Link href={`/news/${blog.slug}`} className={styles.imageBox}>
-                {blog.image ? (
-                  <img src={blog.image} alt={blog.title} />
-                ) : (
-                  <div className={styles.placeholder}>
-                    <span>▧</span>
+        {blogs.length > 0 ? (
+          <section className={styles.newsGrid}>
+            {blogs.map((blog) => (
+              <article className={styles.card} key={blog.id}>
+                <Link href={`/news/${blog.slug}`} className={styles.imageBox}>
+                  {blog.thumbnailUrl ? (
+                    <img src={blog.thumbnailUrl} alt={blog.title} />
+                  ) : (
+                    <div className={styles.placeholder}>
+                      <span>▧</span>
+                    </div>
+                  )}
+                </Link>
+
+                <div className={styles.cardBody}>
+                  <h2>{blog.title}</h2>
+                  <p>{blog.summary}</p>
+
+                  <div className={styles.cardBottom}>
+                    <span>{formatBlogDate(blog.publishedAt)}</span>
+                    <Link
+                      href={`/news/${blog.slug}`}
+                      className={styles.readMore}
+                    >
+                      ნახე მეტი
+                    </Link>
                   </div>
-                )}
-              </Link>
-
-              <div className={styles.cardBody}>
-                <h2>{blog.title}</h2>
-                <p>{blog.excerpt}</p>
-
-                <div className={styles.cardBottom}>
-                  <span>{blog.date}</span>
-                  <Link href={`/news/${blog.slug}`} className={styles.readMore}>
-                    ნახე მეტი
-                  </Link>
                 </div>
-              </div>
-            </article>
-          ))}
-        </section>
+              </article>
+            ))}
+          </section>
+        ) : (
+          <p className={styles.empty}>სიახლეები ჯერ არ არის დამატებული</p>
+        )}
 
-        <div className={styles.pagination}>
-          <button>‹</button>
-          <span className={styles.active}>1</span>
-          <span>2</span>
-          <span>3</span>
-          <span>4</span>
-          <span>5</span>
-          <span>6</span>
-          <button>›</button>
-        </div>
+        {totalPages > 1 && (
+          <div className={styles.pagination}>
+            {blogResponse?.hasPrev ? (
+              <Link href={`/news?page=${page - 1}`}>‹</Link>
+            ) : (
+              <span>‹</span>
+            )}
+            {Array.from({ length: totalPages }).map((_, index) => {
+              const pageNumber = index + 1;
+
+              return (
+                <Link
+                  key={pageNumber}
+                  href={`/news?page=${pageNumber}`}
+                  className={pageNumber === page ? styles.active : ""}
+                >
+                  {pageNumber}
+                </Link>
+              );
+            })}
+            {blogResponse?.hasNext ? (
+              <Link href={`/news?page=${page + 1}`}>›</Link>
+            ) : (
+              <span>›</span>
+            )}
+          </div>
+        )}
       </main>
     </>
   );

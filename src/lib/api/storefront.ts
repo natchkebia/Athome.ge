@@ -11,6 +11,18 @@ export type StorefrontBanner = {
   sortOrder: number;
 };
 
+export type StorefrontPromotionBanner = {
+  title?: string;
+  imageUrl?: string;
+  linkUrl?: string;
+  endsAt?: string;
+};
+
+export type StorefrontHome = {
+  heroBanners?: StorefrontBanner[];
+  promotionBanners?: StorefrontPromotionBanner[];
+};
+
 export type StorefrontBrand = {
   name: string;
   slug: string;
@@ -169,6 +181,7 @@ export type StorefrontProductReviewsResponse = {
 };
 
 export type StorefrontSearchProduct = {
+  id?: number;
   slug: string;
   name: string;
   sku: string;
@@ -216,6 +229,12 @@ export type StorefrontSearchResponse = {
 export function getStorefrontBanners(type?: string) {
   return apiRequest<StorefrontBanner[]>("/api/storefront/banners", {
     query: { type },
+    useProxy: true,
+  });
+}
+
+export function getStorefrontHome() {
+  return apiRequest<StorefrontHome>("/api/storefront/home", {
     useProxy: true,
   });
 }

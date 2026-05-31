@@ -2,20 +2,20 @@ import styles from "./AtHomeLoader.module.scss";
 
 type AtHomeLoaderProps = {
   label?: string;
-  variant?: "page" | "section" | "inline";
+  variant?: "page" | "section" | "inline" | "overlay";
 };
 
 export default function AtHomeLoader({
-  label = "იტვირთება",
   variant = "section",
 }: AtHomeLoaderProps) {
   return (
     <div className={`${styles.loader} ${styles[variant]}`} role="status">
       <div className={styles.mark} aria-hidden="true">
-        <span className={styles.wing} />
-        <span className={styles.dot} />
+        <span className={styles.orbit} />
+        <span className={styles.particleOne} />
+        <span className={styles.particleTwo} />
+        <img src="/icons/Logo.svg" alt="" className={styles.logo} />
       </div>
-      <span className={styles.label}>{label}</span>
     </div>
   );
 }

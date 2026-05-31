@@ -217,13 +217,43 @@
     border-radius: 8px;
     font-weight: 600;
     cursor: pointer;
+
+    &:disabled {
+      cursor: default;
+      opacity: 0.65;
+    }
   }
 
   .switch {
+    background: transparent;
+    border: 0;
     color: rgba(59, 63, 66, 1);
     font-size: 14px;
     cursor: pointer;
+
+    &:disabled {
+      cursor: default;
+      opacity: 0.65;
+    }
   }
+}
+
+.feedback {
+  border-radius: 8px;
+  font-size: 13px;
+  line-height: 1.45;
+  margin: 0;
+  padding: 10px 12px;
+}
+
+.errorFeedback {
+  background: #fff1f1;
+  color: #b42318;
+}
+
+.successFeedback {
+  background: #eefaf4;
+  color: #067647;
 }
 
 .final {

@@ -1,7 +1,18 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import type { ChangeEvent } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import {
+  getCurrentUser,
+  logout as logoutUser,
+  type AuthUser,
+} from "@/lib/api/auth";
+import {
+  getStoredProfileGender,
+  storeProfileGender,
+  type ProfileGender,
+} from "@/lib/auth/profilePreferences";
 import styles from "./ProfilePage.module.scss";
 import InfoTab from "./InfoTab";
 import OrdersTab from "./OrdersTab";
@@ -9,6 +20,8 @@ import CartTab from "./CartTab";
 import Breadcrumb from "../ breadcrumb/Breadcrumb";
 import WishlistTab from "./WishlistTab";
 import SavedConfigurationsTab from "./SavedConfigurationsTab";
+import AtHomeLoader from "../shared/AtHomeLoader";
+import { useCommerce } from "@/contexts/CommerceContext";
 
 type ProfileTab =
   | "info"
@@ -20,9 +33,14 @@ type ProfileTab =
 
 export default function ProfilePage() {
   const searchParams = useSearchParams();
+  const router = useRouter();
+  const { cart, wishlist } = useCommerce();
 
   const [activeTab, setActiveTab] = useState<ProfileTab>("info");
   const [profileImage, setProfileImage] = useState<string | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [gender, setGender] = useState<ProfileGender>("male");
 
   useEffect(() => {
     const tab = searchParams.get("tab");
@@ -39,12 +57,43 @@ export default function ProfilePage() {
     }
   }, [searchParams]);
 
-  const user = {
-    id: "000095214",
-    firstName: "გიორგი",
-    lastName: "ბაგრატიონი",
-    gender: "მამრობითი",
-  };
+  useEffect(() => {
+    let isActive = true;
+    setGender(getStoredProfileGender());
+
+    getCurrentUser()
+      .then((currentUser) => {
+        if (!isActive) {
+          return;
+        }
+
+        if (!currentUser) {
+          router.replace("/authorization");
+          return;
+        }
+
+        if (currentUser.gender) {
+          const normalizedGender =
+            currentUser.gender.toLowerCase() === "female" ? "female" : "male";
+          storeProfileGender(normalizedGender);
+          setGender(normalizedGender);
+        }
+
+        setUser(currentUser);
+      })
+      .catch(() => {
+        router.replace("/authorization");
+      })
+      .finally(() => {
+        if (isActive) {
+          setIsLoading(false);
+        }
+      });
+
+    return () => {
+      isActive = false;
+    };
+  }, [router]);
 
   const menuItems: {
     id: ProfileTab;
@@ -62,13 +111,13 @@ export default function ProfilePage() {
       id: "cart",
       label: "ჩემი კალათა",
       icon: "/icons/profile3.svg",
-      badge: 28,
+      badge: cart.totalItems,
     },
     {
       id: "wishlist",
       label: "სურვილების სია",
       icon: "/icons/profile4.svg",
-      badge: 28,
+      badge: wishlist.totalItems,
     },
     {
       id: "configurations",
@@ -102,7 +151,7 @@ export default function ProfilePage() {
     { label: getBreadcrumbLabel() },
   ];
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
 
     if (file) {
@@ -111,6 +160,36 @@ export default function ProfilePage() {
       reader.readAsDataURL(file);
     }
   };
+
+  const handleMenuClick = async (tab: ProfileTab) => {
+    if (tab !== "logout") {
+      setActiveTab(tab);
+      return;
+    }
+
+    await logoutUser();
+    router.push("/authorization");
+  };
+
+  const profileIcon =
+    gender === "female" ? "/icons/profileWoman.svg" : "/icons/profilePerson.svg";
+
+  if (isLoading) {
+    return (
+      <>
+        <Breadcrumb items={breadcrumbs} />
+        <div className={styles.container}>
+          <div className={styles.wrapper}>
+            <AtHomeLoader variant="section" label="იტვირთება" />
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  if (!user) {
+    return null;
+  }
 
   return (
     <>
@@ -123,10 +202,8 @@ export default function ProfilePage() {
               <div className={styles.avatar}>
                 {profileImage ? (
                   <img src={profileImage} alt="user" />
-                ) : user.gender === "მდედრობითი" ? (
-                  <img src="/icons/profileWoman.svg" alt="user" />
                 ) : (
-                  <img src="/icons/profilePerson.svg" alt="user" />
+                  <img src={profileIcon} alt="user" />
                 )}
 
                 <label className={styles.cameraOverlay}>
@@ -144,14 +221,14 @@ export default function ProfilePage() {
                 {user.firstName} {user.lastName}
               </h3>
 
-              <p className={styles.userId}>ID {user.id}</p>
+              <p className={styles.userId}>ID {String(user.id).padStart(6, "0")}</p>
             </div>
 
             <ul className={styles.menu}>
               {menuItems.map((item) => (
                 <li
                   key={item.id}
-                  onClick={() => setActiveTab(item.id)}
+                  onClick={() => handleMenuClick(item.id)}
                   className={activeTab === item.id ? styles.active : ""}
                 >
                   <img
@@ -162,7 +239,7 @@ export default function ProfilePage() {
 
                   {item.label}
 
-                  {item.badge && (
+                  {Boolean(item.badge) && (
                     <span className={styles.badge}>{item.badge}</span>
                   )}
                 </li>
@@ -171,7 +248,14 @@ export default function ProfilePage() {
           </aside>
 
           <section className={styles.content}>
-            {activeTab === "info" && <InfoTab />}
+            {activeTab === "info" && (
+              <InfoTab
+                user={user}
+                gender={gender}
+                onGenderChange={setGender}
+                onUserChange={setUser}
+              />
+            )}
             {activeTab === "orders" && <OrdersTab />}
             {activeTab === "cart" && <CartTab />}
             {activeTab === "wishlist" && <WishlistTab variant="profile" />}
