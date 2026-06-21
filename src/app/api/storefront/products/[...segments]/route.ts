@@ -44,3 +44,51 @@ export async function GET(request: NextRequest, context: RouteContext) {
 
   return NextResponse.json(await response.json());
 }
+
+export async function POST(request: NextRequest, context: RouteContext) {
+  if (!API_BASE_URL) {
+    return NextResponse.json(
+      { message: "NEXT_PUBLIC_API_URL is not configured" },
+      { status: 500 }
+    );
+  }
+
+  const { segments } = await context.params;
+  const url = new URL(
+    `/api/storefront/products/${segments
+      .map((segment) => encodeURIComponent(segment))
+      .join("/")}`,
+    API_BASE_URL
+  );
+
+  request.nextUrl.searchParams.forEach((value, key) => {
+    url.searchParams.set(key, value);
+  });
+
+  const body = await request.text();
+
+  const response = await fetch(url, {
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": request.headers.get("content-type") ?? "application/json",
+      ...(request.headers.get("authorization")
+        ? { Authorization: request.headers.get("authorization") as string }
+        : {}),
+    },
+    body,
+    cache: "no-store",
+  });
+
+  if (response.status === 204) {
+    return new Response(null, { status: 204 });
+  }
+
+  return new Response(await response.arrayBuffer(), {
+    status: response.status,
+    headers: {
+      "Content-Type":
+        response.headers.get("content-type") ?? "application/json",
+    },
+  });
+}

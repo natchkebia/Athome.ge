@@ -1,4 +1,5 @@
 import { apiRequest } from "./client";
+import { getStoredAuthTokens } from "@/lib/auth/tokens";
 
 export type StorefrontBanner = {
   id: number;
@@ -226,6 +227,42 @@ export type StorefrontSearchResponse = {
   };
 };
 
+export type StorefrontPagedResult<T> = {
+  items: T[];
+  totalCount: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+  hasNext: boolean;
+  hasPrev: boolean;
+};
+
+export type StorefrontProductsSortBy =
+  | "relevance"
+  | "priceAsc"
+  | "priceDesc"
+  | "newest"
+  | "rating"
+  | "topSellers";
+
+export type StorefrontProductsQuery = {
+  page?: number;
+  pageSize?: number;
+  search?: string;
+  categorySlug?: string;
+  subCategorySlug?: string;
+  brandSlug?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  inStockOnly?: boolean;
+  featuredOnly?: boolean;
+  newArrivals?: boolean;
+  topSellers?: boolean;
+  dealsOnly?: boolean;
+  sortBy?: StorefrontProductsSortBy;
+  sortDescending?: boolean;
+};
+
 export function getStorefrontBanners(type?: string) {
   return apiRequest<StorefrontBanner[]>("/api/storefront/banners", {
     query: { type },
@@ -261,12 +298,53 @@ export function getStorefrontCategory(slug: string) {
   );
 }
 
+export function getStorefrontProducts(params: StorefrontProductsQuery = {}) {
+  return apiRequest<StorefrontPagedResult<StorefrontProduct>>(
+    "/api/storefront/products",
+    {
+      query: {
+        Page: params.page,
+        PageSize: params.pageSize,
+        Search: params.search,
+        CategorySlug: params.categorySlug,
+        SubCategorySlug: params.subCategorySlug,
+        BrandSlug: params.brandSlug,
+        MinPrice: params.minPrice,
+        MaxPrice: params.maxPrice,
+        InStockOnly: params.inStockOnly,
+        FeaturedOnly: params.featuredOnly,
+        NewArrivals: params.newArrivals,
+        TopSellers: params.topSellers,
+        DealsOnly: params.dealsOnly,
+        SortBy: params.sortBy,
+        SortDescending: params.sortDescending,
+      },
+      useProxy: true,
+    }
+  );
+}
+
 export function getStorefrontProductsByCategory(
   categorySlug: string,
   limit = 24
 ) {
   return apiRequest<StorefrontProduct[]>(
     `/api/storefront/products/by-category/${encodeURIComponent(categorySlug)}`,
+    {
+      query: { limit },
+      useProxy: true,
+    }
+  );
+}
+
+// Returns a top-level category's full product set. (For sub/mini slugs this
+// returns empty — callers should fall back to getStorefrontProductsByCategory.)
+export function getStorefrontCategoryProducts(
+  categorySlug: string,
+  limit = 24
+) {
+  return apiRequest<StorefrontProduct[]>(
+    `/api/storefront/categories/${encodeURIComponent(categorySlug)}/products`,
     {
       query: { limit },
       useProxy: true,
@@ -341,6 +419,40 @@ export function getStorefrontProductReviews(productId: number, pageSize = 6) {
   );
 }
 
+export type SubmitProductReviewPayload = {
+  rating: number;
+  title?: string;
+  comment?: string;
+  pros?: string;
+  cons?: string;
+  customerName?: string;
+  customerEmail?: string;
+};
+
+// Backend returns a submission result, not the review itself — new reviews go
+// through admin moderation before appearing in the public list.
+export type ReviewSubmissionResult = {
+  id: number;
+  status: string; // e.g. "pending" | "approved"
+  message: string;
+};
+
+export function submitStorefrontProductReview(
+  productId: number,
+  payload: SubmitProductReviewPayload
+) {
+  const tokens = getStoredAuthTokens();
+  return apiRequest<ReviewSubmissionResult>(
+    `/api/storefront/products/${productId}/reviews`,
+    {
+      method: "POST",
+      body: JSON.stringify(payload),
+      token: tokens?.accessToken ?? null,
+      useProxy: true,
+    }
+  );
+}
+
 export function searchStorefrontProducts({
   query,
   page = 1,
@@ -364,6 +476,24 @@ export function searchStorefrontProducts({
     },
     useProxy: true,
   });
+}
+
+// კატეგორიების facets აბრუნებს მხოლოდ storefront-ში ხილულ კატეგორიებს რეალური
+// რაოდენობით (categories endpoint-ის productCount არასანდოა — მთელ კატალოგს ითვლის).
+export async function getStorefrontVisibleCategorySlugs(): Promise<Set<string>> {
+  const result = await apiRequest<StorefrontSearchResponse>(
+    "/api/storefront/search",
+    {
+      query: { PageSize: 1 },
+      useProxy: true,
+    }
+  );
+
+  return new Set(
+    (result.facets?.categories ?? [])
+      .filter((category) => category.count > 0)
+      .map((category) => category.slug)
+  );
 }
 
 export function getStorefrontSearchSuggestions(query: string) {

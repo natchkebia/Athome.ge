@@ -1,12 +1,11 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import styles from "./Configurator.module.scss";
 import {
   ConfiguratorCategoryKey,
   ConfiguratorProduct,
-  SavedConfiguration,
   SelectedConfiguratorProduct,
 } from "./configuratorTypes";
 import {
@@ -18,6 +17,22 @@ import ConfiguratorCategoryCard from "./ConfiguratorCategoryCard";
 import ConfiguratorProductModal from "./ConfiguratorProductModal";
 import ConfiguratorSummary from "./ConfiguratorSummary";
 import Breadcrumb from "../ breadcrumb/Breadcrumb";
+import { useCommerce } from "@/contexts/CommerceContext";
+import { normalizeMediaUrl } from "@/lib/storefront/products";
+import {
+  FRONTEND_TO_BACKEND_SLOT,
+  PERIPHERAL_PARENT_CATEGORY,
+  PERIPHERAL_SLUGS,
+  checkConfiguratorBuild,
+  getCategoryProductsBySlugs,
+  getConfiguratorBuild,
+  getConfiguratorSlotProducts,
+  saveConfiguratorBuild,
+  type ConfiguratorBuildSlot,
+  type ConfiguratorCheckResult,
+  type ConfiguratorProductCard,
+  type ConfiguratorSlot,
+} from "@/lib/api/configurator";
 
 type SelectedProducts = Partial<
   Record<ConfiguratorCategoryKey, SelectedConfiguratorProduct[]>
@@ -39,36 +54,116 @@ const REQUIRED_SYSTEM_CATEGORIES: ConfiguratorCategoryKey[] = [
   "storage",
 ];
 
+// backend slot -> a representative frontend key (for reconstructing a loaded build)
+const BACKEND_TO_FRONTEND_SLOT: Record<ConfiguratorSlot, ConfiguratorCategoryKey> =
+  {
+    cpu: "processor",
+    motherboard: "motherboard",
+    ram: "ram",
+    gpu: "gpu",
+    psu: "psu",
+    case: "case",
+    cpuCooler: "cooler",
+    liquidCooler: "cooler",
+    storageDrive: "storage",
+    caseFan: "caseFan",
+  };
+
+// Adapt a backend product card to the shape the existing modal/cards expect.
+function adaptCard(
+  card: ConfiguratorProductCard,
+  category: ConfiguratorCategoryKey
+): ConfiguratorProduct {
+  const outOfStock = (card.stockStatus ?? "").toLowerCase().includes("out");
+  return {
+    id: card.id,
+    category,
+    title: card.name ?? "",
+    image: normalizeMediaUrl(card.thumbnailUrl ?? undefined) || "/images/case.svg",
+    price: card.effectivePrice,
+    stock: outOfStock ? 0 : 99,
+    specs: (card.keySpecs ?? []).map((spec) => ({
+      label: spec.label ?? "",
+      value: spec.value ?? "",
+    })),
+  };
+}
+
 export default function Configurator() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const { addToCart } = useCommerce();
 
   const [selectedCategory, setSelectedCategory] =
     useState<ConfiguratorCategoryKey | null>(null);
 
-  const [selectedProducts, setSelectedProducts] = useState<SelectedProducts>(
-    {},
-  );
+  const [selectedProducts, setSelectedProducts] = useState<SelectedProducts>({});
 
   const [showPeripherals, setShowPeripherals] = useState(false);
   const [alert, setAlert] = useState<AlertState>(null);
+
+  const [modalProducts, setModalProducts] = useState<ConfiguratorProduct[]>([]);
+  const [modalLoading, setModalLoading] = useState(false);
+
+  const [checkResult, setCheckResult] = useState<ConfiguratorCheckResult | null>(
+    null
+  );
+  const [saving, setSaving] = useState(false);
+  const [addingToCart, setAddingToCart] = useState(false);
 
   const visibleCategories = showPeripherals
     ? peripheralCategories
     : systemUnitCategories;
 
-  const activeProducts = useMemo(() => {
-    if (!selectedCategory) return [];
+  // Load products for the opened slot — real data for backend-mapped slots,
+  // local fallback for slots the backend doesn't support yet (os, peripherals).
+  useEffect(() => {
+    if (!selectedCategory) return;
 
-    return configuratorProducts.filter(
-      (product) => product.category === selectedCategory,
-    );
+    const backendSlot = FRONTEND_TO_BACKEND_SLOT[selectedCategory];
+    const isPeripheral = PERIPHERAL_SLUGS.has(selectedCategory);
+
+    // slots the backend doesn't expose at all (e.g. os) → local fallback
+    if (!backendSlot && !isPeripheral) {
+      setModalProducts(
+        configuratorProducts.filter((p) => p.category === selectedCategory)
+      );
+      setModalLoading(false);
+      return;
+    }
+
+    let active = true;
+    setModalLoading(true);
+    setModalProducts([]);
+
+    const request = backendSlot
+      ? getConfiguratorSlotProducts(backendSlot).then((res) => res.items)
+      : getCategoryProductsBySlugs(PERIPHERAL_PARENT_CATEGORY, [
+          selectedCategory,
+        ]);
+
+    request
+      .then((items) => {
+        if (!active) return;
+        setModalProducts(
+          (items ?? []).map((card) => adaptCard(card, selectedCategory))
+        );
+      })
+      .catch(() => {
+        if (active) setModalProducts([]);
+      })
+      .finally(() => {
+        if (active) setModalLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
   }, [selectedCategory]);
 
   const activeCategoryTitle = useMemo(() => {
     if (!selectedCategory) return "";
-
     const allCategories = [...systemUnitCategories, ...peripheralCategories];
-
     return (
       allCategories.find((category) => category.key === selectedCategory)
         ?.title || ""
@@ -77,21 +172,89 @@ export default function Configurator() {
 
   const allSelectedProducts = useMemo(() => {
     return Object.values(selectedProducts).flatMap(
-      (categoryProducts) => categoryProducts || [],
+      (categoryProducts) => categoryProducts || []
     );
   }, [selectedProducts]);
 
-  const totalPrice = useMemo(() => {
-    return allSelectedProducts.reduce((sum, product) => {
-      return sum + product.price * product.quantity;
-    }, 0);
+  const localTotalPrice = useMemo(() => {
+    return allSelectedProducts.reduce(
+      (sum, product) => sum + product.price * product.quantity,
+      0
+    );
   }, [allSelectedProducts]);
 
   const totalQuantity = useMemo(() => {
-    return allSelectedProducts.reduce((sum, product) => {
-      return sum + product.quantity;
-    }, 0);
+    return allSelectedProducts.reduce((sum, product) => sum + product.quantity, 0);
   }, [allSelectedProducts]);
+
+  // Build the backend slots array (one product per backend slot).
+  const backendSlots = useMemo<ConfiguratorBuildSlot[]>(() => {
+    const slots: ConfiguratorBuildSlot[] = [];
+    const seen = new Set<ConfiguratorSlot>();
+    (Object.keys(selectedProducts) as ConfiguratorCategoryKey[]).forEach(
+      (key) => {
+        const backendSlot = FRONTEND_TO_BACKEND_SLOT[key];
+        const first = selectedProducts[key]?.[0];
+        if (backendSlot && first && !seen.has(backendSlot)) {
+          seen.add(backendSlot);
+          slots.push({ slot: backendSlot, productId: first.id });
+        }
+      }
+    );
+    return slots;
+  }, [selectedProducts]);
+
+  // Run compatibility check whenever the build changes (need ≥2 components).
+  useEffect(() => {
+    if (backendSlots.length < 2) {
+      setCheckResult(null);
+      return;
+    }
+
+    let active = true;
+    checkConfiguratorBuild(backendSlots)
+      .then((res) => {
+        if (active) setCheckResult(res);
+      })
+      .catch(() => {
+        if (active) setCheckResult(null);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [backendSlots]);
+
+  // Load a shared build from ?build=<token>.
+  useEffect(() => {
+    const token = searchParams.get("build");
+    if (!token) return;
+
+    getConfiguratorBuild(token)
+      .then((build) => {
+        const restored: SelectedProducts = {};
+        build.slots.forEach((slot) => {
+          const key = BACKEND_TO_FRONTEND_SLOT[slot.slot];
+          if (!key) return;
+          restored[key] = [
+            {
+              id: slot.productId,
+              category: key,
+              title: slot.productName ?? "",
+              image: slot.thumbnailUrl || "/images/case.svg",
+              price: slot.price,
+              stock: 99,
+              specs: [],
+              quantity: 1,
+            },
+          ];
+        });
+        setSelectedProducts(restored);
+      })
+      .catch(() => {});
+  }, [searchParams]);
+
+  const totalPrice = checkResult?.summary?.totalPrice ?? localTotalPrice;
 
   const getSafeQuantity = (product: ConfiguratorProduct, quantity: number) => {
     return Math.min(Math.max(1, quantity), product.stock);
@@ -99,59 +262,47 @@ export default function Configurator() {
 
   const handleSelectProduct = (
     product: ConfiguratorProduct,
-    quantity: number,
+    quantity: number
   ) => {
     const safeQuantity = getSafeQuantity(product, quantity);
 
     setSelectedProducts((prev) => {
       const categoryProducts = prev[product.category] || [];
-
       const alreadySelected = categoryProducts.some(
-        (item) => item.id === product.id,
+        (item) => item.id === product.id
       );
 
       if (alreadySelected) {
         return {
           ...prev,
           [product.category]: categoryProducts.filter(
-            (item) => item.id !== product.id,
+            (item) => item.id !== product.id
           ),
         };
       }
 
+      // one product per slot — replace any previous selection in this category
       return {
         ...prev,
-        [product.category]: [
-          ...categoryProducts,
-          {
-            ...product,
-            quantity: safeQuantity,
-          },
-        ],
+        [product.category]: [{ ...product, quantity: safeQuantity }],
       };
     });
   };
 
   const handleUpdateQuantity = (
     product: ConfiguratorProduct,
-    quantity: number,
+    quantity: number
   ) => {
     const safeQuantity = getSafeQuantity(product, quantity);
 
     setSelectedProducts((prev) => {
       const categoryProducts = prev[product.category];
-
       if (!categoryProducts) return prev;
 
       return {
         ...prev,
         [product.category]: categoryProducts.map((item) =>
-          item.id === product.id
-            ? {
-                ...item,
-                quantity: safeQuantity,
-              }
-            : item,
+          item.id === product.id ? { ...item, quantity: safeQuantity } : item
         ),
       };
     });
@@ -167,19 +318,18 @@ export default function Configurator() {
 
   const handleClearConfiguration = () => {
     setSelectedProducts({});
+    setCheckResult(null);
   };
 
-  const handleSaveConfiguration = () => {
+  const handleSaveConfiguration = useCallback(async () => {
     const allCategories = [...systemUnitCategories, ...peripheralCategories];
 
-    const missingCategories = REQUIRED_SYSTEM_CATEGORIES.filter(
-      (categoryKey) => {
-        const categoryProducts = selectedProducts[categoryKey];
-        return !categoryProducts || categoryProducts.length === 0;
-      },
-    )
+    const missingCategories = REQUIRED_SYSTEM_CATEGORIES.filter((categoryKey) => {
+      const categoryProducts = selectedProducts[categoryKey];
+      return !categoryProducts || categoryProducts.length === 0;
+    })
       .map((categoryKey) =>
-        allCategories.find((category) => category.key === categoryKey),
+        allCategories.find((category) => category.key === categoryKey)
       )
       .filter(Boolean);
 
@@ -187,37 +337,60 @@ export default function Configurator() {
       const missingNames = missingCategories
         .map((category) => category!.title)
         .join(", ");
-
       setAlert({
         type: "warning",
         message: `სისტემის შესანახად სავალდებულოა შემდეგი კომპონენტების არჩევა: ${missingNames}`,
       });
-
       return;
     }
 
-    const savedConfiguration: SavedConfiguration = {
-      id: Date.now(),
-      createdAt: new Date().toISOString(),
-      products: allSelectedProducts,
-      totalPrice,
-      totalQuantity,
-    };
+    setSaving(true);
+    try {
+      const result = await saveConfiguratorBuild(
+        `კონფიგურაცია ${new Date().toLocaleDateString("ka-GE")}`,
+        backendSlots
+      );
+      const shareUrl =
+        result.shareUrl ||
+        (result.shareToken
+          ? `${window.location.origin}/configurator?build=${result.shareToken}`
+          : "");
+      setAlert({
+        type: "success",
+        message: shareUrl
+          ? `კონფიგურაცია შენახულია. გასაზიარებელი ბმული: ${shareUrl}`
+          : "კონფიგურაცია შენახულია.",
+      });
+    } catch {
+      setAlert({
+        type: "warning",
+        message: "კონფიგურაციის შენახვა ვერ მოხერხდა. სცადეთ მოგვიანებით.",
+      });
+    } finally {
+      setSaving(false);
+    }
+  }, [backendSlots, selectedProducts]);
 
-    const oldConfigurations = JSON.parse(
-      localStorage.getItem("savedConfigurations") || "[]",
-    ) as SavedConfiguration[];
-
-    localStorage.setItem(
-      "savedConfigurations",
-      JSON.stringify([savedConfiguration, ...oldConfigurations]),
-    );
-
-    setAlert({
-      type: "success",
-      message: "სისტემა შეინახა, შენახული სისტემების ნახვა შეგიძლიათ",
-    });
-  };
+  const handleAddToCart = useCallback(async () => {
+    if (allSelectedProducts.length === 0) {
+      setAlert({ type: "warning", message: "ჯერ აირჩიეთ კომპონენტები." });
+      return;
+    }
+    setAddingToCart(true);
+    try {
+      for (const product of allSelectedProducts) {
+        await addToCart(product.id, product.quantity || 1);
+      }
+      router.push("/basket");
+    } catch {
+      setAlert({
+        type: "warning",
+        message: "კალათაში დამატება ვერ მოხერხდა.",
+      });
+    } finally {
+      setAddingToCart(false);
+    }
+  }, [addToCart, allSelectedProducts, router]);
 
   const breadcrumbs = [
     { label: "მთავარი გვერდი", href: "/" },
@@ -265,6 +438,31 @@ export default function Configurator() {
                 </button>
               </div>
 
+              {checkResult && (
+                <div
+                  className={styles.compatBanner}
+                  data-verdict={checkResult.verdict}
+                >
+                  <strong>
+                    {checkResult.verdict === "compatible" &&
+                      "✓ კომპონენტები თავსებადია"}
+                    {checkResult.verdict === "hasWarnings" &&
+                      "⚠ თავსებადია, მაგრამ არის გაფრთხილებები"}
+                    {checkResult.verdict === "incompatible" &&
+                      "✕ კომპონენტები არ არის თავსებადი"}
+                    {checkResult.verdict === "partialBuild" &&
+                      "კონფიგურაცია არასრულია"}
+                  </strong>
+                  {checkResult.allIssues.length > 0 && (
+                    <ul>
+                      {checkResult.allIssues.slice(0, 5).map((issue, i) => (
+                        <li key={i}>{issue.message}</li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              )}
+
               <div className={styles.grid}>
                 {visibleCategories.map((category) => (
                   <ConfiguratorCategoryCard
@@ -282,6 +480,9 @@ export default function Configurator() {
               selectedProducts={selectedProducts}
               totalPrice={totalPrice}
               onSaveConfiguration={handleSaveConfiguration}
+              onAddToCart={handleAddToCart}
+              saving={saving}
+              addingToCart={addingToCart}
             />
           </div>
         </div>
@@ -289,7 +490,8 @@ export default function Configurator() {
         {selectedCategory && (
           <ConfiguratorProductModal
             title={activeCategoryTitle || "დეტალები"}
-            products={activeProducts}
+            products={modalProducts}
+            loading={modalLoading}
             selectedProducts={selectedProducts[selectedCategory] || []}
             onClose={() => setSelectedCategory(null)}
             onSelect={handleSelectProduct}

@@ -7,7 +7,8 @@ export type StorefrontProductCard = Omit<ProductCardProps, "id"> & {
 
 export function normalizeMediaUrl(
   url?: string,
-  fallback = "/images/discountPc.png"
+  // ფოტოს გარეშე პროდუქტზე — საიტის ლოგო (ნაგულისხმევი placeholder)
+  fallback = "/icons/Logo.svg"
 ) {
   if (!url) return fallback;
 
@@ -21,13 +22,19 @@ export function normalizeMediaUrl(
 export function mapStorefrontProductToCard(
   product: StorefrontProduct
 ): StorefrontProductCard {
+  // The strikethrough/original price can come via oldPrice OR sellingPrice —
+  // deals carry the original in oldPrice while sellingPrice == effectivePrice.
+  const referencePrice = Math.max(
+    product.oldPrice ?? 0,
+    product.sellingPrice ?? 0
+  );
+  const hasDiscount = referencePrice > product.effectivePrice;
+
   const discount =
     product.discountPercent ??
-    (product.sellingPrice > product.effectivePrice
+    (hasDiscount
       ? Math.round(
-          ((product.sellingPrice - product.effectivePrice) /
-            product.sellingPrice) *
-            100
+          ((referencePrice - product.effectivePrice) / referencePrice) * 100
         )
       : 0);
 
@@ -35,10 +42,7 @@ export function mapStorefrontProductToCard(
     id: product.id,
     image: normalizeMediaUrl(product.thumbnailUrl),
     title: product.shortTitle || product.name,
-    oldPrice:
-      product.sellingPrice > product.effectivePrice
-        ? product.sellingPrice
-        : undefined,
+    oldPrice: hasDiscount ? referencePrice : undefined,
     newPrice: product.effectivePrice,
     discount,
     isNew: product.isNewArrival,

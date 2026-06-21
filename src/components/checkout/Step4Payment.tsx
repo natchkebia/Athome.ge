@@ -3,12 +3,28 @@ import React, { useState } from "react";
 import styles from "./Step4Payment.module.scss";
 import TermsModal from "./components/TermsModal";
 
+export type PaymentSelection = {
+  method: "card" | "invoice" | "installment";
+  bank: string;
+  email: string;
+  installmentMonths: number;
+};
+
+const INSTALLMENT_MONTHS = [3, 6, 12, 18, 24];
+
 interface Props {
-  onNext?: () => void;
+  onNext?: (data: PaymentSelection) => void;
   onPrev?: () => void;
+  submitting?: boolean;
+  error?: string | null;
 }
 
-export default function Step4Payment({ onNext, onPrev }: Props) {
+export default function Step4Payment({
+  onNext,
+  onPrev,
+  submitting = false,
+  error = null,
+}: Props) {
   const [method, setMethod] = useState<"card" | "invoice" | "installment">(
     "card"
   );
@@ -16,6 +32,7 @@ export default function Step4Payment({ onNext, onPrev }: Props) {
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [email, setEmail] = useState("");
+  const [installmentMonths, setInstallmentMonths] = useState(6);
 
   return (
     <div className={styles.wrapper}>
@@ -160,6 +177,42 @@ export default function Step4Payment({ onNext, onPrev }: Props) {
               <img src="/icons/Group.svg" />
             </div>
           </div>
+
+          <div
+            style={{
+              marginTop: 16,
+              display: "flex",
+              flexDirection: "column",
+              gap: 8,
+            }}
+          >
+            <label style={{ fontSize: 14, color: "#3b3f42" }}>
+              განვადების ვადა (თვე)
+            </label>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              {INSTALLMENT_MONTHS.map((m) => (
+                <button
+                  key={m}
+                  type="button"
+                  onClick={() => setInstallmentMonths(m)}
+                  style={{
+                    padding: "8px 16px",
+                    borderRadius: 8,
+                    border:
+                      installmentMonths === m
+                        ? "2px solid #10b5c0"
+                        : "1px solid #ecf2f6",
+                    background: installmentMonths === m ? "#eef9fa" : "#fff",
+                    color: "#3b3f42",
+                    cursor: "pointer",
+                    fontWeight: installmentMonths === m ? 600 : 400,
+                  }}
+                >
+                  {m}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
       )}
       {method === "installment" && (
@@ -197,12 +250,13 @@ export default function Step4Payment({ onNext, onPrev }: Props) {
           გადარიცხვის ინვოისი გამოიგზავნება თქვენ მიერ მითითებულ ელ.ფოსტაზე
         </p>
       )}
+      {error && <p className={styles.invoice} style={{ color: "rgba(235, 78, 57, 1)" }}>{error}</p>}
       <button
         className={styles.nextBtn}
-        onClick={() => onNext?.()}
-        disabled={!acceptedTerms}
+        onClick={() => onNext?.({ method, bank, email, installmentMonths })}
+        disabled={!acceptedTerms || submitting}
       >
-        გაგრძელება
+        {submitting ? "მუშავდება..." : "შეკვეთის გაფორმება"}
       </button>
       {isModalOpen && (
         <TermsModal

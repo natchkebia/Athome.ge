@@ -10,6 +10,7 @@ import {
 type Props = {
   title: string;
   products: ConfiguratorProduct[];
+  loading?: boolean;
   selectedProducts: SelectedConfiguratorProduct[];
   onClose: () => void;
   onSelect: (product: ConfiguratorProduct, quantity: number) => void;
@@ -21,6 +22,7 @@ const brands = ["ყველა", "AsRock", "Asus", "Gigabyte", "Msi"];
 export default function ConfiguratorProductModal({
   title,
   products,
+  loading = false,
   selectedProducts,
   onClose,
   onSelect,
@@ -144,7 +146,9 @@ export default function ConfiguratorProductModal({
           </aside>
 
           <div className={styles.productList}>
-            {filteredProducts.length === 0 ? (
+            {loading ? (
+              <div className={styles.emptyProducts}>იტვირთება...</div>
+            ) : filteredProducts.length === 0 ? (
               <div className={styles.emptyProducts}>
                 შესაბამისი პროდუქტი ვერ მოიძებნა
               </div>

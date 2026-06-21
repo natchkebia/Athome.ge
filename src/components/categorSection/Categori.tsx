@@ -28,12 +28,16 @@ export default function Categories() {
   useEffect(() => {
     let isMounted = true;
 
+    // მხოლოდ მთავარი (top-level) კატეგორიების ნეიმები, როგორც backend აბრუნებს
+    // (subCategories-ს თავს ვანებებთ; ცარიელი კატეგორია ბექის საქმეა).
     getStorefrontCategories()
       .then((items) => {
         if (!isMounted) return;
 
         setStorefrontCategories(
-          [...items].sort((a, b) => a.sortOrder - b.sortOrder).slice(0, 8)
+          [...items]
+            .sort((a, b) => a.sortOrder - b.sortOrder)
+            .slice(0, 8)
         );
       })
       .catch(() => {

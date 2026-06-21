@@ -1,0 +1,98 @@
+.wrapper {
+  max-width: 560px;
+  margin: 60px auto;
+  padding: 40px 24px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.icon {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.checking {
+  background: #eef5f8;
+  color: #3b3f42;
+}
+
+.success {
+  background: #59b65a;
+}
+
+.failed {
+  background: #eb4e39;
+}
+
+.timeout {
+  background: #e0a23a;
+}
+
+.title {
+  font-size: 22px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.subtitle {
+  color: #7a858c;
+  margin: 0;
+}
+
+.orderNumber {
+  font-weight: 700;
+}
+
+.actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.primaryBtn,
+.secondaryBtn {
+  padding: 12px 24px;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  text-decoration: none;
+}
+
+.primaryBtn {
+  background: #1a1a1a;
+  color: #fff;
+}
+
+.secondaryBtn {
+  background: #eef5f8;
+  color: #3b3f42;
+}
+
+.spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid #dfe7ec;
+  border-top-color: #59b65a;
+  border-radius: 50%;
+  animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

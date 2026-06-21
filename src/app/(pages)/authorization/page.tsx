@@ -8,7 +8,7 @@ import {
   login,
   registerIndividual,
   registerLegal,
-  resetPassword,
+  resetPasswordEmailOtp,
   resetPasswordSms,
   socialLogin,
 } from "@/lib/api/auth";
@@ -384,9 +384,9 @@ export default function AuthForm() {
           newPassword,
         });
       } else {
-        await resetPassword({
+        await resetPasswordEmailOtp({
           email: resetContact,
-          token: code,
+          otpCode: code,
           newPassword,
         });
       }

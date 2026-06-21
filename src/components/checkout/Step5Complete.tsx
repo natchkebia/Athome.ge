@@ -5,10 +5,14 @@ import styles from "./Step5Complete.module.scss";
 import type { FormValues } from "./Step1Contact";
 import { useCommerce } from "@/contexts/CommerceContext";
 import { normalizeMediaUrl } from "@/lib/storefront/products";
+import type { CheckoutResponse } from "@/lib/api/checkout";
+import type { ProfileCartItem } from "@/lib/api/profileCommerce";
 
 type Step5CompleteProps = {
   contactData?: FormValues | null;
   orderType?: "store" | "delivery" | null;
+  result?: CheckoutResponse | null;
+  items?: ProfileCartItem[];
 };
 
 const deliveryFee = 0;
@@ -39,16 +43,23 @@ function escapeHtml(value: string) {
 export default function Step5Complete({
   contactData,
   orderType,
+  result,
+  items: itemsProp,
 }: Step5CompleteProps) {
   const { cart } = useCommerce();
   const createdAt = new Date();
-  const orderNumber = `ATH-${createdAt.getFullYear()}${String(
-    createdAt.getMonth() + 1
-  ).padStart(2, "0")}${String(createdAt.getDate()).padStart(2, "0")}-${String(
-    createdAt.getTime()
-  ).slice(-6)}`;
+  const orderNumber =
+    result?.orderNumber ||
+    `ATH-${createdAt.getFullYear()}${String(createdAt.getMonth() + 1).padStart(
+      2,
+      "0"
+    )}${String(createdAt.getDate()).padStart(2, "0")}-${String(
+      createdAt.getTime()
+    ).slice(-6)}`;
 
-  const items = cart.items.filter((item) => item.productName);
+  const sourceItems = itemsProp ?? cart.items;
+  const items = sourceItems.filter((item) => item.productName);
+  const bankTransfer = result?.bankTransferDetails;
   const subtotal = items.reduce(
     (sum, item) => sum + item.sellingPrice * item.quantity,
     0
@@ -60,7 +71,7 @@ export default function Step5Complete({
   );
   const discount = Math.max(oldTotal - subtotal, 0);
   const totalQuantity = items.reduce((sum, item) => sum + item.quantity, 0);
-  const total = subtotal + deliveryFee;
+  const total = result?.totalAmount ?? subtotal + deliveryFee;
 
   const customerName =
     contactData?.type === "company"
@@ -186,6 +197,35 @@ export default function Step5Complete({
           მთავარი გვერდი
         </Link>
       </div>
+
+      {bankTransfer && (
+        <div
+          style={{
+            background: "#eef5f8",
+            borderRadius: 12,
+            padding: 20,
+            margin: "0 auto 24px",
+            maxWidth: 520,
+          }}
+        >
+          <h3 style={{ marginTop: 0 }}>გადარიცხვის დეტალები</h3>
+          <p>გთხოვთ, თანხა გადარიცხოთ შემდეგ ანგარიშზე:</p>
+          {bankTransfer.accountName && (
+            <p>
+              <strong>მიმღები:</strong> {bankTransfer.accountName}
+            </p>
+          )}
+          {bankTransfer.iban && (
+            <p>
+              <strong>IBAN:</strong> {bankTransfer.iban}
+            </p>
+          )}
+          <p>
+            <strong>დანიშნულება:</strong> {orderNumber}
+          </p>
+          {bankTransfer.instructions && <p>{bankTransfer.instructions}</p>}
+        </div>
+      )}
 
       <div className={styles.invoiceCard}>
         <div className={styles.invoiceMeta}>

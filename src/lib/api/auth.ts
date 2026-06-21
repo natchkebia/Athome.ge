@@ -260,6 +260,18 @@ export async function resetPasswordSms(payload: {
   });
 }
 
+export async function resetPasswordEmailOtp(payload: {
+  email: string;
+  otpCode: string;
+  newPassword: string;
+}) {
+  return apiRequest<void>("/api/auth/reset-password/email-otp", {
+    method: "POST",
+    body: jsonBody(payload),
+    useProxy: true,
+  });
+}
+
 export async function verifyEmailLink(payload: { email: string; token: string }) {
   return apiRequest<void>("/api/auth/verify-email/link", {
     method: "POST",

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import styles from "./products.module.scss";
@@ -12,6 +12,7 @@ import Breadcrumb from "@/components/ breadcrumb/Breadcrumb";
 import AtHomeLoader from "@/components/shared/AtHomeLoader";
 import {
   getStorefrontCategory,
+  getStorefrontCategoryProducts,
   getStorefrontProductsByCategory,
   StorefrontCategory,
 } from "@/lib/api/storefront";
@@ -23,7 +24,7 @@ import { useCommerce } from "@/contexts/CommerceContext";
 
 const PRODUCT_LIMIT = 24;
 
-export default function ProductsPage() {
+function ProductsPageInner() {
   const [filters, setFilters] = useState({
     price: [0, 8500] as [number, number],
     brands: [] as string[],
@@ -45,6 +46,8 @@ export default function ProductsPage() {
   const { wishlistProductIds, toggleWishlist, addToCart } = useCommerce();
 
   const params = useParams();
+  // [category] param ინახავს ნებისმიერი დონის slug-ს (category/sub/mini) —
+  // by-category endpoint ყველა მათგანზე ზუსტად იმ დონის პროდუქტებს აბრუნებს.
   const category = decodeURIComponent(params.category as string);
 
   useEffect(() => {
@@ -69,11 +72,19 @@ export default function ProductsPage() {
     setLoading(true);
     setVisibleCount(9);
 
-    getStorefrontProductsByCategory(category, PRODUCT_LIMIT)
-      .then((items) => {
-        if (!isMounted) return;
+    // eslint-disable-next-line no-console
+    console.log("[CATEGORY PAGE] by-category slug:", category);
 
-        setProducts(items.map(mapStorefrontProductToCard));
+    // მთავარი კატეგორიებისთვის — /categories/{slug}/products (სრული კონტენტი).
+    // sub/mini slug-ზე ეს ცარიელია → fallback by-category/{slug} (exact-level).
+    getStorefrontCategoryProducts(category, PRODUCT_LIMIT)
+      .then(async (items) => {
+        const list =
+          items.length > 0
+            ? items
+            : await getStorefrontProductsByCategory(category, PRODUCT_LIMIT);
+        if (!isMounted) return;
+        setProducts(list.map(mapStorefrontProductToCard));
       })
       .catch(() => {
         if (isMounted) setProducts([]);
@@ -262,5 +273,13 @@ export default function ProductsPage() {
         </div>
       </div>
     </>
+  );
+}
+
+export default function ProductsPage() {
+  return (
+    <Suspense fallback={<AtHomeLoader variant="page" />}>
+      <ProductsPageInner />
+    </Suspense>
   );
 }

@@ -83,7 +83,10 @@ export async function apiRequest<T>(
   path: string,
   { query, headers, useProxy, token, body, ...options }: ApiRequestOptions = {}
 ): Promise<T> {
-  const response = await fetch(buildUrl(path, query, useProxy), {
+  const requestUrl = buildUrl(path, query, useProxy);
+  // eslint-disable-next-line no-console
+  console.log("[API REQUEST →]", options.method ?? "GET", requestUrl);
+  const response = await fetch(requestUrl, {
     ...options,
     body,
     headers: {

@@ -1,12 +1,68 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
+import Link from "next/link";
 import styles from "./NavbarCategory.module.scss";
+import AtHomeLoader from "@/components/shared/AtHomeLoader";
+import {
+  getStorefrontCategories,
+  getStorefrontVisibleCategorySlugs,
+  StorefrontCategory,
+} from "@/lib/api/storefront";
+
+const CATEGORY_ICONS: Record<string, string> = {
+  computers: "/icons/Computer-black.svg",
+  "computer-parts": "/icons/Computer-parts.svg",
+  peripherials: "/icons/Mouse-black.svg",
+  "monitors-and-screens": "/icons/Monitor-black.svg",
+  "gaming-accessories": "/icons/Headphone.svg",
+  "networking-devices": "/icons/Network.svg",
+  mobiletablet: "/icons/Phone.svg",
+  "usb-and-connectivity": "/icons/Cabels.svg",
+  carscooter: "/icons/Moped.svg",
+  etechoffice: "/icons/Setting.svg",
+  "office-equipment": "/icons/Table-black.svg",
+  "tools-and-maintenance": "/icons/broom.svg",
+};
+
+const DEFAULT_ICON = "/icons/Setting.svg";
+
+function categoryIcon(cat: StorefrontCategory) {
+  return cat.imageUrl || CATEGORY_ICONS[cat.slug] || DEFAULT_ICON;
+}
 
 export default function NavbarCategory() {
   const [isOpen, setIsOpen] = useState(false);
-  const [activeCategory, setActiveCategory] = useState<number>(1);
+  const [categories, setCategories] = useState<StorefrontCategory[]>([]);
+  const [activeSlug, setActiveSlug] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    Promise.all([
+      getStorefrontCategories(),
+      getStorefrontVisibleCategorySlugs(),
+    ])
+      .then(([data, visibleSlugs]) => {
+        if (!isMounted) return;
+        // მხოლოდ ის კატეგორიები, რომლებსაც ≥1 ხილული პროდუქტი აქვს
+        const visible = data.filter((cat) => visibleSlugs.has(cat.slug));
+        setCategories(visible);
+        if (visible.length > 0) setActiveSlug(visible[0].slug);
+      })
+      .catch(() => {
+        if (isMounted) setCategories([]);
+      })
+      .finally(() => {
+        if (isMounted) setLoading(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -25,11 +81,11 @@ export default function NavbarCategory() {
     setIsOpen((prev) => !prev);
   };
 
-  const handleCategoryClick = (id: number) => {
-    setActiveCategory(id);
+  const closeDropdown = () => {
+    setIsOpen(false);
   };
 
-  const activeData = categories.find((c) => c.id === activeCategory);
+  const activeData = categories.find((c) => c.slug === activeSlug);
 
   return (
     <div className={styles.navbarCategory} ref={dropdownRef}>
@@ -38,25 +94,34 @@ export default function NavbarCategory() {
         <span>კატეგორიები</span>
       </div>
 
-      {isOpen && (
+      {isOpen && loading && (
+        <div className={`${styles.dropdownPanel} ${styles.fullWidth}`}>
+          <div className={styles.loaderWrap}>
+            <AtHomeLoader variant="section" />
+          </div>
+        </div>
+      )}
+
+      {isOpen && !loading && (
         <div className={`${styles.dropdownPanel} ${styles.fullWidth}`}>
           <div className={styles.leftMenu}>
             {categories.map((cat) => {
-              const isActive = activeCategory === cat.id;
-              const hasSubcategories = cat.subcategories.length > 0;
+              const isActive = activeSlug === cat.slug;
+              const hasSubcategories = cat.subCategories.length > 0;
 
               return (
-                <div key={cat.id} className={styles.menuGroup}>
-                  <button
-                    type="button"
+                <div key={cat.slug} className={styles.menuGroup}>
+                  <Link
+                    href={`/products/${encodeURIComponent(cat.slug)}`}
                     className={`${styles.menuItem} ${
                       isActive ? styles.active : ""
                     }`}
-                    onClick={() => handleCategoryClick(cat.id)}
+                    onMouseEnter={() => setActiveSlug(cat.slug)}
+                    onClick={closeDropdown}
                   >
                     <div>
-                      <img src={cat.icon} alt={cat.title} />
-                      <span>{cat.title}</span>
+                      <img src={categoryIcon(cat)} alt={cat.name} />
+                      <span>{cat.name}</span>
                     </div>
 
                     {hasSubcategories && (
@@ -66,14 +131,19 @@ export default function NavbarCategory() {
                         alt="arrow"
                       />
                     )}
-                  </button>
+                  </Link>
 
                   {hasSubcategories && isActive && (
                     <div className={styles.mobileSubMenu}>
-                      {cat.subcategories.map((sub) => (
-                        <div key={sub} className={styles.subItem}>
-                          {sub}
-                        </div>
+                      {cat.subCategories.map((sub) => (
+                        <Link
+                          key={sub.slug}
+                          href={`/products/${encodeURIComponent(sub.slug)}`}
+                          className={styles.subItem}
+                          onClick={closeDropdown}
+                        >
+                          {sub.name}
+                        </Link>
                       ))}
                     </div>
                   )}
@@ -83,9 +153,29 @@ export default function NavbarCategory() {
           </div>
           <div className={styles.rightPanel}>
             <div className={styles.subMenu}>
-              {activeData?.subcategories?.map((sub) => (
-                <div key={sub} className={styles.subItem}>
-                  {sub}
+              {activeData?.subCategories?.map((sub) => (
+                <div key={sub.slug} className={styles.subGroup}>
+                  <Link
+                    href={`/products/${encodeURIComponent(sub.slug)}`}
+                    className={styles.subItem}
+                    onClick={closeDropdown}
+                  >
+                    {sub.name}
+                  </Link>
+                  {sub.miniCategories?.length > 0 && (
+                    <div className={styles.miniMenu}>
+                      {sub.miniCategories.map((mini) => (
+                        <Link
+                          key={mini.slug}
+                          href={`/products/${encodeURIComponent(mini.slug)}`}
+                          className={styles.miniItem}
+                          onClick={closeDropdown}
+                        >
+                          {mini.name}
+                        </Link>
+                      ))}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -98,90 +188,3 @@ export default function NavbarCategory() {
     </div>
   );
 }
-
-const categories = [
-  {
-    id: 1,
-    icon: "/icons/Computer-black.svg",
-    title: "კომპიუტერები",
-    subcategories: ["ლეპტოპები", "მაგიდის კომპიუტერები", "გეიმინგი"],
-  },
-  {
-    id: 2,
-    icon: "/icons/Computer-parts.svg",
-    title: "კომპიუტერის ნაწილები",
-    subcategories: ["მეხსიერება", "ვიდეობარათი", "პროცესორი", "დედა დაფა"],
-  },
-  {
-    id: 3,
-    icon: "/icons/Mouse-black.svg",
-    title: "პერიფერალები",
-    subcategories: ["მაუსები", "კლავიატურები", "მონიტორის სტენდები"],
-  },
-  {
-    id: 4,
-    icon: "/icons/Headphone.svg",
-    title: "კომპიუტერის აქსესუარები",
-    subcategories: ["ყურსასმენები", "მიკროფონები", "სპიკერები"],
-  },
-  {
-    id: 5,
-    icon: "/icons/Monitor-black.svg",
-    title: "მონიტორები",
-    subcategories: [],
-  },
-  {
-    id: 6,
-    icon: "/icons/Tv.svg",
-    title: "ტელევიზორები",
-    subcategories: [],
-  },
-  {
-    id: 7,
-    icon: "/icons/Projector.svg",
-    title: "პროექტორები",
-    subcategories: [],
-  },
-  {
-    id: 8,
-    icon: "/icons/Table-black.svg",
-    title: "სავარძლები და მაგიდები",
-    subcategories: [],
-  },
-  {
-    id: 9,
-    icon: "/icons/Laptop.svg",
-    title: "ნოუთბუქები",
-    subcategories: [],
-  },
-  {
-    id: 10,
-    icon: "/icons/LaptopParts.svg",
-    title: "ნოუთბუქის ნაწილები",
-    subcategories: [],
-  },
-  {
-    id: 11,
-    icon: "/icons/LaptopAccessories.svg",
-    title: "ნოუთბუქის აქსესუარები",
-    subcategories: [],
-  },
-  {
-    id: 12,
-    icon: "/icons/Cabels.svg",
-    title: "კაბელები და ადაპტერები",
-    subcategories: ["სმარტფონის კაბელები", "დამტენები", "USB ჰაბები"],
-  },
-  {
-    id: 13,
-    icon: "/icons/Phone.svg",
-    title: "მობილურის აქსესუარები",
-    subcategories: [],
-  },
-  {
-    id: 14,
-    icon: "/icons/Network.svg",
-    title: "ქსელის აპარატურა",
-    subcategories: ["რუტერები", "მოდემები", "ქსელის კაბელები"],
-  },
-];

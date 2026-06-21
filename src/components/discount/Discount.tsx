@@ -10,14 +10,17 @@ import {
 } from "@/lib/storefront/products";
 import AtHomeLoader from "../shared/AtHomeLoader";
 
+// tab label -> backend category slug (deal card carries the top-level slug)
+const FILTER_SLUGS: Record<string, string> = {
+  კომპიუტერები: "computers",
+  მონიტორები: "monitors-and-screens",
+  "კომპიუტერის ნაწილები": "computer-parts",
+  პერიფერიულიები: "peripherials",
+  ნოუთბუქები: "laptop",
+};
+
 export default function Discount() {
-  const filters = [
-    "კომპიუტერები",
-    "მონიტორები",
-    "კომპიუტერის ნაწილები",
-    "პერიფერიულიები",
-    "ნოუთბუქები",
-  ];
+  const filters = Object.keys(FILTER_SLUGS);
 
   const [activeFilter, setActiveFilter] = useState(filters[0]);
   const [products, setProducts] = useState<StorefrontProductCard[]>([]);
@@ -28,7 +31,7 @@ export default function Discount() {
 
     setLoading(true);
 
-    getDealStorefrontProducts(8)
+    getDealStorefrontProducts(48)
       .then((items) => {
         if (isMounted) setProducts(items.map(mapStorefrontProductToCard));
       })
@@ -44,7 +47,10 @@ export default function Discount() {
     };
   }, []);
 
-  const filteredProducts = products;
+  // real slug-based filtering — show only deals of the selected category
+  const filteredProducts = products.filter(
+    (p) => p.category === FILTER_SLUGS[activeFilter]
+  );
 
   const handleFilterClick = (filter: string) => {
     setActiveFilter(filter);
@@ -76,8 +82,14 @@ export default function Discount() {
         </div>
       </div>
 
-      {/* სლაიდერი — ყველა პროდუქტი */}
-      <DiscountSlider products={filteredProducts} />
+      {/* სლაიდერი — არჩეული კატეგორიის ფასდაკლებები */}
+      {filteredProducts.length > 0 ? (
+        <DiscountSlider products={filteredProducts} />
+      ) : (
+        <p className={styles.emptyDeals}>
+          ამ კატეგორიაში ფასდაკლება ჯერ არ არის
+        </p>
+      )}
     </>
   );
 }
