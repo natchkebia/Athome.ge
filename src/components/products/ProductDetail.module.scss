@@ -218,6 +218,18 @@
         font-weight: 590;
       }
     }
+
+    .cartBtnActive {
+      background-color: rgba(16, 181, 192, 1);
+
+      span {
+        color: #ffffff;
+      }
+
+      img {
+        filter: brightness(0) invert(1);
+      }
+    }
   }
 
   .badges {

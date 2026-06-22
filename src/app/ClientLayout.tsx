@@ -7,7 +7,11 @@ import Header from "@/components/header/Header";
 import Navbar from "@/components/navbar/Navbar";
 import Footer from "@/components/footer/Footer";
 import AtHomeLoader from "@/components/shared/AtHomeLoader";
+import CompareBar from "@/components/compare/CompareBar";
 import { CommerceProvider } from "@/contexts/CommerceContext";
+import { CompareProvider } from "@/contexts/CompareContext";
+import { LoadingProvider } from "@/contexts/LoadingContext";
+import { ToastProvider } from "@/contexts/ToastContext";
 import { refreshToken } from "@/lib/api/auth";
 import {
   getStoredAuthTokens,
@@ -150,18 +154,27 @@ export default function ClientLayout({
 
   return (
     <CommerceProvider>
-      {isRouteLoading && <AtHomeLoader variant="overlay" label="იტვირთება" />}
+      <ToastProvider>
+        <CompareProvider>
+          <LoadingProvider>
+          {isRouteLoading && (
+            <AtHomeLoader variant="overlay" label="იტვირთება" />
+          )}
 
-      <header className={`fixed-header ${hideTopBar ? "scrolled" : ""}`}>
-        <div className={`topbar-wrapper ${hideTopBar ? "hidden" : ""}`}>
-          <TopBar />
-        </div>
-        <Header />
-        <Navbar />
-      </header>
+          <header className={`fixed-header ${hideTopBar ? "scrolled" : ""}`}>
+            <div className={`topbar-wrapper ${hideTopBar ? "hidden" : ""}`}>
+              <TopBar />
+            </div>
+            <Header />
+            <Navbar />
+          </header>
 
-      <main className="page-content">{children}</main>
-      <Footer />
+          <main className="page-content">{children}</main>
+          <Footer />
+          <CompareBar />
+          </LoadingProvider>
+        </CompareProvider>
+      </ToastProvider>
     </CommerceProvider>
   );
 }

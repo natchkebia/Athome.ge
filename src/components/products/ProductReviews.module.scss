@@ -32,14 +32,18 @@
   button {
     min-width: 168px;
     height: 42px;
-    border: 1px solid #d7edf0;
+    border: 1px solid #10b5c0;
     border-radius: 8px;
     background: #f6fbfc;
     color: #10b5c0;
     font-size: 14px;
     font-weight: 700;
-    cursor: not-allowed;
-    opacity: 0.72;
+    cursor: pointer;
+    transition: background 0.15s ease;
+
+    &:hover {
+      background: #e9fafb;
+    }
   }
 
   @media (max-width: 640px) {
@@ -59,45 +63,69 @@
 }
 
 .content {
-  display: grid;
-  grid-template-columns: 220px minmax(0, 1fr);
+  display: flex;
+  flex-direction: column;
   gap: 20px;
-
-  @media (max-width: 768px) {
-    grid-template-columns: 1fr;
-  }
 }
 
 .summary {
-  min-height: 168px;
-  border-radius: 14px;
-  background: #f6f8fb;
   display: flex;
-  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 10px;
+  gap: 18px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #eef1f6;
   color: #3b3f42;
 
   strong {
     color: #10b5c0;
-    font-size: 40px;
+    font-size: 46px;
+    font-weight: 700;
     line-height: 1;
-  }
-
-  span:last-child {
-    color: #696c6e;
-    font-size: 14px;
   }
 }
 
+.summaryMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  span {
+    color: #696c6e;
+    font-size: 13px;
+  }
+}
+
+// ნაწილობრივი ვარსკვლავი — ნაცრისფერი ფონი + ოქროსფერი დანაფარი სიგანის მიხედვით.
 .stars {
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
+  position: relative;
+  display: inline-block;
+  line-height: 1;
+  white-space: nowrap;
+  font-size: 16px;
+  letter-spacing: 2px;
+}
+
+.starsBase,
+.starsFill {
+  display: block;
   line-height: 1;
 }
 
+.starsBase {
+  color: #d7dde5;
+}
+
+.starsFill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  color: #f6b800;
+}
+
+// დისკრეტული ვარსკვლავები — შეფასების ფორმის ასარჩევად.
 .star,
 .starActive {
   font-size: 17px;
@@ -111,13 +139,127 @@
   color: #f6b800;
 }
 
-.reviewsList {
+// ≤4 შეფასება — ერთ რიგში ჩამწკრივება (სვეტების რაოდენობა = შეფასებების რაოდენობა).
+.reviewsGrid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 14px;
 
+  &[data-count="1"] {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  &[data-count="2"] {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  &[data-count="3"] {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  &[data-count="4"] {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
   @media (max-width: 1024px) {
-    grid-template-columns: 1fr;
+    &[data-count="3"],
+    &[data-count="4"] {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 640px) {
+    &[data-count] {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+}
+
+.reviewCell {
+  min-width: 0;
+  height: 100%;
+}
+
+// >4 შეფასება — სლაიდერი (DiscountSlider-ის სტილი).
+.sliderWrapper {
+  width: 100%;
+}
+
+.sliderTopBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.rangeTrack {
+  flex: 1;
+  height: 2px;
+  background: #e4e8eb;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.rangeFill {
+  height: 100%;
+  background: linear-gradient(90deg, #10b5c0 0%, #0fa1ab 100%);
+  transition: width 0.4s ease;
+  width: 0%;
+}
+
+.sliderNav {
+  display: flex;
+  gap: 8px;
+
+  div {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #f9fafb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  :global(.swiper-button-disabled) {
+    opacity: 0.4;
+    cursor: default;
+  }
+}
+
+.swiper {
+  overflow: visible;
+
+  :global(.swiper-slide) {
+    width: 324px;
+    height: auto;
+  }
+
+  :global(.swiper-slide) > .reviewCard {
+    height: 100%;
+  }
+}
+
+.reviewSlide {
+  display: flex;
+
+  .reviewCard {
+    width: 100%;
+  }
+}
+
+@media (max-width: 1024px) {
+  .swiper :global(.swiper-slide) {
+    width: clamp(260px, calc((100vw - 80px) / 2), 324px);
+  }
+}
+
+@media (max-width: 640px) {
+  .swiper {
+    overflow: hidden;
+
+    :global(.swiper-slide) {
+      width: min(324px, calc(100vw - 48px));
+    }
   }
 }
 
@@ -131,6 +273,8 @@
 .reviewCard {
   padding: 16px;
   min-width: 0;
+  height: 100%;
+  box-sizing: border-box;
 
   h5,
   h6,

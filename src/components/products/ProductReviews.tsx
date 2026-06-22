@@ -1,6 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useId, useMemo, useState } from "react";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Navigation } from "swiper/modules";
+import "swiper/css";
+import "swiper/css/navigation";
 import {
   getStorefrontProductReviews,
   submitStorefrontProductReview,
@@ -24,19 +28,20 @@ function formatDate(value: string) {
   }).format(new Date(value));
 }
 
-function Stars({ value }: { value: number }) {
-  const rating = Math.max(0, Math.min(5, Math.round(value)));
+function Stars({ value, size }: { value: number; size?: number }) {
+  const rating = Math.max(0, Math.min(5, value));
+  const fillPercent = (rating / 5) * 100;
 
   return (
-    <span className={styles.stars} aria-label={`${rating} / 5`}>
-      {Array.from({ length: 5 }, (_, index) => (
-        <span
-          key={index}
-          className={index < rating ? styles.starActive : styles.star}
-        >
-          ★
-        </span>
-      ))}
+    <span
+      className={styles.stars}
+      style={size ? { fontSize: size } : undefined}
+      aria-label={`${rating.toFixed(1)} / 5`}
+    >
+      <span className={styles.starsBase}>★★★★★</span>
+      <span className={styles.starsFill} style={{ width: `${fillPercent}%` }}>
+        ★★★★★
+      </span>
     </span>
   );
 }
@@ -86,6 +91,62 @@ function ReviewCard({
         </div>
       )}
     </article>
+  );
+}
+
+type ReviewCardEntry = { key: string; node: React.ReactNode };
+
+// 4-ზე მეტ შეფასებაზე — ჰორიზონტალური სლაიდერი (საიტის სტანდარტული სტილი).
+function ReviewsSlider({ cards }: { cards: ReviewCardEntry[] }) {
+  const [progress, setProgress] = useState(10);
+  const sliderId = useId().replace(/:/g, "");
+
+  const updateProgress = (swiper: {
+    activeIndex: number;
+    slides: unknown[];
+    slidesPerViewDynamic: () => number;
+  }) => {
+    const visibleSlides = swiper.slidesPerViewDynamic();
+    const total = swiper.slides.length - visibleSlides;
+    const rawProgress = total > 0 ? (swiper.activeIndex / total) * 100 : 100;
+    setProgress(swiper.activeIndex === 0 ? 10 : Math.min(rawProgress, 100));
+  };
+
+  return (
+    <div className={styles.sliderWrapper}>
+      <div className={styles.sliderTopBar}>
+        <div className={styles.rangeTrack}>
+          <div className={styles.rangeFill} style={{ width: `${progress}%` }} />
+        </div>
+        <div className={styles.sliderNav}>
+          <div className={`reviews-prev-${sliderId}`}>
+            <img src="/icons/DiscountArrow.svg" alt="წინა" />
+          </div>
+          <div className={`reviews-next-${sliderId}`}>
+            <img src="/icons/DiscountArrowLeft.svg" alt="შემდეგი" />
+          </div>
+        </div>
+      </div>
+
+      <Swiper
+        modules={[Navigation]}
+        navigation={{
+          nextEl: `.reviews-next-${sliderId}`,
+          prevEl: `.reviews-prev-${sliderId}`,
+        }}
+        slidesPerView="auto"
+        spaceBetween={14}
+        onSlideChange={updateProgress}
+        onAfterInit={updateProgress}
+        className={styles.swiper}
+      >
+        {cards.map((card) => (
+          <SwiperSlide key={card.key} className={styles.reviewSlide}>
+            {card.node}
+          </SwiperSlide>
+        ))}
+      </Swiper>
+    </div>
   );
 }
 
@@ -326,24 +387,47 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
         <div className={styles.content}>
           <aside className={styles.summary}>
             <strong>{average.toFixed(1)}</strong>
-            <Stars value={average} />
-            <span>{totalReviews} შეფასება</span>
+            <div className={styles.summaryMeta}>
+              <Stars value={average} size={22} />
+              <span>{totalReviews} შეფასება</span>
+            </div>
           </aside>
 
-          {reviews.length > 0 || pendingReviews.length > 0 ? (
-            <div className={styles.reviewsList}>
-              {pendingReviews.map((review) => (
-                <ReviewCard key={`pending-${review.id}`} review={review} pending />
-              ))}
-              {reviews.map((review) => (
-                <ReviewCard key={review.id} review={review} />
-              ))}
-            </div>
-          ) : (
-            <div className={styles.empty}>
-              ამ პროდუქტზე შეფასებები ჯერ არ დამატებულა.
-            </div>
-          )}
+          {(() => {
+            const cards: ReviewCardEntry[] = [
+              ...pendingReviews.map((review) => ({
+                key: `pending-${review.id}`,
+                node: <ReviewCard review={review} pending />,
+              })),
+              ...reviews.map((review) => ({
+                key: String(review.id),
+                node: <ReviewCard review={review} />,
+              })),
+            ];
+
+            if (cards.length === 0) {
+              return (
+                <div className={styles.empty}>
+                  ამ პროდუქტზე შეფასებები ჯერ არ დამატებულა.
+                </div>
+              );
+            }
+
+            // 4-ზე მეტი → სლაიდერი; თორემ ერთ რიგში ჩამწკრივება (მაქს. 4).
+            if (cards.length > 4) {
+              return <ReviewsSlider cards={cards} />;
+            }
+
+            return (
+              <div className={styles.reviewsGrid} data-count={cards.length}>
+                {cards.map((card) => (
+                  <div key={card.key} className={styles.reviewCell}>
+                    {card.node}
+                  </div>
+                ))}
+              </div>
+            );
+          })()}
         </div>
       )}
     </section>

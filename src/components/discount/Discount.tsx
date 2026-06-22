@@ -8,7 +8,7 @@ import {
   mapStorefrontProductToCard,
   StorefrontProductCard,
 } from "@/lib/storefront/products";
-import AtHomeLoader from "../shared/AtHomeLoader";
+import { usePageLoading } from "@/contexts/LoadingContext";
 
 // tab label -> backend category slug (deal card carries the top-level slug)
 const FILTER_SLUGS: Record<string, string> = {
@@ -25,6 +25,8 @@ export default function Discount() {
   const [activeFilter, setActiveFilter] = useState(filters[0]);
   const [products, setProducts] = useState<StorefrontProductCard[]>([]);
   const [loading, setLoading] = useState(true);
+
+  usePageLoading(loading);
 
   useEffect(() => {
     let isMounted = true;
@@ -56,7 +58,7 @@ export default function Discount() {
     setActiveFilter(filter);
   };
 
-  if (loading) return <AtHomeLoader variant="section" />;
+  if (loading) return null;
   if (products.length === 0) return null;
 
   return (

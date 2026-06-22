@@ -1,38 +1,73 @@
-import React from "react";
+import Link from "next/link";
 import styles from "./Service.module.scss";
+
+type ServiceItem = {
+  icon: string;
+  alt: string;
+  title: string;
+  subtitle: string;
+  // href გარეშე ბლოკი ჯერ არ არის დასაჭერი (გვერდი მალე დაემატება).
+  href?: string;
+};
+
+const items: ServiceItem[] = [
+  {
+    icon: "/icons/Moped.svg",
+    alt: "Moped",
+    title: "მიწოდება",
+    subtitle: "საქართველოს მასშტაბით",
+    href: "/delivery-info",
+  },
+  {
+    icon: "/icons/Check.svg",
+    alt: "Check",
+    title: "გარანტია",
+    subtitle: "სუკან დაბრუნების პოლიტიკა",
+  },
+  {
+    icon: "/icons/Setting.svg",
+    alt: "Setting",
+    title: "სერვისი",
+    subtitle: "შეკეთება და მომსახერება",
+    href: "/services",
+  },
+  {
+    icon: "/icons/Talking-man.svg",
+    alt: "Talking-man",
+    title: "მომსახურება",
+    subtitle: "კორპორატიული გაყიდვები",
+  },
+];
 
 const Service = () => {
   return (
     <div className={styles.wrapper}>
       <div className={styles.container}>
-        <div>
-          <div>
-            <img src="/icons/Moped.svg" alt="Moped" />
-          </div>
-          <h3>მიწოდება</h3>
-          <span>საქართველოს მასშტაბით</span>
-        </div>
-        <div>
-          <div>
-            <img src="/icons/Check.svg" alt="Check" />
-          </div>
-          <h3>გარანტია</h3>
-          <span>სუკან დაბრუნების პოლიტიკა</span>
-        </div>
-        <div>
-          <div>
-            <img src="/icons/Setting.svg" alt="Setting" />
-          </div>
-          <h3>სერვისი</h3>
-          <span>შეკეთება და მომსახერება</span>
-        </div>
-        <div>
-          <div>
-            <img src="/icons/Talking-man.svg" alt="Talking-man" />
-          </div>
-          <h3>მომსახურება</h3>
-          <span>კორპორატიული გაყიდვები</span>
-        </div>
+        {items.map((item) => {
+          const content = (
+            <>
+              <div className={styles.iconCircle}>
+                <img src={item.icon} alt={item.alt} />
+              </div>
+              <h3>{item.title}</h3>
+              <span>{item.subtitle}</span>
+            </>
+          );
+
+          return item.href ? (
+            <Link
+              key={item.title}
+              href={item.href}
+              className={`${styles.item} ${styles.clickable}`}
+            >
+              {content}
+            </Link>
+          ) : (
+            <div key={item.title} className={styles.item}>
+              {content}
+            </div>
+          );
+        })}
       </div>
     </div>
   );

@@ -1,0 +1,29 @@
+@use "@/styles/colors" as *;
+
+.wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.icon {
+  width: 24px;
+  height: 24px;
+}
+
+.badge {
+  position: absolute;
+  top: -5px;
+  left: 15px;
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  background-color: $red-normal;
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 10px;
+  font-weight: bold;
+}

@@ -2,10 +2,29 @@
 
 import { useMemo, useState } from "react";
 import styles from "./Configurator.module.scss";
+import AtHomeLoader from "@/components/shared/AtHomeLoader";
 import {
   ConfiguratorProduct,
   SelectedConfiguratorProduct,
 } from "./configuratorTypes";
+
+const LOGO_FALLBACK = "/icons/Logo.svg";
+
+// სურათის ჩატვირთვის შეცდომისას src ვცვლით ლოგოზე — იგივე სტილში (.productRow img),
+// რომ ემთხვეოდეს იმ პროდუქტებს, რომელთა კატალოგის სურათიც თვითონ ლოგოა.
+function ProductThumb({ src, alt }: { src: string; alt: string }) {
+  const [imgSrc, setImgSrc] = useState(src || LOGO_FALLBACK);
+
+  return (
+    <img
+      src={imgSrc}
+      alt={alt}
+      onError={() => {
+        if (imgSrc !== LOGO_FALLBACK) setImgSrc(LOGO_FALLBACK);
+      }}
+    />
+  );
+}
 
 type Props = {
   title: string;
@@ -147,7 +166,7 @@ export default function ConfiguratorProductModal({
 
           <div className={styles.productList}>
             {loading ? (
-              <div className={styles.emptyProducts}>იტვირთება...</div>
+              <AtHomeLoader variant="section" />
             ) : filteredProducts.length === 0 ? (
               <div className={styles.emptyProducts}>
                 შესაბამისი პროდუქტი ვერ მოიძებნა
@@ -165,7 +184,7 @@ export default function ConfiguratorProductModal({
                       isSelected ? styles.productRowSelected : ""
                     }`}
                   >
-                    <img src={product.image} alt={product.title} />
+                    <ProductThumb src={product.image} alt={product.title} />
 
                     <div className={styles.productInfo}>
                       <h3>{product.title}</h3>

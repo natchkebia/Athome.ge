@@ -15,8 +15,8 @@
 .grid {
   display: grid;
   // minmax(0, 1fr) lets columns shrink below the card's intrinsic width,
-  // so we get an exact count per row. 5 per row on desktop.
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  // so we get an exact count per row. 4 per row on desktop.
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 20px;
 }
 

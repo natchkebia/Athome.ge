@@ -3,7 +3,6 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 14px;
   color: #3b3f42;
 }
 
@@ -22,9 +21,12 @@
   min-height: 48px;
   padding: 8px 0;
 
-  .mark {
-    width: 174px;
-    height: 58px;
+  .logo {
+    width: 96px;
+  }
+
+  .bar {
+    width: 80px;
   }
 }
 
@@ -33,139 +35,71 @@
   inset: 0;
   z-index: 7000;
   min-height: 100vh;
-  flex-direction: column;
-  gap: 18px;
-  background: rgba(255, 255, 255, 0.78);
-  backdrop-filter: blur(6px);
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(8px);
 
-  .mark {
-    width: 238px;
-    height: 86px;
+  .logo {
+    width: 168px;
+  }
+
+  .bar {
+    width: 150px;
   }
 }
 
 .mark {
-  width: 196px;
-  height: 68px;
-  position: relative;
-  display: grid;
-  place-items: center;
-  border-radius: 50%;
-  background: transparent;
-  filter: drop-shadow(0 18px 28px rgba(16, 181, 192, 0.16));
-  overflow: visible;
-}
-
-.mark::after {
-  content: none;
-}
-
-.orbit {
-  position: absolute;
-  width: 202px;
-  height: 58px;
-  border-radius: 50%;
-  border: 1px solid rgba(16, 181, 192, 0.2);
-  transform: rotate(-6deg);
-  animation: loader-orbit-breathe 1.8s ease-in-out infinite;
-}
-
-.orbit::before,
-.orbit::after,
-.particleOne,
-.particleTwo {
-  content: "";
-  position: absolute;
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  pointer-events: none;
-}
-
-.orbit::before {
-  left: 12px;
-  top: -4px;
-  background: #10b5c0;
-  animation: loader-dot-horizontal 1.5s ease-in-out infinite;
-}
-
-.orbit::after {
-  right: 18px;
-  bottom: -4px;
-  background: #ef0d4a;
-  animation: loader-dot-horizontal 1.5s ease-in-out infinite reverse;
-}
-
-.particleOne {
-  left: 28px;
-  bottom: 17px;
-  background: rgba(16, 181, 192, 0.75);
-  animation: loader-particle 1.3s ease-in-out infinite;
-}
-
-.particleTwo {
-  right: 30px;
-  top: 18px;
-  background: rgba(239, 13, 74, 0.72);
-  animation: loader-particle 1.3s ease-in-out infinite reverse;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
 }
 
 .logo {
-  position: relative;
-  z-index: 1;
-  width: 142px;
+  width: 140px;
   height: auto;
   object-fit: contain;
-  animation: loader-logo-slide 1.55s ease-in-out infinite;
-  filter: drop-shadow(0 7px 12px rgba(59, 63, 66, 0.1));
+  animation: loader-pulse 1.4s ease-in-out infinite;
 }
 
-@keyframes loader-logo-slide {
-  0%,
-  100% {
-    transform: translateX(-4px) scale(1);
-  }
+// indeterminate progress bar — ერთი ნათელი სეგმენტი მიდი-მოდი დარბის.
+.bar {
+  position: relative;
+  width: 130px;
+  height: 3px;
+  border-radius: 999px;
+  background: rgba(16, 181, 192, 0.16);
+  overflow: hidden;
 
-  50% {
-    transform: translateX(4px) scale(1.025);
-  }
-}
-
-@keyframes loader-orbit-breathe {
-  0%,
-  100% {
-    transform: rotate(-6deg) scaleX(1);
-    opacity: 0.45;
-  }
-
-  50% {
-    transform: rotate(4deg) scaleX(1.05);
-    opacity: 0.85;
+  &::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 40%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #10b5c0 0%, #0fa1ab 100%);
+    animation: loader-slide 1.15s ease-in-out infinite;
   }
 }
 
-@keyframes loader-dot-horizontal {
+@keyframes loader-pulse {
   0%,
   100% {
-    transform: translateX(0);
-    opacity: 0.55;
+    opacity: 0.6;
+    transform: scale(0.99);
   }
-
   50% {
-    transform: translateX(34px);
     opacity: 1;
+    transform: scale(1.015);
   }
 }
 
-@keyframes loader-particle {
-  0%,
-  100% {
-    transform: translate3d(0, 0, 0) scale(0.82);
-    opacity: 0.38;
+@keyframes loader-slide {
+  0% {
+    transform: translateX(-110%);
   }
-
-  50% {
-    transform: translate3d(8px, -3px, 0) scale(1.12);
-    opacity: 0.9;
+  100% {
+    transform: translateX(360%);
   }
 }

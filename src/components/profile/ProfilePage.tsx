@@ -13,6 +13,7 @@ import {
   storeProfileGender,
   type ProfileGender,
 } from "@/lib/auth/profilePreferences";
+import { getProfileOrders } from "@/lib/api/orders";
 import styles from "./ProfilePage.module.scss";
 import InfoTab from "./InfoTab";
 import OrdersTab from "./OrdersTab";
@@ -41,6 +42,33 @@ export default function ProfilePage() {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [gender, setGender] = useState<ProfileGender>("male");
+  const [ordersCount, setOrdersCount] = useState(0);
+  const [savedSystemsCount, setSavedSystemsCount] = useState(0);
+
+  // შეკვეთების რაოდენობა badge-ისთვის.
+  useEffect(() => {
+    let active = true;
+    getProfileOrders(1, 1)
+      .then((res) => {
+        if (active) setOrdersCount(res.totalCount ?? res.items.length);
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  // შენახული სისტემები localStorage-შია — ვკითხულობთ თავიდან და ტაბის ცვლილებაზე.
+  useEffect(() => {
+    try {
+      const saved = JSON.parse(
+        localStorage.getItem("savedConfigurations") || "[]"
+      );
+      setSavedSystemsCount(Array.isArray(saved) ? saved.length : 0);
+    } catch {
+      setSavedSystemsCount(0);
+    }
+  }, [activeTab]);
 
   useEffect(() => {
     const tab = searchParams.get("tab");
@@ -106,7 +134,12 @@ export default function ProfilePage() {
       label: "პერსონალური ინფორმაცია",
       icon: "/icons/profile1.svg",
     },
-    { id: "orders", label: "ჩემი შეკვეთები", icon: "/icons/profile2.svg" },
+    {
+      id: "orders",
+      label: "ჩემი შეკვეთები",
+      icon: "/icons/profile2.svg",
+      badge: ordersCount,
+    },
     {
       id: "cart",
       label: "ჩემი კალათა",
@@ -123,6 +156,7 @@ export default function ProfilePage() {
       id: "configurations",
       label: "შენახული სისტემები",
       icon: "/icons/Computer-black.svg",
+      badge: savedSystemsCount,
     },
     { id: "logout", label: "გასვლა", icon: "/icons/profile5.svg" },
   ];

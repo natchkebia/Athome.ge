@@ -78,6 +78,14 @@
   cursor: pointer;
 }
 
+.iconBtnActive {
+  background: rgba(16, 181, 192, 1);
+
+  img {
+    filter: brightness(0) invert(1);
+  }
+}
+
 .imageWrapper {
   width: 100%;
   height: 100%;

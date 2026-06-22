@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import styles from "./ProductDetail.module.scss";
 import ProductGallery from "./ProductGallery";
 import ProductReviews from "./ProductReviews";
@@ -16,6 +17,9 @@ import {
   StorefrontProductCard,
 } from "@/lib/storefront/products";
 import { useCommerce } from "@/contexts/CommerceContext";
+import { useCompare } from "@/contexts/CompareContext";
+import { useToast } from "@/contexts/ToastContext";
+import { getStoredAuthTokens } from "@/lib/auth/tokens";
 
 interface Spec {
   label: string;
@@ -24,11 +28,21 @@ interface Spec {
 
 export interface ProductDetailProps {
   product: StorefrontProductDetail;
+  routeCategory?: string;
+  routeSlug?: string;
 }
 
-export default function ProductDetail({ product }: ProductDetailProps) {
+export default function ProductDetail({
+  product,
+  routeCategory,
+  routeSlug,
+}: ProductDetailProps) {
   const [showAll, setShowAll] = useState(false);
   const { addToCart } = useCommerce();
+  const { toggleCompare, compareIds, maxItems } = useCompare();
+  const { showToast } = useToast();
+  const router = useRouter();
+  const isCompared = compareIds.has(product.id);
   const [fallbackRelatedProducts, setFallbackRelatedProducts] = useState<
     StorefrontProductCard[]
   >([]);
@@ -100,6 +114,41 @@ export default function ProductDetail({ product }: ProductDetailProps) {
   const processorSpecs = specs.slice(3, 10);
   const videoSpecs = specs.slice(10);
 
+  const isLoggedIn = () => Boolean(getStoredAuthTokens()?.accessToken);
+
+  // "ყიდვა" — ამატებს კალათაში და გადაჰყავს კალათის გვერდზე.
+  const handleBuyNow = async () => {
+    await addToCart(product.id);
+    // addToCart ავტორიზაციის გარეშე /authorization-ზე ამისამართებს —
+    // ასეთ შემთხვევაში კალათაში არ გადავყავართ.
+    if (isLoggedIn()) router.push("/basket");
+  };
+
+  // "დამატება" — ამატებს კალათაში და აჩვენებს დადასტურებას.
+  const handleAddToCart = async () => {
+    const wasLoggedIn = isLoggedIn();
+    await addToCart(product.id);
+    if (wasLoggedIn) showToast("კალათაში დაემატა");
+  };
+
+  // "შედარება" — შედარების სიაში ამატებს/ხსნის.
+  const handleCompare = () => {
+    const result = toggleCompare({
+      id: product.id,
+      // URL-ის პარამეტრები ყოველთვის სწორია — backend-ის slug ხან აკლია.
+      slug: product.slug || routeSlug || "",
+      category: product.category?.slug || routeCategory || "",
+      title: product.name,
+      image: images[0],
+      newPrice: product.pricing.effectivePrice,
+      oldPrice,
+    });
+
+    if (result === "added") showToast("შედარების სიაში დაემატა");
+    else if (result === "removed") showToast("შედარების სიიდან ამოიშალა");
+    else showToast(`შედარებაში მაქსიმუმ ${maxItems} პროდუქტია`, "error");
+  };
+
   return (
     <div className={styles.mainContainer}>
       <div className={styles.container}>
@@ -145,20 +194,23 @@ export default function ProductDetail({ product }: ProductDetailProps) {
                   </span>
                 )}
               </div>
-              <button onClick={() => addToCart(product.id)}>ყიდვა</button>
+              <button onClick={handleBuyNow}>ყიდვა</button>
             </div>
 
             <div className={styles.actions}>
-              <button
-                className={styles.buyBtn}
-                onClick={() => addToCart(product.id)}
-              >
+              <button className={styles.buyBtn} onClick={handleAddToCart}>
                 <img src="/icons/Cart.svg" alt="Cart.svg" />
                 <span>დამატება</span>
               </button>
-              <button className={styles.cartBtn}>
+              <button
+                className={`${styles.cartBtn} ${
+                  isCompared ? styles.cartBtnActive : ""
+                }`}
+                onClick={handleCompare}
+                aria-pressed={isCompared}
+              >
                 <img src="/icons/Arrows.svg" alt="Arrows.svg" />
-                <span>შედარება</span>
+                <span>{isCompared ? "შედარებაშია" : "შედარება"}</span>
               </button>
             </div>
 

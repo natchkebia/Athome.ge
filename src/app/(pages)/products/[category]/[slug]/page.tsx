@@ -16,7 +16,7 @@ type Params = {
 };
 
 export default function ProductDetailPage() {
-  const { slug } = useParams<Params>();
+  const { category, slug } = useParams<Params>();
   const [product, setProduct] = useState<StorefrontProductDetail | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -47,7 +47,11 @@ export default function ProductDetailPage() {
   return (
     <div>
       <div className="site-wrapper">
-        <ProductDetail product={product} />
+        <ProductDetail
+          product={product}
+          routeCategory={category}
+          routeSlug={slug}
+        />
       </div>
     </div>
   );

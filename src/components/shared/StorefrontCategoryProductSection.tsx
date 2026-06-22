@@ -10,7 +10,7 @@ import {
   StorefrontProductCard,
 } from "@/lib/storefront/products";
 import ProductSection from "./ProductSection";
-import AtHomeLoader from "./AtHomeLoader";
+import { usePageLoading } from "@/contexts/LoadingContext";
 
 type StorefrontCategoryProductSectionProps = {
   icon: string;
@@ -27,6 +27,9 @@ export default function StorefrontCategoryProductSection({
 }: StorefrontCategoryProductSectionProps) {
   const [products, setProducts] = useState<StorefrontProductCard[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // inline ლოდერის ნაცვლად ვარეგისტრირებთ გლობალურ overlay-ში.
+  usePageLoading(loading);
 
   useEffect(() => {
     let isMounted = true;
@@ -49,7 +52,7 @@ export default function StorefrontCategoryProductSection({
     };
   }, [categorySlug, limit]);
 
-  if (loading) return <AtHomeLoader variant="section" />;
+  if (loading) return null;
   if (products.length === 0) return null;
 
   return <ProductSection icon={icon} title={title} products={products} />;

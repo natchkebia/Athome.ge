@@ -2,6 +2,8 @@
 
 import styles from "./DiscountCard.module.scss";
 import Image from "next/image";
+import { useCompare } from "@/contexts/CompareContext";
+import { useToast } from "@/contexts/ToastContext";
 
 export interface ProductCardProps {
   id: string;
@@ -29,7 +31,32 @@ export default function DiscountCard({
   isWishlisted = false,
   onToggleWishlist,
   onAddToCart,
+  category,
+  slug,
 }: ProductCardProps) {
+  const { toggleCompare, compareIds, maxItems } = useCompare();
+  const { showToast } = useToast();
+  const isCompared = compareIds.has(Number(id));
+
+  const handleCompare = (event: React.MouseEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
+
+    const result = toggleCompare({
+      id: Number(id),
+      slug: slug ?? "",
+      category: category ?? "",
+      title,
+      image,
+      newPrice,
+      oldPrice,
+    });
+
+    if (result === "added") showToast("შედარების სიაში დაემატა");
+    else if (result === "removed") showToast("შედარების სიიდან ამოიშალა");
+    else showToast(`შედარებაში მაქსიმუმ ${maxItems} პროდუქტია`, "error");
+  };
+
   return (
     <div className={styles.card}>
       <div className={styles.cardWrapper}>
@@ -59,11 +86,11 @@ export default function DiscountCard({
             />
           </button>
           <button
-            className={styles.iconBtn}
-            onClick={(event) => {
-              event.preventDefault();
-              event.stopPropagation();
-            }}
+            className={`${styles.iconBtn} ${
+              isCompared ? styles.iconBtnActive : ""
+            }`}
+            onClick={handleCompare}
+            aria-pressed={isCompared}
             aria-label="compare"
           >
             <img src="/icons/Arrows.svg" alt="compare" />
