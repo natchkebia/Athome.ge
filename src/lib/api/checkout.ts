@@ -133,6 +133,22 @@ export function initiateTbcPayment(
   );
 }
 
+// Flitt (TBC-ის ახალი პროცესინგი) — POST /api/payments/flitt/initiate/{orderId}
+// body: { currency, email }. პასუხში redirectUrl-ზე ვამისამართებთ მომხმარებელს.
+export function initiateFlittPayment(
+  orderId: number,
+  { currency = "GEL", email }: { currency?: string; email: string }
+) {
+  return apiRequest<PaymentInitiateResponse>(
+    `/api/payments/flitt/initiate/${encodeURIComponent(orderId)}`,
+    {
+      method: "POST",
+      body: JSON.stringify({ currency, email }),
+      useProxy: true,
+    }
+  );
+}
+
 export function pollBogPayment(orderId: number) {
   return apiRequest<PaymentPollResponse>(
     `/api/payments/bog/poll/${encodeURIComponent(orderId)}`,

@@ -82,6 +82,17 @@ export default function Slider({ banners: providedBanners }: SliderProps) {
     [banners, isMobile]
   );
 
+  // ავტომატური ცვლა — ყოველ 5 წამში შემდეგი სლაიდი (ხელით ცვლა აზუსტებს ტაიმერს).
+  useEffect(() => {
+    if (slides.length <= 1) return;
+
+    const timer = window.setInterval(() => {
+      setCurrentIndex((prev) => (prev === slides.length - 1 ? 0 : prev + 1));
+    }, 5000);
+
+    return () => window.clearInterval(timer);
+  }, [currentIndex, slides.length]);
+
   if (slides.length === 0) {
     return null;
   }

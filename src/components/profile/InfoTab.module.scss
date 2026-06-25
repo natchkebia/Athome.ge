@@ -35,6 +35,14 @@
       width: 46px;
       height: 58px;
     }
+
+    // ატვირთული ფოტო — წრიულად ავსებს კონტეინერს.
+    .avatarPhoto {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      object-fit: cover;
+    }
   }
   span {
     color: rgba(59, 63, 66, 1);

@@ -38,6 +38,7 @@ export type StorefrontCategory = {
   name: string;
   slug: string;
   description?: string;
+  iconUrl?: string;
   imageUrl?: string;
   productCount: number;
   sortOrder: number;
@@ -285,6 +286,20 @@ export function getFeaturedStorefrontBrands(limit = 12) {
 
 export function getStorefrontCategories() {
   return apiRequest<StorefrontCategory[]>("/api/storefront/categories", {
+    useProxy: true,
+  });
+}
+
+export type StorefrontService = {
+  id: number;
+  name: string;
+  price: number;
+  imageUrl?: string | null;
+  sortOrder: number;
+};
+
+export function getStorefrontServices() {
+  return apiRequest<StorefrontService[]>("/api/storefront/services", {
     useProxy: true,
   });
 }

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { getStoredAuthTokens } from "@/lib/auth/tokens";
 import {
   getStoredProfileGender,
+  getStoredProfileAvatar,
   type ProfileGender,
 } from "@/lib/auth/profilePreferences";
 import styles from "./SignIn.module.scss";
@@ -13,11 +14,13 @@ export default function SignIn() {
   const router = useRouter();
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [gender, setGender] = useState<ProfileGender>("male");
+  const [avatar, setAvatar] = useState<string | null>(null);
 
   useEffect(() => {
     const syncProfileState = () => {
       setIsAuthorized(Boolean(getStoredAuthTokens()));
       setGender(getStoredProfileGender());
+      setAvatar(getStoredProfileAvatar());
     };
 
     syncProfileState();
@@ -46,6 +49,8 @@ export default function SignIn() {
       ? "/icons/profilePerson.svg"
       : "/icons/person.svg";
 
+  const showAvatar = isAuthorized && Boolean(avatar);
+
   return (
     <button
       type="button"
@@ -55,7 +60,11 @@ export default function SignIn() {
       onClick={handleClick}
       aria-label={isAuthorized ? "პროფილი" : "შესვლა"}
     >
-      <img src={iconSrc} alt="" />
+      {showAvatar ? (
+        <img className={styles.avatar} src={avatar as string} alt="" />
+      ) : (
+        <img src={iconSrc} alt="" />
+      )}
       {!isAuthorized && <span>შესვლა</span>}
     </button>
   );

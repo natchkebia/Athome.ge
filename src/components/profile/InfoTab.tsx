@@ -16,6 +16,7 @@ import styles from "./InfoTab.module.scss";
 type InfoTabProps = {
   user: AuthUser;
   gender: ProfileGender;
+  avatar?: string | null;
   onGenderChange: (gender: ProfileGender) => void;
   onUserChange: (user: AuthUser) => void;
 };
@@ -23,6 +24,7 @@ type InfoTabProps = {
 export default function InfoTab({
   user,
   gender,
+  avatar,
   onGenderChange,
   onUserChange,
 }: InfoTabProps) {
@@ -195,14 +197,18 @@ export default function InfoTab({
 
       <div className={styles.profileWrapper}>
         <div>
-          <img
-            src={
-              gender === "female"
-                ? "/icons/profileWoman.svg"
-                : "/icons/profilePerson.svg"
-            }
-            alt="person"
-          />
+          {avatar ? (
+            <img className={styles.avatarPhoto} src={avatar} alt="profile" />
+          ) : (
+            <img
+              src={
+                gender === "female"
+                  ? "/icons/profileWoman.svg"
+                  : "/icons/profilePerson.svg"
+              }
+              alt="person"
+            />
+          )}
         </div>
         <span>პროფილის ფოტო</span>
       </div>

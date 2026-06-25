@@ -86,6 +86,17 @@ export default function DiscountSlider({
     setCurrentIndex(index);
   };
 
+  // ავტომატური ცვლა — ყოველ 5 წამში შემდეგი სლაიდი (ხელით ცვლა აზუსტებს ტაიმერს).
+  useEffect(() => {
+    if (slideCount <= 1) return;
+
+    const timer = window.setInterval(() => {
+      setCurrentIndex((prev) => (prev === slideCount - 1 ? 0 : prev + 1));
+    }, 5000);
+
+    return () => window.clearInterval(timer);
+  }, [currentIndex, slideCount]);
+
   if (!currentPromotion || !promotionImage) {
     return null;
   }

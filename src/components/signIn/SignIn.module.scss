@@ -36,4 +36,12 @@
     object-fit: contain;
     object-position: center bottom;
   }
+
+  // ატვირთული ფოტო — წრიულად ავსებს ღილაკს.
+  .avatar {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+  }
 }

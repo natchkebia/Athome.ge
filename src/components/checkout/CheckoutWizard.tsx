@@ -10,8 +10,10 @@ import Breadcrumb from "../ breadcrumb/Breadcrumb";
 import StepPagination from "./components/StepPagination";
 import type { FormValues } from "./Step1Contact";
 import { useCommerce } from "@/contexts/CommerceContext";
+import { getCurrentUser } from "@/lib/api/auth";
 import {
   submitCheckout,
+  initiateFlittPayment,
   type CheckoutPayload,
   type CheckoutResponse,
   type PaymentMethod,
@@ -143,10 +145,32 @@ export default function CheckoutWizard({ onStepChange }: CheckoutWizardProps) {
       setCheckoutResult(result);
       await clearCart();
 
-      // Phase 3: redirect to bank when a payment URL is returned.
+      // Phase 3: redirect to bank when a payment URL is returned (happy path —
+      // backend already returns the flitt/bank URL).
       if (result.paymentRedirectUrl) {
         window.location.href = result.paymentRedirectUrl;
         return;
+      }
+
+      // Fallback: TBC (flitt) ბარათით გადახდისას, თუ ბექმა redirect URL არ
+      // დააბრუნა, front თვითონ იძახებს flitt-ის initiate-ს და გადაამისამართებს.
+      if (payload.paymentMethod === "card" && payload.selectedBank === "tbc") {
+        try {
+          // Flitt ამოწმებს, რომ email ემთხვევოდეს შეკვეთის email-ს. ავტორიზებულ
+          // შეკვეთას ბექი account email-ით ქმნის, ამიტომ პრიორიტეტი account email-ს.
+          const currentUser = await getCurrentUser().catch(() => null);
+          const orderEmail = currentUser?.email || payload.email;
+          const flitt = await initiateFlittPayment(result.orderId, {
+            currency: result.currency ?? "GEL",
+            email: orderEmail,
+          });
+          if (flitt.redirectUrl) {
+            window.location.href = flitt.redirectUrl;
+            return;
+          }
+        } catch {
+          // initiate ჩავარდა — გადავდივართ დასრულების გვერდზე (Step 5).
+        }
       }
 
       goToStep(5);

@@ -6,7 +6,6 @@ import styles from "./NavbarCategory.module.scss";
 import AtHomeLoader from "@/components/shared/AtHomeLoader";
 import {
   getStorefrontCategories,
-  getStorefrontVisibleCategorySlugs,
   StorefrontCategory,
 } from "@/lib/api/storefront";
 
@@ -27,8 +26,14 @@ const CATEGORY_ICONS: Record<string, string> = {
 
 const DEFAULT_ICON = "/icons/Setting.svg";
 
+// ლოკალური fallback იკონი (თუ ბექის iconUrl ცარიელია ან ვერ ჩაიტვირთა).
+function localCategoryIcon(slug: string) {
+  return CATEGORY_ICONS[slug] || DEFAULT_ICON;
+}
+
+// ბექის iconUrl-ს ვანიჭებთ პრიორიტეტს, თორემ ლოკალურ იკონს.
 function categoryIcon(cat: StorefrontCategory) {
-  return cat.imageUrl || CATEGORY_ICONS[cat.slug] || DEFAULT_ICON;
+  return cat.iconUrl || localCategoryIcon(cat.slug);
 }
 
 export default function NavbarCategory() {
@@ -41,14 +46,11 @@ export default function NavbarCategory() {
   useEffect(() => {
     let isMounted = true;
 
-    Promise.all([
-      getStorefrontCategories(),
-      getStorefrontVisibleCategorySlugs(),
-    ])
-      .then(([data, visibleSlugs]) => {
+    getStorefrontCategories()
+      .then((data) => {
         if (!isMounted) return;
-        // მხოლოდ ის კატეგორიები, რომლებსაც ≥1 ხილული პროდუქტი აქვს
-        const visible = data.filter((cat) => visibleSlugs.has(cat.slug));
+        // ვაჩვენებთ ყველა კატეგორიას, რომელსაც პროდუქტი აქვს მიბმული.
+        const visible = data.filter((cat) => cat.productCount > 0);
         setCategories(visible);
         if (visible.length > 0) setActiveSlug(visible[0].slug);
       })
@@ -120,7 +122,16 @@ export default function NavbarCategory() {
                     onClick={closeDropdown}
                   >
                     <div>
-                      <img src={categoryIcon(cat)} alt={cat.name} />
+                      <img
+                        src={categoryIcon(cat)}
+                        alt={cat.name}
+                        onError={(e) => {
+                          const img = e.currentTarget;
+                          if (img.dataset.fallback) return;
+                          img.dataset.fallback = "1";
+                          img.src = localCategoryIcon(cat.slug);
+                        }}
+                      />
                       <span>{cat.name}</span>
                     </div>
 

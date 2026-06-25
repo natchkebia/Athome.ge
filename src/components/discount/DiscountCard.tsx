@@ -16,8 +16,9 @@ export interface ProductCardProps {
   isWishlisted?: boolean;
   onToggleWishlist?: (id: string) => void;
   onAddToCart?: (id: string) => void;
-  category?: string; 
+  category?: string;
   slug?: string;
+  layout?: "grid" | "list";
 }
 
 export default function DiscountCard({
@@ -33,6 +34,7 @@ export default function DiscountCard({
   onAddToCart,
   category,
   slug,
+  layout = "grid",
 }: ProductCardProps) {
   const { toggleCompare, compareIds, maxItems } = useCompare();
   const { showToast } = useToast();
@@ -57,6 +59,79 @@ export default function DiscountCard({
     else showToast(`შედარებაში მაქსიმუმ ${maxItems} პროდუქტია`, "error");
   };
 
+  const handleWishlist = (event: React.MouseEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
+    onToggleWishlist?.(id);
+  };
+
+  const handleAddToCart = (event: React.MouseEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
+    onAddToCart?.(id);
+  };
+
+  // სიის (list) ვიზუალი — ჰორიზონტალური გაშლილი ბარათი (1038×172).
+  if (layout === "list") {
+    return (
+      <div className={styles.cardList}>
+        <div className={styles.listImage}>
+          {discount > 0 && (
+            <div className={styles.discountBadge}>-{discount}%</div>
+          )}
+          {isNew && <div className={styles.newBadge}>NEW</div>}
+          <Image
+            className={styles.productImage}
+            src={image}
+            alt={title}
+            width={140}
+            height={140}
+          />
+        </div>
+
+        <div className={styles.listMain}>
+          <h3 className={styles.listTitle}>{title}</h3>
+          <div className={styles.priceBox}>
+            {newPrice !== undefined && (
+              <span className={styles.newPrice}>{newPrice.toFixed(2)} ₾</span>
+            )}
+            {oldPrice !== undefined && (
+              <span className={styles.oldPrice}>{oldPrice.toFixed(2)} ₾</span>
+            )}
+          </div>
+        </div>
+
+        <div className={styles.listActions}>
+          <button
+            className={`${styles.listIconBtn} ${
+              isCompared ? styles.listIconBtnActive : ""
+            }`}
+            onClick={handleCompare}
+            aria-pressed={isCompared}
+            aria-label="compare"
+          >
+            <img src="/icons/Arrows.svg" alt="compare" />
+          </button>
+          <button
+            className={styles.listIconBtn}
+            onClick={handleWishlist}
+            aria-pressed={isWishlisted}
+            aria-label="wishlist"
+          >
+            <img
+              src={isWishlisted ? "/icons/redHeart.svg" : "/icons/Heart.svg"}
+              alt="wishlist"
+            />
+          </button>
+          <button className={styles.addBtn} onClick={handleAddToCart}>
+            <img src="/icons/CartWhite.svg" alt="cart" />
+            დამატება
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className={styles.card}>
       <div className={styles.cardWrapper}>
@@ -72,11 +147,7 @@ export default function DiscountCard({
         <div className={styles.actions}>
           <button
             className={styles.iconBtn}
-            onClick={(event) => {
-              event.preventDefault();
-              event.stopPropagation();
-              onToggleWishlist?.(id);
-            }}
+            onClick={handleWishlist}
             aria-pressed={isWishlisted}
             aria-label="wishlist"
           >
@@ -120,14 +191,7 @@ export default function DiscountCard({
           )}
         </div>
 
-        <button
-          className={styles.addBtn}
-          onClick={(event) => {
-            event.preventDefault();
-            event.stopPropagation();
-            onAddToCart?.(id);
-          }}
-        >
+        <button className={styles.addBtn} onClick={handleAddToCart}>
           <img src="/icons/CartWhite.svg" alt="cart" />
           დამატება
         </button>

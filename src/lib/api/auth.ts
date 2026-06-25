@@ -4,7 +4,7 @@ import {
   getStoredAuthTokens,
   storeAuthTokens,
 } from "../auth/tokens";
-import { storeProfileGender } from "../auth/profilePreferences";
+import { storeProfileGender, storeProfileAvatar } from "../auth/profilePreferences";
 
 export type AuthUser = {
   id: number;
@@ -215,6 +215,24 @@ export async function updateProfile(payload: {
   });
 }
 
+export async function uploadProfileAvatar(file: File) {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  // FormData body — apiRequest არ აყენებს application/json-ს, ბრაუზერი თვითონ
+  // ჩასვამს multipart/form-data-ს boundary-ით.
+  return authorizedRequest<AuthUser>("/api/auth/profile/avatar", {
+    method: "POST",
+    body: formData,
+  });
+}
+
+export async function deleteProfileAvatar() {
+  return authorizedRequest<AuthUser>("/api/auth/profile/avatar", {
+    method: "DELETE",
+  });
+}
+
 export async function changePassword(payload: {
   currentPassword: string;
   newPassword: string;
@@ -304,6 +322,7 @@ export async function logout() {
 
   if (!tokens) {
     clearAuthTokens();
+    storeProfileAvatar(null);
     return;
   }
 
@@ -316,5 +335,6 @@ export async function logout() {
     });
   } finally {
     clearAuthTokens();
+    storeProfileAvatar(null);
   }
 }

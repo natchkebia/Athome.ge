@@ -1,6 +1,5 @@
 import Link from "next/link";
 import BasketPage from "../Basket/Basket";
-import CompareLink from "../compare/CompareLink";
 import SearchBar from "../searchBar/SearchBar";
 import SignIn from "../signIn/SignIn";
 import WishlistPage from "../wishlist/WishlistPage";
@@ -19,7 +18,6 @@ export default function Header() {
         </Link>
         <SearchBar />
         <div className={styles.wrapper}>
-          <CompareLink />
           <WishlistPage />
           <BasketPage />
           <SignIn />

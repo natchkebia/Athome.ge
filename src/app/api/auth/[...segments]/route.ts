@@ -26,10 +26,13 @@ async function proxyAuthRequest(request: NextRequest, context: RouteContext) {
     url.searchParams.set(key, value);
   });
 
-  const body =
-    request.method === "GET" || request.method === "HEAD"
-      ? undefined
-      : await request.text();
+  // arrayBuffer ინახავს binary-ს უცვლელად — საჭიროა multipart ფაილის ატვირთვაზე
+  // (request.text() binary-ს აფუჭებდა). ცარიელ body-ზე undefined ვაგზავნით.
+  let body: ArrayBuffer | undefined;
+  if (request.method !== "GET" && request.method !== "HEAD") {
+    const buffer = await request.arrayBuffer();
+    body = buffer.byteLength > 0 ? buffer : undefined;
+  }
 
   const response = await fetch(url, {
     method: request.method,
@@ -66,5 +69,9 @@ export async function POST(request: NextRequest, context: RouteContext) {
 }
 
 export async function PUT(request: NextRequest, context: RouteContext) {
+  return proxyAuthRequest(request, context);
+}
+
+export async function DELETE(request: NextRequest, context: RouteContext) {
   return proxyAuthRequest(request, context);
 }

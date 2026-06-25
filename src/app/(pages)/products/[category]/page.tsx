@@ -43,6 +43,7 @@ function ProductsPageInner() {
   const [loading, setLoading] = useState(true);
   const [filtersActive, setFiltersActive] = useState(false);
   const [visibleCount, setVisibleCount] = useState(9);
+  const [view, setView] = useState<"grid" | "list">("grid");
   const { wishlistProductIds, toggleWishlist, addToCart } = useCommerce();
 
   const params = useParams();
@@ -219,8 +220,26 @@ function ProductsPageInner() {
           <div className={styles.sortbarWrapper}>
             <ProductSortBar filters={filters} onChange={handleUpdateFilters} />
             <div className={styles.iconsWrapper}>
-              <img src="/icons/formater1.svg" alt="formater" />
-              <img src="/icons/formater2.svg" alt="formater" />
+              <button
+                className={`${styles.viewBtn} ${
+                  view === "grid" ? styles.viewBtnActive : ""
+                }`}
+                onClick={() => setView("grid")}
+                aria-label="ბადით ჩვენება"
+                aria-pressed={view === "grid"}
+              >
+                <span className={`${styles.viewIcon} ${styles.viewIconGrid}`} />
+              </button>
+              <button
+                className={`${styles.viewBtn} ${
+                  view === "list" ? styles.viewBtnActive : ""
+                }`}
+                onClick={() => setView("list")}
+                aria-label="სიად ჩვენება"
+                aria-pressed={view === "list"}
+              >
+                <span className={`${styles.viewIcon} ${styles.viewIconList}`} />
+              </button>
             </div>
           </div>
 
@@ -245,7 +264,11 @@ function ProductsPageInner() {
           {visibleProducts.length === 0 ? (
             <EmptyState />
           ) : (
-            <div className={styles.grid}>
+            <div
+              className={`${styles.grid} ${
+                view === "list" ? styles.gridListView : ""
+              }`}
+            >
               {visibleProducts.map((item) => (
                 <Link
                   key={item.id}
@@ -256,6 +279,7 @@ function ProductsPageInner() {
                   <DiscountCard
                     {...item}
                     id={String(item.id)}
+                    layout={view}
                     isWishlisted={wishlistProductIds.has(item.id)}
                     onToggleWishlist={(id) => toggleWishlist(Number(id))}
                     onAddToCart={(id) => addToCart(Number(id))}

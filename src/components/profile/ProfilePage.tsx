@@ -6,11 +6,16 @@ import { useRouter, useSearchParams } from "next/navigation";
 import {
   getCurrentUser,
   logout as logoutUser,
+  uploadProfileAvatar,
+  deleteProfileAvatar,
   type AuthUser,
 } from "@/lib/api/auth";
+import { normalizeMediaUrl } from "@/lib/storefront/products";
+import { useToast } from "@/contexts/ToastContext";
 import {
   getStoredProfileGender,
   storeProfileGender,
+  storeProfileAvatar,
   type ProfileGender,
 } from "@/lib/auth/profilePreferences";
 import { getProfileOrders } from "@/lib/api/orders";
@@ -32,10 +37,60 @@ type ProfileTab =
   | "configurations"
   | "logout";
 
+// ავატარს დიდი რეზოლუცია არ სჭირდება — ატვირთვამდე ვამცირებთ/ვკუმშავთ,
+// რომ backend-ის ატვირთვის ლიმიტს (413 Payload Too Large) არ გადავაჭარბოთ.
+async function resizeAvatar(
+  file: File,
+  maxSize = 512,
+  quality = 0.85
+): Promise<File> {
+  const bitmapUrl = URL.createObjectURL(file);
+
+  try {
+    const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+      const image = new Image();
+      image.onload = () => resolve(image);
+      image.onerror = () => reject(new Error("image load failed"));
+      image.src = bitmapUrl;
+    });
+
+    let { width, height } = img;
+    if (width > maxSize || height > maxSize) {
+      if (width >= height) {
+        height = Math.round((height * maxSize) / width);
+        width = maxSize;
+      } else {
+        width = Math.round((width * maxSize) / height);
+        height = maxSize;
+      }
+    }
+
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return file;
+    ctx.drawImage(img, 0, 0, width, height);
+
+    const blob = await new Promise<Blob | null>((resolve) =>
+      canvas.toBlob(resolve, "image/jpeg", quality)
+    );
+    if (!blob) return file;
+
+    const name = file.name.replace(/\.[^.]+$/, "") || "avatar";
+    return new File([blob], `${name}.jpg`, { type: "image/jpeg" });
+  } catch {
+    return file;
+  } finally {
+    URL.revokeObjectURL(bitmapUrl);
+  }
+}
+
 export default function ProfilePage() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { cart, wishlist } = useCommerce();
+  const { showToast } = useToast();
 
   const [activeTab, setActiveTab] = useState<ProfileTab>("info");
   const [profileImage, setProfileImage] = useState<string | null>(null);
@@ -105,6 +160,12 @@ export default function ProfilePage() {
             currentUser.gender.toLowerCase() === "female" ? "female" : "male";
           storeProfileGender(normalizedGender);
           setGender(normalizedGender);
+        }
+
+        if (currentUser.avatarUrl) {
+          const avatarUrl = normalizeMediaUrl(currentUser.avatarUrl);
+          setProfileImage(avatarUrl);
+          storeProfileAvatar(avatarUrl);
         }
 
         setUser(currentUser);
@@ -185,13 +246,41 @@ export default function ProfilePage() {
     { label: getBreadcrumbLabel() },
   ];
 
-  const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
+  const handleImageChange = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+    if (!file) return;
 
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = () => setProfileImage(reader.result as string);
-      reader.readAsDataURL(file);
+    // ოპტიმისტური preview, სანამ backend პასუხობს.
+    const reader = new FileReader();
+    reader.onload = () => setProfileImage(reader.result as string);
+    reader.readAsDataURL(file);
+
+    try {
+      // შევამციროთ, რომ ატვირთვის ლიმიტს არ გადავაჭარბოთ (413).
+      const optimized = await resizeAvatar(file);
+      const updated = await uploadProfileAvatar(optimized);
+      if (updated?.avatarUrl) {
+        const avatarUrl = normalizeMediaUrl(updated.avatarUrl);
+        setProfileImage(avatarUrl);
+        storeProfileAvatar(avatarUrl);
+      }
+      showToast("ფოტო აიტვირთა");
+    } catch {
+      showToast("ფოტოს ატვირთვა ვერ მოხერხდა", "error");
+    } finally {
+      // ერთი და იმავე ფაილის ხელახლა ასარჩევად input გავასუფთაოთ.
+      e.target.value = "";
+    }
+  };
+
+  const handleRemoveAvatar = async () => {
+    try {
+      await deleteProfileAvatar();
+      setProfileImage(null);
+      storeProfileAvatar(null);
+      showToast("ფოტო წაიშალა");
+    } catch {
+      showToast("ფოტოს წაშლა ვერ მოხერხდა", "error");
     }
   };
 
@@ -235,7 +324,11 @@ export default function ProfilePage() {
             <div className={styles.profileCard}>
               <div className={styles.avatar}>
                 {profileImage ? (
-                  <img src={profileImage} alt="user" />
+                  <img
+                    src={profileImage}
+                    alt="user"
+                    className={styles.avatarPhoto}
+                  />
                 ) : (
                   <img src={profileIcon} alt="user" />
                 )}
@@ -256,6 +349,16 @@ export default function ProfilePage() {
               </h3>
 
               <p className={styles.userId}>ID {String(user.id).padStart(6, "0")}</p>
+
+              {profileImage && (
+                <button
+                  type="button"
+                  className={styles.removeAvatar}
+                  onClick={handleRemoveAvatar}
+                >
+                  ფოტოს წაშლა
+                </button>
+              )}
             </div>
 
             <ul className={styles.menu}>
@@ -286,6 +389,7 @@ export default function ProfilePage() {
               <InfoTab
                 user={user}
                 gender={gender}
+                avatar={profileImage}
                 onGenderChange={setGender}
                 onUserChange={setUser}
               />
