@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react";
 import {
+  getStorefrontCategoryProducts,
   getStorefrontProductsByCategory,
-  StorefrontProduct,
 } from "@/lib/api/storefront";
 import {
   mapStorefrontProductToCard,
@@ -36,9 +36,15 @@ export default function StorefrontCategoryProductSection({
 
     setLoading(true);
 
-    getStorefrontProductsByCategory(categorySlug, limit)
-      .then((items: StorefrontProduct[]) => {
-        if (isMounted) setProducts(items.map(mapStorefrontProductToCard));
+    // მთავარი კატეგორიებზე — /categories/{slug}/products (სრული კონტენტი).
+    // ცარიელზე fallback by-category/{slug} (exact-level slug-ებისთვის).
+    getStorefrontCategoryProducts(categorySlug, limit)
+      .then(async (items) => {
+        const list =
+          items.length > 0
+            ? items
+            : await getStorefrontProductsByCategory(categorySlug, limit);
+        if (isMounted) setProducts(list.map(mapStorefrontProductToCard));
       })
       .catch(() => {
         if (isMounted) setProducts([]);

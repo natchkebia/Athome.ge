@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useState, ChangeEvent } from "react";
+import React, { useState, useEffect, ChangeEvent } from "react";
 import styles from "./Step1Contact.module.scss";
 import { useRouter } from "next/navigation";
+import { getCurrentUser } from "@/lib/api/auth";
 
 interface Step1Props {
   onNext?: (data: FormValues) => void;
@@ -47,6 +48,40 @@ export default function Step1Contact({ onNext }: Step1Props) {
   });
 
   const [errors, setErrors] = useState<FormErrors>({});
+
+  // დარეგისტრირებულ მომხმარებელს ცნობილი მონაცემები ავტომატურად ეწერება —
+  // თავიდან აღარ აკრეფინებს. სტუმარს ფორმა ცარიელი რჩება.
+  useEffect(() => {
+    let active = true;
+
+    getCurrentUser()
+      .then((user) => {
+        if (!active || !user) return;
+
+        // ბექი ხშირად სრულ სახელს firstName-ში ინახავs (lastName ცარიელია) —
+        // გავყოფთ: პირველი სიტყვა = სახელი, დანარჩენი = გვარი.
+        let first = (user.firstName || "").trim();
+        let last = (user.lastName || "").trim();
+        if (!last && first.includes(" ")) {
+          const parts = first.split(/\s+/);
+          first = parts[0];
+          last = parts.slice(1).join(" ");
+        }
+
+        setForm((prev) => ({
+          ...prev,
+          firstName: prev.firstName || first,
+          lastName: prev.lastName || last,
+          email: prev.email || user.email || "",
+          phone: prev.phone || user.phone || "",
+        }));
+      })
+      .catch(() => {});
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const handleChange = (
     e: ChangeEvent<HTMLInputElement | HTMLSelectElement>

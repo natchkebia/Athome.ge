@@ -21,6 +21,16 @@ import {
   updateProfileCartItem,
 } from "@/lib/api/profileCommerce";
 import { getStoredAuthTokens } from "@/lib/auth/tokens";
+import {
+  addGuestCartItem,
+  clearGuestCart,
+  clearGuestWishlist,
+  getGuestCart,
+  getGuestWishlist,
+  removeGuestCartItem,
+  toggleGuestWishlistItem,
+  updateGuestCartItem,
+} from "@/lib/commerce/guestStore";
 
 type CommerceContextValue = {
   cart: ProfileCart;
@@ -56,12 +66,6 @@ const CommerceContext = createContext<CommerceContextValue | null>(null);
 
 function hasAccessToken() {
   return Boolean(getStoredAuthTokens()?.accessToken);
-}
-
-function redirectToAuthorization() {
-  if (typeof window !== "undefined") {
-    window.location.href = "/authorization";
-  }
 }
 
 function optimisticCartItem(productId: number, quantity: number) {
@@ -120,8 +124,9 @@ export function CommerceProvider({ children }: { children: React.ReactNode }) {
     const tokens = getStoredAuthTokens();
 
     if (!tokens?.accessToken) {
-      setCart(emptyCart);
-      setWishlist(emptyWishlist);
+      // სტუმარი — კალათა/სურვილები localStorage-დან.
+      setCart(getGuestCart());
+      setWishlist(getGuestWishlist());
       return;
     }
 
@@ -145,7 +150,7 @@ export function CommerceProvider({ children }: { children: React.ReactNode }) {
 
   const refreshCart = useCallback(async () => {
     if (!hasAccessToken()) {
-      setCart(emptyCart);
+      setCart(getGuestCart());
       return;
     }
 
@@ -159,7 +164,7 @@ export function CommerceProvider({ children }: { children: React.ReactNode }) {
 
   const refreshWishlist = useCallback(async () => {
     if (!hasAccessToken()) {
-      setWishlist(emptyWishlist);
+      setWishlist(getGuestWishlist());
       return;
     }
 
@@ -171,20 +176,46 @@ export function CommerceProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  useEffect(() => {
-    refreshCommerce();
+  // ავტორიზაციისას სტუმრის localStorage კალათა/სურვილები ანგარიშში ჩაიერთვება.
+  const syncOnAuthChange = useCallback(async () => {
+    if (hasAccessToken()) {
+      const guestCart = getGuestCart();
+      const guestWishlist = getGuestWishlist();
 
-    window.addEventListener("athome-auth-changed", refreshCommerce);
+      if (guestCart.items.length > 0 || guestWishlist.items.length > 0) {
+        try {
+          for (const item of guestCart.items) {
+            await addProfileCartItem(item.productId, item.quantity);
+          }
+          for (const item of guestWishlist.items) {
+            await addProfileWishlistItem(item.productId);
+          }
+        } catch {
+          // merge ვერ მოხერხდა — ანგარიშის მონაცემებს მაინც ჩავტვირთავთ.
+        }
+        clearGuestCart();
+        clearGuestWishlist();
+      }
+    }
+
+    await refreshCommerce();
+  }, [refreshCommerce]);
+
+  useEffect(() => {
+    syncOnAuthChange();
+
+    window.addEventListener("athome-auth-changed", syncOnAuthChange);
 
     return () => {
-      window.removeEventListener("athome-auth-changed", refreshCommerce);
+      window.removeEventListener("athome-auth-changed", syncOnAuthChange);
     };
-  }, [refreshCommerce]);
+  }, [syncOnAuthChange]);
 
   const addToCart = useCallback(
     async (productId: number, quantity = 1) => {
+      // სტუმარი — localStorage კალათა (დარეგისტრირება არ სჭირდება).
       if (!hasAccessToken()) {
-        redirectToAuthorization();
+        setCart(addGuestCartItem(productId, quantity));
         return;
       }
 
@@ -220,6 +251,11 @@ export function CommerceProvider({ children }: { children: React.ReactNode }) {
 
   const updateCartQuantity = useCallback(
     async (productId: number, quantity: number) => {
+      if (!hasAccessToken()) {
+        setCart(updateGuestCartItem(productId, quantity));
+        return;
+      }
+
       try {
         const updatedCart =
           quantity <= 0
@@ -234,6 +270,11 @@ export function CommerceProvider({ children }: { children: React.ReactNode }) {
   );
 
   const removeFromCart = useCallback(async (productId: number) => {
+    if (!hasAccessToken()) {
+      setCart(removeGuestCartItem(productId));
+      return;
+    }
+
     try {
       const updatedCart = await removeProfileCartItem(productId);
       setCart(updatedCart ?? emptyCart);
@@ -243,6 +284,11 @@ export function CommerceProvider({ children }: { children: React.ReactNode }) {
   }, [refreshCart]);
 
   const clearCart = useCallback(async () => {
+    if (!hasAccessToken()) {
+      setCart(clearGuestCart());
+      return;
+    }
+
     try {
       await clearProfileCart();
       setCart(emptyCart);
@@ -253,8 +299,9 @@ export function CommerceProvider({ children }: { children: React.ReactNode }) {
 
   const toggleWishlist = useCallback(
     async (productId: number) => {
+      // სტუმარი — localStorage სურვილების სია.
       if (!hasAccessToken()) {
-        redirectToAuthorization();
+        setWishlist(toggleGuestWishlistItem(productId));
         return;
       }
 
@@ -288,7 +335,7 @@ export function CommerceProvider({ children }: { children: React.ReactNode }) {
 
   const clearWishlist = useCallback(async () => {
     if (!hasAccessToken()) {
-      redirectToAuthorization();
+      setWishlist(clearGuestWishlist());
       return;
     }
 
@@ -302,8 +349,13 @@ export function CommerceProvider({ children }: { children: React.ReactNode }) {
   }, [refreshWishlist, wishlist.items]);
 
   const addWishlistToCart = useCallback(async () => {
+    // სტუმარი — სურვილების ნივთები localStorage კალათაში.
     if (!hasAccessToken()) {
-      redirectToAuthorization();
+      let nextCart = getGuestCart();
+      wishlist.items.forEach((item) => {
+        nextCart = addGuestCartItem(item.productId, 1);
+      });
+      setCart(nextCart);
       return;
     }
 

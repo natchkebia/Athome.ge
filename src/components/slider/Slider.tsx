@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import styles from "./Slider.module.scss";
 import {
   getStorefrontBanners,
@@ -22,6 +23,7 @@ type SliderProps = {
 };
 
 export default function Slider({ banners: providedBanners }: SliderProps) {
+  const router = useRouter();
   const [fetchedBanners, setFetchedBanners] = useState<StorefrontBanner[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
@@ -107,26 +109,36 @@ export default function Slider({ banners: providedBanners }: SliderProps) {
 
   const currentSlide = slides[currentIndex] ?? slides[0];
 
+  // ფოტოზე დაჭერა — ბანერის ინდივიდუალურ ლინკზე გადასვლა (ბექიდან).
+  const handleSlideClick = () => {
+    const url = currentSlide.linkUrl;
+    if (!url) return;
+
+    if (/^https?:\/\//i.test(url)) {
+      window.location.href = url;
+    } else {
+      router.push(url);
+    }
+  };
+
+  // ისრებზე დაჭერა მხოლოდ სლაიდს ცვლის (ფოტოს ლინკზე არ გადადის).
+  const handleArrow = (event: React.MouseEvent, action: () => void) => {
+    event.stopPropagation();
+    action();
+  };
+
   return (
     <div
       className={styles.sliderContainer}
       style={{
         backgroundImage: `url(${currentSlide.image})`,
+        cursor: currentSlide.linkUrl ? "pointer" : "default",
       }}
+      onClick={handleSlideClick}
+      role={currentSlide.linkUrl ? "link" : undefined}
+      aria-label={currentSlide.linkUrl ? currentSlide.title : undefined}
     >
       <div className={styles.overlay}>
-        {currentSlide.title && (
-          <div className={styles.content}>
-            <h1>{currentSlide.title}</h1>
-            {currentSlide.subtitle && <p>{currentSlide.subtitle}</p>}
-            {currentSlide.linkUrl && (
-              <a href={currentSlide.linkUrl}>
-                {currentSlide.ctaLabel || "ნახვა"}
-              </a>
-            )}
-          </div>
-        )}
-
         <div className={styles.rightControls}>
           <div className={styles.range}>
             <span>{String(currentIndex + 1).padStart(2, "0")}</span>
@@ -142,10 +154,16 @@ export default function Slider({ banners: providedBanners }: SliderProps) {
           </div>
 
           <div className={styles.controls}>
-            <button onClick={handlePrev} className={styles.arrow}>
+            <button
+              onClick={(e) => handleArrow(e, handlePrev)}
+              className={styles.arrow}
+            >
               <img src="/icons/Arrow-left.svg" alt="arrow-left" />
             </button>
-            <button onClick={handleNext} className={styles.arrow}>
+            <button
+              onClick={(e) => handleArrow(e, handleNext)}
+              className={styles.arrow}
+            >
               <img src="/icons/Arrow-right.svg" alt="arrow-right" />
             </button>
           </div>

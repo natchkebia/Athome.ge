@@ -19,7 +19,7 @@ import {
 import { useCommerce } from "@/contexts/CommerceContext";
 import { useCompare } from "@/contexts/CompareContext";
 import { useToast } from "@/contexts/ToastContext";
-import { getStoredAuthTokens } from "@/lib/auth/tokens";
+import { cacheProductInfo } from "@/lib/commerce/guestStore";
 
 interface Spec {
   label: string;
@@ -114,21 +114,29 @@ export default function ProductDetail({
   const processorSpecs = specs.slice(3, 10);
   const videoSpecs = specs.slice(10);
 
-  const isLoggedIn = () => Boolean(getStoredAuthTokens()?.accessToken);
+  // სტუმრის კალათისთვის — ჩვენების ინფოს ქეშირება.
+  const cacheInfo = () =>
+    cacheProductInfo({
+      productId: product.id,
+      productName: product.name,
+      imageUrl: images[0],
+      slug: product.slug,
+      sellingPrice: product.pricing.effectivePrice,
+      oldPrice,
+    });
 
-  // "ყიდვა" — ამატებს კალათაში და გადაჰყავს კალათის გვერდზე.
+  // "ყიდვა" — ამატებს კალათაში და გადაჰყავს კალათის გვერდზე (სტუმარსაც).
   const handleBuyNow = async () => {
+    cacheInfo();
     await addToCart(product.id);
-    // addToCart ავტორიზაციის გარეშე /authorization-ზე ამისამართებს —
-    // ასეთ შემთხვევაში კალათაში არ გადავყავართ.
-    if (isLoggedIn()) router.push("/basket");
+    router.push("/basket");
   };
 
-  // "დამატება" — ამატებს კალათაში და აჩვენებს დადასტურებას.
+  // "დამატება" — ამატებს კალათაში და აჩვენებს დადასტურებას (სტუმარსაც).
   const handleAddToCart = async () => {
-    const wasLoggedIn = isLoggedIn();
+    cacheInfo();
     await addToCart(product.id);
-    if (wasLoggedIn) showToast("კალათაში დაემატა");
+    showToast("კალათაში დაემატა");
   };
 
   // "შედარება" — შედარების სიაში ამატებს/ხსნის.

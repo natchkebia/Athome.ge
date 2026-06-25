@@ -4,6 +4,7 @@ import styles from "./DiscountCard.module.scss";
 import Image from "next/image";
 import { useCompare } from "@/contexts/CompareContext";
 import { useToast } from "@/contexts/ToastContext";
+import { cacheProductInfo } from "@/lib/commerce/guestStore";
 
 export interface ProductCardProps {
   id: string;
@@ -59,15 +60,28 @@ export default function DiscountCard({
     else showToast(`შედარებაში მაქსიმუმ ${maxItems} პროდუქტია`, "error");
   };
 
+  // სტუმრის კალათა/სურვილებისთვის — ჩვენების ინფოს ქეშირება add-ისას.
+  const cacheInfo = () =>
+    cacheProductInfo({
+      productId: Number(id),
+      productName: title,
+      imageUrl: image,
+      slug,
+      sellingPrice: newPrice ?? 0,
+      oldPrice,
+    });
+
   const handleWishlist = (event: React.MouseEvent) => {
     event.preventDefault();
     event.stopPropagation();
+    cacheInfo();
     onToggleWishlist?.(id);
   };
 
   const handleAddToCart = (event: React.MouseEvent) => {
     event.preventDefault();
     event.stopPropagation();
+    cacheInfo();
     onAddToCart?.(id);
   };
 

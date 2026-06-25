@@ -30,7 +30,15 @@ const HeroSlider = () => {
 
         if (homeHeroBanners.length > 0 || homePromotionBanners.length > 0) {
           setHeroBanners(homeHeroBanners);
-          setPromotionBanners(homePromotionBanners);
+
+          // ბექი promotionBanners-ს ცარიელს აბრუნებს — promo ბანერებს ვიღებთ
+          // banners endpoint-იდან (ყველა ბანერი მინუს hero).
+          if (homePromotionBanners.length > 0) {
+            setPromotionBanners(homePromotionBanners);
+          } else {
+            const heroIds = new Set(homeHeroBanners.map((b) => b.id));
+            setPromotionBanners(banners.filter((b) => !heroIds.has(b.id)));
+          }
           return;
         }
 
