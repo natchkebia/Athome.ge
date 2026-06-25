@@ -7,6 +7,9 @@ const nextConfig: NextConfig = {
     ignoreDuringBuilds: true,
   },
   images: {
+    // კატალოგის სურათები მრავალი გარე ჰოსტიდან მოდის — server-side ოპტიმიზაცია
+    // (/_next/image) 403-ს იწვევდა. unoptimized-ით ბრაუზერი პირდაპირ წყაროდან იღებს.
+    unoptimized: true,
     remotePatterns: [
       {
         protocol: "https",
