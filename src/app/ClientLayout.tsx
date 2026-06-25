@@ -8,6 +8,7 @@ import Navbar from "@/components/navbar/Navbar";
 import Footer from "@/components/footer/Footer";
 import AtHomeLoader from "@/components/shared/AtHomeLoader";
 import CompareBar from "@/components/compare/CompareBar";
+import TestModeBadge from "@/components/shared/TestModeBadge";
 import { CommerceProvider } from "@/contexts/CommerceContext";
 import { CompareProvider } from "@/contexts/CompareContext";
 import { LoadingProvider } from "@/contexts/LoadingContext";
@@ -172,6 +173,7 @@ export default function ClientLayout({
           <main className="page-content">{children}</main>
           <Footer />
           <CompareBar />
+          <TestModeBadge />
           </LoadingProvider>
         </CompareProvider>
       </ToastProvider>
