@@ -29,6 +29,9 @@ const SLUG_LABELS: Record<string, string> = {
   console: "სათამაშო კონსოლი",
 };
 
+// ყველა პროდუქტი ჩაიტვირთოს (backend default 24-ია); 1000 ცხადად ფარავს ყველაზე დიდ კატეგორიას.
+const PRODUCT_LIMIT = 1000;
+
 function mapCard(card: ConfiguratorProductCard, slug: string): StorefrontProductCard {
   return {
     id: card.id,
@@ -74,7 +77,7 @@ function GamingResultsInner() {
     setLoading(true);
     setVisibleCount(9);
 
-    getCategoryProductsBySlugs(PERIPHERAL_PARENT_CATEGORY, [slug])
+    getCategoryProductsBySlugs(PERIPHERAL_PARENT_CATEGORY, [slug], PRODUCT_LIMIT)
       .then((items) => {
         if (!active) return;
         setProducts((items ?? []).map((card) => mapCard(card, slug)));

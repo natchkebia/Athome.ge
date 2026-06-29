@@ -101,6 +101,7 @@ export default function BasketPage() {
                 items={basket}
                 onQuantityChange={handleQuantityChange}
                 onRemove={handleRemove}
+                onNavigate={() => setIsOpen(false)}
               />
             </>
           )}

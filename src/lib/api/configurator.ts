@@ -174,11 +174,14 @@ export function getConfiguratorSlotProducts(
 // Fetch peripheral products from the normal catalog (returns a plain array).
 export function getCategoryProductsBySlugs(
   categorySlug: string,
-  slugs: string[]
+  slugs: string[],
+  limit?: number
 ) {
   const query: Record<string, string> = {};
   // apiRequest only sets one value per key; for a single slug that's enough.
   if (slugs.length === 1) query.slugs = slugs[0];
+  // ლიმიტის გარეშე backend default 24-ს აბრუნებს — ლისტინგ-გვერდი explicit limit-ს გადასცემს.
+  if (limit !== undefined) query.limit = String(limit);
   return apiRequest<ConfiguratorProductCard[]>(
     `/api/storefront/categories/${encodeURIComponent(categorySlug)}/products`,
     { query, useProxy: true }

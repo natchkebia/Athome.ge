@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import styles from "./products.module.scss";
 import DiscountCard from "@/components/discount/DiscountCard";
+import CategoryCard from "@/components/categorSection/CategoriCard";
 import ProductFilter from "@/components/products/ProductFilter";
 import ProductSortBar from "@/components/products/ProductSortBar";
 import EmptyState from "@/components/products/EmptyState";
@@ -22,7 +23,20 @@ import {
 } from "@/lib/storefront/products";
 import { useCommerce } from "@/contexts/CommerceContext";
 
-const PRODUCT_LIMIT = 24;
+// ყველა პროდუქტი ჩაიტვირთოს (endpoint limit-ს არ ჭრის); 1000 ფარავს ყველაზე დიდ კატეგორიას.
+const PRODUCT_LIMIT = 1000;
+
+// ქვეკატეგორიის ბარათების ფონის ფერები (მთავარი გვერდის კატეგორიების მსგავსი).
+const SUBCAT_BG = [
+  "#F0F8F8",
+  "#F8F2F8",
+  "#F9EEEE",
+  "#F6F8FB",
+  "#F6F8FB",
+  "#F6F8FB",
+  "#F6F8FB",
+  "#F7F7FC",
+];
 
 function ProductsPageInner() {
   const [filters, setFilters] = useState({
@@ -38,8 +52,10 @@ function ProductsPageInner() {
   });
 
   const [products, setProducts] = useState<StorefrontProductCard[]>([]);
+  // undefined = ჯერ იტვირთება; null = ვერ მოიძებნა; object = ჩატვირთულია.
   const [categoryDetails, setCategoryDetails] =
-    useState<StorefrontCategory | null>(null);
+    useState<StorefrontCategory | null | undefined>(undefined);
+  const [subcatImages, setSubcatImages] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [filtersActive, setFiltersActive] = useState(false);
   const [visibleCount, setVisibleCount] = useState(9);
@@ -53,6 +69,7 @@ function ProductsPageInner() {
 
   useEffect(() => {
     let isMounted = true;
+    setCategoryDetails(undefined);
 
     getStorefrontCategory(category)
       .then((details) => {
@@ -68,13 +85,19 @@ function ProductsPageInner() {
   }, [category]);
 
   useEffect(() => {
+    // კატეგორიის დეტალებს ველოდებით; თუ ქვეკატეგორიები აქვს, პროდუქტებს არ ვტვირთავთ
+    // (ნაცვლად ბრტყელი სიისა — ქვეკატეგორიების grid გამოჩნდება).
+    if (categoryDetails === undefined) return;
+    if (categoryDetails && (categoryDetails.subCategories?.length ?? 0) > 0) {
+      setProducts([]);
+      setLoading(false);
+      return;
+    }
+
     let isMounted = true;
 
     setLoading(true);
     setVisibleCount(9);
-
-    // eslint-disable-next-line no-console
-    console.log("[CATEGORY PAGE] by-category slug:", category);
 
     // მთავარი კატეგორიებისთვის — /categories/{slug}/products (სრული კონტენტი).
     // sub/mini slug-ზე ეს ცარიელია → fallback by-category/{slug} (exact-level).
@@ -97,7 +120,39 @@ function ProductsPageInner() {
     return () => {
       isMounted = false;
     };
-  }, [category]);
+  }, [category, categoryDetails]);
+
+  // ქვეკატეგორიებს backend-ში სურათი არ აქვთ — წარმომადგენლობით სურათს პირველი პროდუქტიდან ვიღებთ.
+  useEffect(() => {
+    const subs = categoryDetails?.subCategories ?? [];
+    if (subs.length === 0) {
+      setSubcatImages({});
+      return;
+    }
+
+    let isMounted = true;
+
+    Promise.all(
+      subs.map((sub) =>
+        getStorefrontProductsByCategory(sub.slug, 1)
+          .then((items) =>
+            items[0] ? mapStorefrontProductToCard(items[0]).image : ""
+          )
+          .catch(() => "")
+      )
+    ).then((images) => {
+      if (!isMounted) return;
+      const map: Record<string, string> = {};
+      subs.forEach((sub, index) => {
+        map[sub.slug] = images[index];
+      });
+      setSubcatImages(map);
+    });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [categoryDetails]);
 
   const filteredProducts = useMemo(() => {
     if (!filtersActive) return products;
@@ -197,6 +252,37 @@ function ProductsPageInner() {
     { label: "მთავარი გვერდი", href: "/" },
     { label: categoryDetails?.name || category },
   ];
+
+  const subCategories = categoryDetails?.subCategories ?? [];
+
+  // კატეგორიის დეტალები ჯერ იტვირთება.
+  if (categoryDetails === undefined) return <AtHomeLoader variant="page" />;
+
+  // კატეგორიას ქვეკატეგორიები აქვს → დაჯგუფებული landing (ბრტყელი სიის ნაცვლად).
+  if (subCategories.length > 0) {
+    return (
+      <>
+        <Breadcrumb items={breadcrumbs} />
+        <div className={styles.subcatPage}>
+          <h1 className={styles.subcatTitle}>
+            {categoryDetails?.name || category}
+          </h1>
+          <div className={styles.subcatGrid}>
+            {subCategories.map((sub, index) => (
+              <CategoryCard
+                key={sub.slug}
+                title={sub.name}
+                image={subcatImages[sub.slug] || undefined}
+                bgColor={SUBCAT_BG[index % SUBCAT_BG.length]}
+                slug={sub.slug}
+                count={sub.productCount}
+              />
+            ))}
+          </div>
+        </div>
+      </>
+    );
+  }
 
   if (loading) return <AtHomeLoader variant="page" />;
   if (products.length === 0) {

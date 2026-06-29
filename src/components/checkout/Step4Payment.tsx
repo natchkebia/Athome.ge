@@ -76,7 +76,7 @@ export default function Step4Payment({
           }}
         >
           <img src="/icons/Installment.svg" alt="invoice" />
-          <p>განვადება</p>
+          <p>განვადება და განაწილება</p>
           {method === "invoice" && (
             <div className={styles.checkCircle}>
               <div className={styles.checkdiv} />

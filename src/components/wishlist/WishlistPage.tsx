@@ -88,6 +88,7 @@ export default function WishlistPage() {
                 type="wishlist"
                 items={wishlistItems}
                 onRemove={handleRemove}
+                onNavigate={() => setIsOpen(false)}
               />
             </>
           )}

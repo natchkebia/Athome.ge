@@ -1,4 +1,5 @@
 import styles from "./Configurator.module.scss";
+import ProductThumb from "./ProductThumb";
 import {
   ConfiguratorCategory,
   SelectedConfiguratorProduct,
@@ -47,10 +48,15 @@ export default function ConfiguratorCategoryCard({
       )}
 
       <button type="button" className={styles.cardBody} onClick={onClick}>
-        <img
-          src={firstSelectedProduct?.image || category.icon}
-          alt={firstSelectedProduct?.title || category.title}
-        />
+        {firstSelectedProduct ? (
+          <ProductThumb
+            key={firstSelectedProduct.id}
+            src={firstSelectedProduct.image}
+            alt={firstSelectedProduct.title}
+          />
+        ) : (
+          <img src={category.icon} alt={category.title} />
+        )}
 
         <h3>{category.title}</h3>
 

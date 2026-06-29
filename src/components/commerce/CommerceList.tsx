@@ -18,6 +18,7 @@ interface CommerceListProps {
   items: ProductItem[];
   onRemove?: (id: string) => void;
   onQuantityChange?: (id: string, newQty: number) => void;
+  onNavigate?: () => void;
 }
 
 export default function CommerceList({
@@ -25,6 +26,7 @@ export default function CommerceList({
   items,
   onRemove,
   onQuantityChange,
+  onNavigate,
 }: CommerceListProps) {
   const getTotal = () => {
     return items.reduce(
@@ -35,9 +37,11 @@ export default function CommerceList({
   const router = useRouter();
 
   const handleGoToBasket = () => {
+    onNavigate?.();
     router.push("/basket");
   };
   const handleGoToWishlist = () => {
+    onNavigate?.();
     router.push("/wishlist");
   };
   return (

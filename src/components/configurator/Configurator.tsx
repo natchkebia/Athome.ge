@@ -266,16 +266,19 @@ export default function Configurator() {
   ) => {
     const safeQuantity = getSafeQuantity(product, quantity);
 
-    setSelectedProducts((prev) => {
-      const categoryProducts = prev[product.category] || [];
-      const alreadySelected = categoryProducts.some(
-        (item) => item.id === product.id
-      );
+    const categoryProducts = selectedProducts[product.category] || [];
+    const alreadySelected = categoryProducts.some(
+      (item) => item.id === product.id
+    );
 
-      if (alreadySelected) {
+    setSelectedProducts((prev) => {
+      const prevCategory = prev[product.category] || [];
+      const isSelected = prevCategory.some((item) => item.id === product.id);
+
+      if (isSelected) {
         return {
           ...prev,
-          [product.category]: categoryProducts.filter(
+          [product.category]: prevCategory.filter(
             (item) => item.id !== product.id
           ),
         };
@@ -287,6 +290,11 @@ export default function Configurator() {
         [product.category]: [{ ...product, quantity: safeQuantity }],
       };
     });
+
+    // ახალი კომპონენტის დამატებისას მოდალი თავისით დაიხუროს (წაშლისას/toggle-off არა)
+    if (!alreadySelected) {
+      setSelectedCategory(null);
+    }
   };
 
   const handleUpdateQuantity = (

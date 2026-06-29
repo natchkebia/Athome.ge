@@ -17,7 +17,8 @@ import {
 } from "@/lib/storefront/products";
 import { useCommerce } from "@/contexts/CommerceContext";
 
-const PRODUCT_LIMIT = 24;
+// ყველა პროდუქტი ჩაიტვირთოს (endpoint limit-ს არ ჭრის); 1000 ფარავს ყველაზე დიდ ბრენდს.
+const PRODUCT_LIMIT = 1000;
 
 export default function BrandProductsPage() {
   const [filters, setFilters] = useState({

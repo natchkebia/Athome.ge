@@ -16,7 +16,8 @@ import {
 } from "@/lib/storefront/products";
 import { useCommerce } from "@/contexts/CommerceContext";
 
-const DEALS_LIMIT = 48;
+// ყველა ფასდაკლებული პროდუქტი ჩაიტვირთოს (endpoint limit-ს არ ჭრის).
+const DEALS_LIMIT = 1000;
 
 export default function DiscountsPage() {
   const { wishlistProductIds, toggleWishlist, addToCart } = useCommerce();

@@ -9,6 +9,7 @@ interface CategoryCardProps {
   image?: string;
   bgColor: string;
   slug: string;
+  count?: number;
 }
 
 export default function CategoryCard({
@@ -16,6 +17,7 @@ export default function CategoryCard({
   image,
   bgColor,
   slug,
+  count,
 }: CategoryCardProps) {
   return (
     <Link href={`/products/${slug}`} className={styles.cardLink}>
@@ -28,6 +30,9 @@ export default function CategoryCard({
           </span>
         )}
         <p className={styles.label}>{title}</p>
+        {typeof count === "number" && (
+          <span className={styles.count}>{count} პროდუქტი</span>
+        )}
       </div>
     </Link>
   );
