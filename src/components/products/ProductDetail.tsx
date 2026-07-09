@@ -20,6 +20,7 @@ import { useCommerce } from "@/contexts/CommerceContext";
 import { useCompare } from "@/contexts/CompareContext";
 import { useToast } from "@/contexts/ToastContext";
 import { cacheProductInfo } from "@/lib/commerce/guestStore";
+import { flyToTarget } from "@/lib/ui/flyToCart";
 
 interface Spec {
   label: string;
@@ -132,9 +133,11 @@ export default function ProductDetail({
     router.push("/basket");
   };
 
-  // "დამატება" — ამატებს კალათაში და აჩვენებს დადასტურებას (სტუმარსაც).
-  const handleAddToCart = async () => {
+  // "დამატება" — ამატებს კალათაში, სურათი კალათისკენ ფრინავს, აჩვენებს დადასტურებას.
+  const handleAddToCart = async (event: React.MouseEvent) => {
+    const sourceEl = event.currentTarget as HTMLElement;
     cacheInfo();
+    flyToTarget(sourceEl, images[0], "cart");
     await addToCart(product.id);
     showToast("კალათაში დაემატა");
   };

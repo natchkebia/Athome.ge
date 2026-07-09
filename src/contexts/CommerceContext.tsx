@@ -25,6 +25,7 @@ import {
   addGuestCartItem,
   clearGuestCart,
   clearGuestWishlist,
+  getCachedInfo,
   getGuestCart,
   getGuestWishlist,
   removeGuestCartItem,
@@ -68,34 +69,58 @@ function hasAccessToken() {
   return Boolean(getStoredAuthTokens()?.accessToken);
 }
 
+// backend ზოგ mutation-ზე (POST/DELETE) ცარიელ პასუხს აბრუნებს — 204 ან ცარიელი
+// body. ასეთ დროს პასუხი undefined-ია და მისით state-ის ჩანაცვლება კალათას/სურვილებს
+// წაშლიდა. ჯერ ვამოწმებთ ნამდვილ ობიექტს; თუ ცარიელია — თავიდან ჩამოვტვირთავთ.
+function isProfileCart(value: unknown): value is ProfileCart {
+  return Boolean(
+    value &&
+      typeof value === "object" &&
+      Array.isArray((value as ProfileCart).items)
+  );
+}
+
+function isProfileWishlist(value: unknown): value is ProfileWishlist {
+  return Boolean(
+    value &&
+      typeof value === "object" &&
+      Array.isArray((value as ProfileWishlist).items)
+  );
+}
+
+// optimistic item — ბარათი add-ისას პროდუქტის ინფოს ქეშავს (getCachedInfo),
+// ასე რომ სახელი/ფასი/ფოტო მაშინვე გვაქვს და dropdown-ში ცარიელი რიგი აღარ ჩანს.
 function optimisticCartItem(productId: number, quantity: number) {
+  const info = getCachedInfo(productId);
+  const price = info?.sellingPrice ?? 0;
   return {
     id: productId,
     productId,
-    productName: "",
+    productName: info?.productName ?? "",
     productSku: "",
-    imageUrl: "",
-    slug: "",
-    sellingPrice: 0,
-    oldPrice: undefined,
+    imageUrl: info?.imageUrl ?? "",
+    slug: info?.slug ?? "",
+    sellingPrice: price,
+    oldPrice: info?.oldPrice,
     quantity,
-    lineTotal: 0,
-    isInStock: true,
+    lineTotal: price * quantity,
+    isInStock: info?.isInStock ?? true,
   };
 }
 
 function optimisticWishlistItem(productId: number) {
+  const info = getCachedInfo(productId);
   return {
     id: productId,
     productId,
-    productName: "",
+    productName: info?.productName ?? "",
     productSku: "",
-    imageUrl: "",
-    slug: "",
-    sellingPrice: 0,
-    oldPrice: undefined,
+    imageUrl: info?.imageUrl ?? "",
+    slug: info?.slug ?? "",
+    sellingPrice: info?.sellingPrice ?? 0,
+    oldPrice: info?.oldPrice,
     isInCart: false,
-    isInStock: true,
+    isInStock: info?.isInStock ?? true,
   };
 }
 
@@ -241,7 +266,8 @@ export function CommerceProvider({ children }: { children: React.ReactNode }) {
 
       try {
         const updatedCart = await addProfileCartItem(productId, quantity);
-        setCart(updatedCart ?? emptyCart);
+        if (isProfileCart(updatedCart)) setCart(updatedCart);
+        else await refreshCart();
       } catch {
         await refreshCart();
       }
@@ -261,7 +287,8 @@ export function CommerceProvider({ children }: { children: React.ReactNode }) {
           quantity <= 0
             ? await removeProfileCartItem(productId)
             : await updateProfileCartItem(productId, quantity);
-        setCart(updatedCart ?? emptyCart);
+        if (isProfileCart(updatedCart)) setCart(updatedCart);
+        else await refreshCart();
       } catch {
         await refreshCart();
       }
@@ -277,7 +304,8 @@ export function CommerceProvider({ children }: { children: React.ReactNode }) {
 
     try {
       const updatedCart = await removeProfileCartItem(productId);
-      setCart(updatedCart ?? emptyCart);
+      if (isProfileCart(updatedCart)) setCart(updatedCart);
+      else await refreshCart();
     } catch {
       await refreshCart();
     }
@@ -325,7 +353,8 @@ export function CommerceProvider({ children }: { children: React.ReactNode }) {
           ? await removeProfileWishlistItem(productId)
           : await addProfileWishlistItem(productId);
 
-        setWishlist(updatedWishlist ?? emptyWishlist);
+        if (isProfileWishlist(updatedWishlist)) setWishlist(updatedWishlist);
+        else await refreshWishlist();
       } catch {
         await refreshWishlist();
       }

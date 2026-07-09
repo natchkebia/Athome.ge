@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCompare } from "@/contexts/CompareContext";
 import { normalizeMediaUrl } from "@/lib/storefront/products";
+import { img } from "@/lib/media/img";
 import styles from "./CompareBar.module.scss";
 
 export default function CompareBar() {
@@ -27,7 +28,10 @@ export default function CompareBar() {
                 ×
               </button>
               <div className={styles.thumb}>
-                <img src={normalizeMediaUrl(item.image)} alt={item.title} />
+                <img
+                  src={img(normalizeMediaUrl(item.image), 100)}
+                  alt={item.title}
+                />
               </div>
               <div className={styles.info}>
                 <span className={styles.title}>{item.title}</span>

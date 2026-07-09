@@ -7,40 +7,9 @@ const nextConfig: NextConfig = {
     ignoreDuringBuilds: true,
   },
   images: {
-    // კატალოგის სურათები მრავალი გარე ჰოსტიდან მოდის — server-side ოპტიმიზაცია
-    // (/_next/image) 403-ს იწვევდა. unoptimized-ით ბრაუზერი პირდაპირ წყაროდან იღებს.
+    // ბრაუზერი პირდაპირ წყაროდან იღებს სურათს (/_next/image-ის 403-ის გარეშე).
+    // responsive ზომებს ?w=-ით ვმართავთ — იხ. src/lib/media/img.ts.
     unoptimized: true,
-    remotePatterns: [
-      {
-        protocol: "https",
-        hostname: "athome.ge",
-      },
-      {
-        protocol: "https",
-        hostname: "imgstore.alta.ge",
-      },
-      {
-        protocol: "https",
-        hostname: "i-extra.alta.ge",
-      },
-      {
-        // covers any alta.ge CDN subdomain (i-extra, imgstore, etc.)
-        protocol: "https",
-        hostname: "**.alta.ge",
-      },
-      {
-        protocol: "https",
-        hostname: "encrypted-tbn0.gstatic.com",
-      },
-      {
-        protocol: "https",
-        hostname: "ultra.ge",
-      },
-      {
-        protocol: "https",
-        hostname: "www.ultra.ge",
-      },
-    ],
   },
 };
 

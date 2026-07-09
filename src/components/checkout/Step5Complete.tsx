@@ -64,9 +64,10 @@ export default function Step5Complete({
     (sum, item) => sum + item.sellingPrice * item.quantity,
     0
   );
+  // ფასდაკლების გარეშე პროდუქტს oldPrice არ აქვს — მისი „ძველი ფასი" = მიმდინარეს,
+  // რომ შერეულ კალათაშიც დანაზოგი სწორად დაითვალოს (და არა 0-ზე ჩამოიჭრას).
   const oldTotal = items.reduce(
-    (sum, item) =>
-      item.oldPrice ? sum + item.oldPrice * item.quantity : sum,
+    (sum, item) => sum + (item.oldPrice ?? item.sellingPrice) * item.quantity,
     0
   );
   const discount = Math.max(oldTotal - subtotal, 0);
@@ -170,9 +171,13 @@ export default function Step5Complete({
             <div class="summary-row"><span>ღირებულება</span><strong>${formatPrice(
               subtotal
             )}</strong></div>
-            <div class="summary-row"><span>დანაზოგი</span><strong>${formatPrice(
-              discount
-            )}</strong></div>
+            ${
+              discount > 0
+                ? `<div class="summary-row"><span>დანაზოგი</span><strong>${formatPrice(
+                    discount
+                  )}</strong></div>`
+                : ""
+            }
             <div class="summary-row total"><span>ჯამი</span><strong>${formatPrice(
               total
             )}</strong></div>
@@ -290,10 +295,12 @@ export default function Step5Complete({
               <span>ღირებულება</span>
               <strong>{formatPrice(subtotal)}</strong>
             </div>
-            <div>
-              <span>დანაზოგი</span>
-              <strong>{formatPrice(discount)}</strong>
-            </div>
+            {discount > 0 && (
+              <div>
+                <span>დანაზოგი</span>
+                <strong>{formatPrice(discount)}</strong>
+              </div>
+            )}
             <div className={styles.grandTotal}>
               <span>ჯამი</span>
               <strong>{formatPrice(total)}</strong>

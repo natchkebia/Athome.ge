@@ -64,6 +64,7 @@ export default function BasketPage() {
   return (
     <div className={styles.basketWrapper} ref={dropdownRef}>
       <img
+        id="nav-cart-icon"
         src="/icons/Cart.svg"
         alt="cart"
         className={styles.cartIcon}

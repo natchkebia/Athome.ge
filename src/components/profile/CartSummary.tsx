@@ -31,11 +31,13 @@ export default function CartSummary({ showItems = true }: CartSummaryProps) {
     (sum, item) => sum + item.price * item.quantity,
     0
   );
+  // ფასდაკლების გარეშე პროდუქტს oldPrice არ აქვს — მაშინ მისი „ძველი ფასი" =
+  // მიმდინარე ფასს, რომ დანაზოგში 0 შეიტანოს (და არა უარყოფითი რიცხვი).
   const totalOldPrice = cartItems.reduce(
-    (sum, item) => (item.oldPrice ? sum + item.oldPrice * item.quantity : sum),
+    (sum, item) => sum + (item.oldPrice ?? item.price) * item.quantity,
     0
   );
-  const totalDiscount = totalOldPrice - totalPrice;
+  const totalDiscount = Math.max(totalOldPrice - totalPrice, 0);
 
   const handleContinue = () => {
     setIsContinuing(true);
@@ -69,10 +71,12 @@ export default function CartSummary({ showItems = true }: CartSummaryProps) {
             <span>{totalPrice.toLocaleString()} ₾</span>
           </div>
 
-          <div className={styles.row}>
-            <p>დანაზოგი</p>
-            <span>{totalDiscount.toLocaleString()} ₾</span>
-          </div>
+          {totalDiscount > 0 && (
+            <div className={styles.row}>
+              <p>დანაზოგი</p>
+              <span>{totalDiscount.toLocaleString()} ₾</span>
+            </div>
+          )}
 
           <div className={styles.totalRow}>
             <p>ჯამი</p>

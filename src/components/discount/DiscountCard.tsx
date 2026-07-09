@@ -2,9 +2,12 @@
 
 import styles from "./DiscountCard.module.scss";
 import Image from "next/image";
+import { useRef } from "react";
 import { useCompare } from "@/contexts/CompareContext";
 import { useToast } from "@/contexts/ToastContext";
 import { cacheProductInfo } from "@/lib/commerce/guestStore";
+import { flyToTarget } from "@/lib/ui/flyToCart";
+import { img } from "@/lib/media/img";
 
 export interface ProductCardProps {
   id: string;
@@ -40,6 +43,8 @@ export default function DiscountCard({
   const { toggleCompare, compareIds, maxItems } = useCompare();
   const { showToast } = useToast();
   const isCompared = compareIds.has(Number(id));
+  // fly-to-cart ანიმაციის წყარო — პროდუქტის სურათის კონტეინერი.
+  const imageRef = useRef<HTMLDivElement>(null);
 
   const handleCompare = (event: React.MouseEvent) => {
     event.preventDefault();
@@ -75,7 +80,11 @@ export default function DiscountCard({
     event.preventDefault();
     event.stopPropagation();
     cacheInfo();
+    const wasWishlisted = isWishlisted;
+    // ჯერ რეალური დამატება, მერე ანიმაცია — რომ add ყოველთვის შესრულდეს.
     onToggleWishlist?.(id);
+    // ვიშლისტში დამატებისას (არა ამოშლისას) — სურათი გულის აიქონისკენ გაფრინდეს.
+    if (!wasWishlisted) flyToTarget(imageRef.current, image, "wishlist");
   };
 
   const handleAddToCart = (event: React.MouseEvent) => {
@@ -83,20 +92,21 @@ export default function DiscountCard({
     event.stopPropagation();
     cacheInfo();
     onAddToCart?.(id);
+    flyToTarget(imageRef.current, image, "cart");
   };
 
   // სიის (list) ვიზუალი — ჰორიზონტალური გაშლილი ბარათი (1038×172).
   if (layout === "list") {
     return (
       <div className={styles.cardList}>
-        <div className={styles.listImage}>
+        <div className={styles.listImage} ref={imageRef}>
           {discount > 0 && (
             <div className={styles.discountBadge}>-{discount}%</div>
           )}
           {isNew && <div className={styles.newBadge}>NEW</div>}
           <Image
             className={styles.productImage}
-            src={image}
+            src={img(image, 400)}
             alt={title}
             width={140}
             height={140}
@@ -182,10 +192,10 @@ export default function DiscountCard({
           </button>
         </div>
 
-        <div className={styles.imageWrapper}>
+        <div className={styles.imageWrapper} ref={imageRef}>
           <Image
             className={styles.productImage}
-            src={image}
+            src={img(image, 400)}
             alt={title}
             width={172}
             height={172}

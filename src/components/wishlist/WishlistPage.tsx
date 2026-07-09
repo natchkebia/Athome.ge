@@ -52,6 +52,7 @@ export default function WishlistPage() {
   return (
     <div className={styles.wishlistWrapper} ref={dropdownRef}>
       <img
+        id="nav-wishlist-icon"
         src="/icons/Heart.svg"
         alt="heart"
         className={styles.heartIcon}

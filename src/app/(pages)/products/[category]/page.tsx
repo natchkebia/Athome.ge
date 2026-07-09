@@ -14,6 +14,7 @@ import AtHomeLoader from "@/components/shared/AtHomeLoader";
 import {
   getStorefrontCategory,
   getStorefrontCategoryProducts,
+  getStorefrontProducts,
   getStorefrontProductsByCategory,
   StorefrontCategory,
 } from "@/lib/api/storefront";
@@ -56,6 +57,9 @@ function ProductsPageInner() {
   const [categoryDetails, setCategoryDetails] =
     useState<StorefrontCategory | null | undefined>(undefined);
   const [subcatImages, setSubcatImages] = useState<Record<string, string>>({});
+  // ქვეკატეგორიის ნამდვილი რაოდენობა — ხის productCount არასანდოა, ამიტომ
+  // listing-ის იმავე წყაროდან (products endpoint totalCount) ვიღებთ.
+  const [subcatCounts, setSubcatCounts] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
   const [filtersActive, setFiltersActive] = useState(false);
   const [visibleCount, setVisibleCount] = useState(9);
@@ -122,11 +126,14 @@ function ProductsPageInner() {
     };
   }, [category, categoryDetails]);
 
-  // ქვეკატეგორიებს backend-ში სურათი არ აქვთ — წარმომადგენლობით სურათს პირველი პროდუქტიდან ვიღებთ.
+  // ქვეკატეგორიებს backend-ში სურათი არ აქვთ და ხის productCount არასანდოა.
+  // ერთ მოთხოვნაზე (pageSize:1) ვიღებთ ორივეს: წარმომადგენლობით სურათს (პირველი
+  // პროდუქტი) და ნამდვილ რაოდენობას (totalCount) — იმავე წყაროდან, რასაც listing.
   useEffect(() => {
     const subs = categoryDetails?.subCategories ?? [];
     if (subs.length === 0) {
       setSubcatImages({});
+      setSubcatCounts({});
       return;
     }
 
@@ -134,19 +141,27 @@ function ProductsPageInner() {
 
     Promise.all(
       subs.map((sub) =>
-        getStorefrontProductsByCategory(sub.slug, 1)
-          .then((items) =>
-            items[0] ? mapStorefrontProductToCard(items[0]).image : ""
-          )
-          .catch(() => "")
+        getStorefrontProducts({ subCategorySlug: sub.slug, pageSize: 1 })
+          .then((res) => ({
+            image: res.items[0]
+              ? mapStorefrontProductToCard(res.items[0]).image
+              : "",
+            count: res.totalCount as number | undefined,
+          }))
+          .catch(() => ({ image: "", count: undefined }))
       )
-    ).then((images) => {
+    ).then((results) => {
       if (!isMounted) return;
-      const map: Record<string, string> = {};
+      const imageMap: Record<string, string> = {};
+      const countMap: Record<string, number> = {};
       subs.forEach((sub, index) => {
-        map[sub.slug] = images[index];
+        imageMap[sub.slug] = results[index].image;
+        if (typeof results[index].count === "number") {
+          countMap[sub.slug] = results[index].count as number;
+        }
       });
-      setSubcatImages(map);
+      setSubcatImages(imageMap);
+      setSubcatCounts(countMap);
     });
 
     return () => {
@@ -275,7 +290,7 @@ function ProductsPageInner() {
                 image={subcatImages[sub.slug] || undefined}
                 bgColor={SUBCAT_BG[index % SUBCAT_BG.length]}
                 slug={sub.slug}
-                count={sub.productCount}
+                count={subcatCounts[sub.slug] ?? sub.productCount}
               />
             ))}
           </div>

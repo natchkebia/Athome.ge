@@ -3,6 +3,7 @@
 import React from "react";
 import styles from "./CommerceList.module.scss";
 import { useRouter } from "next/navigation";
+import { img } from "@/lib/media/img";
 
 export interface ProductItem {
   id: string;
@@ -54,7 +55,11 @@ export default function CommerceList({
       <div className={styles.list}>
         {items.map((item) => (
           <div className={styles.item} key={item.id}>
-            <img src={item.image} alt={item.title} className={styles.image} />
+            <img
+              src={img(item.image, 100)}
+              alt={item.title}
+              className={styles.image}
+            />
 
             <div className={styles.wrapper}>
               <div className={styles.info}>

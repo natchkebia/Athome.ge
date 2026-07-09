@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import styles from "./ProductGallery.module.scss";
 import Image from "next/image";
+import { img } from "@/lib/media/img";
 
 interface ProductGalleryProps {
   images: string[];
@@ -43,7 +44,7 @@ export default function ProductGallery({ images }: ProductGalleryProps) {
         </button>
 
         <Image
-          src={images[currentIndex]}
+          src={img(images[currentIndex], 800)}
           alt={`product-image-${currentIndex}`}
           width={300}
           height={300}
@@ -58,7 +59,7 @@ export default function ProductGallery({ images }: ProductGalleryProps) {
         </button>
 
         <div className={styles.thumbnails}>
-          {images.map((img, i) => (
+          {images.map((imageUrl, i) => (
             <button
               key={i}
               ref={(element) => {
@@ -69,7 +70,12 @@ export default function ProductGallery({ images }: ProductGalleryProps) {
                 currentIndex === i ? styles.active : ""
               }`}
             >
-              <Image src={img} alt={`thumb-${i}`} width={148} height={150} />
+              <Image
+                src={img(imageUrl, 200)}
+                alt={`thumb-${i}`}
+                width={148}
+                height={150}
+              />
             </button>
           ))}
         </div>

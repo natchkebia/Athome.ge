@@ -97,9 +97,8 @@ export default function Step1Contact({ onNext }: Step1Props) {
     if (!phoneRegex.test(form.phone))
       validationErrors.phone = "ტელეფონი უნდა იყოს 9 ციფრი";
 
-    if (!form.altPhone.trim()) {
-      validationErrors.altPhone = "შეავსეთ დამატებითი ტელეფონი";
-    } else if (!phoneRegex.test(form.altPhone)) {
+    // დამატებითი ტელეფონი არასავალდებულოა — ვამოწმებთ მხოლოდ თუ შევსებულია.
+    if (form.altPhone.trim() && !phoneRegex.test(form.altPhone)) {
       validationErrors.altPhone = "დამატებითი ტელეფონი უნდა იყოს 9 ციფრი";
     }
 

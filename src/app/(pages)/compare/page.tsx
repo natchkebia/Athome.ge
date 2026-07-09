@@ -8,11 +8,13 @@ import { useCompare } from "@/contexts/CompareContext";
 import { useCommerce } from "@/contexts/CommerceContext";
 import { useToast } from "@/contexts/ToastContext";
 import { getStoredAuthTokens } from "@/lib/auth/tokens";
+import { flyToTarget } from "@/lib/ui/flyToCart";
 import {
   getStorefrontProduct,
   StorefrontProductDetail,
 } from "@/lib/api/storefront";
 import { normalizeMediaUrl } from "@/lib/storefront/products";
+import { img } from "@/lib/media/img";
 import styles from "./compare.module.scss";
 
 function specLabel(spec: {
@@ -123,8 +125,13 @@ export default function ComparePage() {
     return specMaps[productId]?.get(label) || "—";
   };
 
-  const handleAddToCart = async (productId: number) => {
+  const handleAddToCart = async (
+    productId: number,
+    sourceEl?: HTMLElement | null,
+    imageUrl?: string
+  ) => {
     const wasLoggedIn = Boolean(getStoredAuthTokens()?.accessToken);
+    if (sourceEl && imageUrl) flyToTarget(sourceEl, imageUrl, "cart");
     await addToCart(productId);
     if (wasLoggedIn) showToast("კალათაში დაემატა");
   };
@@ -185,7 +192,7 @@ export default function ComparePage() {
                       >
                         <div className={styles.imageBox}>
                           <img
-                            src={normalizeMediaUrl(item.image)}
+                            src={img(normalizeMediaUrl(item.image), 200)}
                             alt={item.title}
                           />
                         </div>
@@ -197,7 +204,7 @@ export default function ComparePage() {
                       <div className={styles.productLink}>
                         <div className={styles.imageBox}>
                           <img
-                            src={normalizeMediaUrl(item.image)}
+                            src={img(normalizeMediaUrl(item.image), 200)}
                             alt={item.title}
                           />
                         </div>
@@ -220,7 +227,13 @@ export default function ComparePage() {
                     </div>
                     <button
                       className={styles.addBtn}
-                      onClick={() => handleAddToCart(item.id)}
+                      onClick={(e) =>
+                        handleAddToCart(
+                          item.id,
+                          e.currentTarget,
+                          normalizeMediaUrl(item.image)
+                        )
+                      }
                     >
                       <img src="/icons/CartWhite.svg" alt="cart" />
                       დამატება

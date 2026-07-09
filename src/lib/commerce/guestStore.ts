@@ -60,7 +60,7 @@ export function cacheProductInfo(info: GuestProductInfo) {
   write(INFO_KEY, map);
 }
 
-function getCachedInfo(productId: number): GuestProductInfo | null {
+export function getCachedInfo(productId: number): GuestProductInfo | null {
   const map = read<Record<number, GuestProductInfo>>(INFO_KEY, {});
   return map[productId] ?? null;
 }
