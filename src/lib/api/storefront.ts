@@ -86,6 +86,10 @@ export type StorefrontProduct = {
     name: string;
     slug: string;
   };
+  subCategory?: {
+    name: string;
+    slug: string;
+  };
   stockStatus: string;
   isAvailable: boolean;
   isFeatured: boolean;
@@ -94,6 +98,33 @@ export type StorefrontProduct = {
   isDealOfDay: boolean;
   ratingAverage: number;
   ratingCount: number;
+};
+
+// PDP specs — grouped by the category attribute template. Backend returns groups
+// and fields already in display order (do not re-sort). value is fully formatted
+// (units appended, booleans as "Yes"/"No", multi-select joined with ", ").
+export type StorefrontSpecField = {
+  label: string;
+  value: string;
+};
+
+export type StorefrontSpecGroup = {
+  name: string;
+  fields: StorefrontSpecField[];
+};
+
+// Flat attribute list (compact views). Superseded by `specifications` for the
+// full spec table, but still returned.
+export type StorefrontProductAttribute = {
+  name: string;
+  selectedValue: string;
+};
+
+// Compatible components, grouped by what the part is (Motherboard, Ram, …).
+// Only ever non-empty for PC components; render groups in the order they arrive.
+export type StorefrontCompatibleGroup = {
+  componentType: string;
+  products: StorefrontProduct[];
 };
 
 export type StorefrontProductDetail = Omit<
@@ -123,23 +154,16 @@ export type StorefrontProductDetail = Omit<
     name: string;
     slug: string;
   };
-  specifications: {
-    groupName?: string;
-    name?: string;
-    value?: string;
-    sortOrder?: number;
-  }[];
-  attributes: {
-    name?: string;
-    value?: string;
-    groupName?: string;
-  }[];
+  specifications: StorefrontSpecGroup[];
+  attributes: StorefrontProductAttribute[];
   warehouseQuantity: number;
   supplierQuantity: number;
   totalEffectiveQuantity: number;
   relatedProducts: StorefrontProduct[];
+  alternativeProducts: StorefrontProduct[];
   accessoryProducts: StorefrontProduct[];
-  compatibleProducts: StorefrontProduct[];
+  upsellProducts: StorefrontProduct[];
+  compatibleProducts: StorefrontCompatibleGroup[];
 };
 
 export type StorefrontProductReview = {

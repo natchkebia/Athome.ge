@@ -47,6 +47,7 @@ export function mapStorefrontProductToCard(
     discount,
     isNew: product.isNewArrival,
     category: product.category.slug,
+    subCategory: product.subCategory?.slug,
     slug: product.slug,
   };
 }

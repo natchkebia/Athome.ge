@@ -284,9 +284,13 @@ export default function Configurator() {
         };
       }
 
-      // one product per slot — replace any previous selection in this category
+      // one product per slot — replace any previous selection in this category.
+      // slot-ს ბოლო პოზიციაზე გადავიტანთ (key ხელახლა ემატება), რომ summary-ში
+      // ბოლოს არჩეული კომპონენტი ყოველთვის ზემოთ გამოჩნდეს.
+      const rest = { ...prev };
+      delete rest[product.category];
       return {
-        ...prev,
+        ...rest,
         [product.category]: [{ ...product, quantity: safeQuantity }],
       };
     });

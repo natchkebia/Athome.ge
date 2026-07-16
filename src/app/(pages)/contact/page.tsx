@@ -3,8 +3,8 @@ import styles from "./page.module.scss";
 
 const contacts = [
   {
-    mapQuery: "თბილისი ვაჟა ფშაველას გამზირი 115",
-    address: "თბილისი, ვაჟა ფშაველას გამზირი #115",
+    mapQuery: "თბილისი აკაკი წერეთლის გამზირი 115",
+    address: "თბილისი, აკაკი წერეთლის გამზირი #115",
     phone: "+995 599 09 32 09",
     email: "info@athome.ge",
     workTime: "ორშაბათი-შაბათი: 11:00 - 20:00",

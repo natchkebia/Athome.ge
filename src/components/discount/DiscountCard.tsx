@@ -2,7 +2,8 @@
 
 import styles from "./DiscountCard.module.scss";
 import Image from "next/image";
-import { useRef } from "react";
+import { useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useCompare } from "@/contexts/CompareContext";
 import { useToast } from "@/contexts/ToastContext";
 import { cacheProductInfo } from "@/lib/commerce/guestStore";
@@ -21,6 +22,7 @@ export interface ProductCardProps {
   onToggleWishlist?: (id: string) => void;
   onAddToCart?: (id: string) => void;
   category?: string;
+  subCategory?: string;
   slug?: string;
   layout?: "grid" | "list";
 }
@@ -45,6 +47,33 @@ export default function DiscountCard({
   const isCompared = compareIds.has(Number(id));
   // fly-to-cart ანიმაციის წყარო — პროდუქტის სურათის კონტეინერი.
   const imageRef = useRef<HTMLDivElement>(null);
+  // ლუპა — გადიდებული სურათის ფანჯარა (zoom-on-hover).
+  const [zoomOpen, setZoomOpen] = useState(false);
+  const [zoomOrigin, setZoomOrigin] = useState("50% 50%");
+  const [zoomActive, setZoomActive] = useState(false);
+
+  const openZoom = (event: React.MouseEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setZoomActive(false);
+    setZoomOrigin("50% 50%");
+    setZoomOpen(true);
+  };
+
+  const closeZoom = (event?: React.MouseEvent) => {
+    event?.preventDefault();
+    event?.stopPropagation();
+    setZoomOpen(false);
+    setZoomActive(false);
+  };
+
+  // კურსორის მიხედვით ვადგენთ გადიდების ცენტრს.
+  const handleZoomMove = (event: React.MouseEvent<HTMLDivElement>) => {
+    const rect = event.currentTarget.getBoundingClientRect();
+    const x = ((event.clientX - rect.left) / rect.width) * 100;
+    const y = ((event.clientY - rect.top) / rect.height) * 100;
+    setZoomOrigin(`${x}% ${y}%`);
+  };
 
   const handleCompare = (event: React.MouseEvent) => {
     event.preventDefault();
@@ -95,6 +124,49 @@ export default function DiscountCard({
     flyToTarget(imageRef.current, image, "cart");
   };
 
+  // გადიდებული სურათის ფანჯარა — portal-ით body-ზე, რომ ბარათის hover-transform-მა
+  // და overflow-მა fixed overlay არ დაამახინჯოს.
+  const zoomOverlay =
+    zoomOpen && typeof document !== "undefined"
+      ? createPortal(
+          <div
+            className={styles.zoomOverlay}
+            onClick={closeZoom}
+            role="dialog"
+            aria-label={title}
+          >
+      <button
+        type="button"
+        className={styles.zoomClose}
+        onClick={closeZoom}
+        aria-label="დახურვა"
+      >
+        ×
+      </button>
+      <div
+        className={styles.zoomBox}
+        onClick={(e) => e.stopPropagation()}
+        onMouseMove={handleZoomMove}
+        onMouseEnter={() => setZoomActive(true)}
+        onMouseLeave={() => setZoomActive(false)}
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={img(image, 900)}
+          alt={title}
+          className={styles.zoomImg}
+          style={{
+            transformOrigin: zoomOrigin,
+            transform: zoomActive ? "scale(2.2)" : "scale(1)",
+          }}
+        />
+      </div>
+            <p className={styles.zoomHint}>გასადიდებლად გადაატარეთ კურსორი</p>
+          </div>,
+          document.body
+        )
+      : null;
+
   // სიის (list) ვიზუალი — ჰორიზონტალური გაშლილი ბარათი (1038×172).
   if (layout === "list") {
     return (
@@ -127,6 +199,13 @@ export default function DiscountCard({
 
         <div className={styles.listActions}>
           <button
+            className={styles.listIconBtn}
+            onClick={openZoom}
+            aria-label="სურათის გადიდება"
+          >
+            <img src="/icons/Search.svg" alt="zoom" />
+          </button>
+          <button
             className={`${styles.listIconBtn} ${
               isCompared ? styles.listIconBtnActive : ""
             }`}
@@ -152,6 +231,7 @@ export default function DiscountCard({
             დამატება
           </button>
         </div>
+        {zoomOverlay}
       </div>
     );
   }
@@ -190,6 +270,13 @@ export default function DiscountCard({
           >
             <img src="/icons/Arrows.svg" alt="compare" />
           </button>
+          <button
+            className={styles.iconBtn}
+            onClick={openZoom}
+            aria-label="სურათის გადიდება"
+          >
+            <img src="/icons/Search.svg" alt="zoom" />
+          </button>
         </div>
 
         <div className={styles.imageWrapper} ref={imageRef}>
@@ -220,6 +307,7 @@ export default function DiscountCard({
           დამატება
         </button>
       </div>
+      {zoomOverlay}
     </div>
   );
 }

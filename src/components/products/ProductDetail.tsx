@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import styles from "./ProductDetail.module.scss";
 import ProductGallery from "./ProductGallery";
@@ -26,6 +26,24 @@ interface Spec {
   label: string;
   value: string;
 }
+
+interface SpecGroup {
+  name: string;
+  fields: Spec[];
+}
+
+// componentType (backend enum) → ქართული სათაური. ენუმი შეიძლება გაიზარდოს —
+// უცნობ ტიპს ვტოვებთ (არ ვხატავთ), ვიდრე მცდარ სათაურს ვაჩვენებდეთ.
+const COMPONENT_TYPE_HEADINGS: Record<string, string> = {
+  Cpu: "პროცესორები",
+  Motherboard: "დედაპლატები",
+  Ram: "ოპერატიული მეხსიერება",
+  Gpu: "ვიდეობარათები",
+  Psu: "კვების ბლოკები",
+  Case: "ქეისები",
+  CpuAirCooler: "ჰაერის ქულერები",
+  LiquidCooler: "თხევადი გაგრილება (AIO)",
+};
 
 export interface ProductDetailProps {
   product: StorefrontProductDetail;
@@ -53,28 +71,58 @@ export default function ProductDetail({
           .sort((a, b) => a.sortOrder - b.sortOrder)
           .map((image) => normalizeMediaUrl(image.url))
       : ["/images/discountPc.png"];
-  const specs: Spec[] =
+  // Backend აბრუნებს ჯგუფებსა და ველებს ჩვენების რიგით — არ ვახარისხებთ.
+  const specGroups: SpecGroup[] =
     product.specifications.length > 0
-      ? product.specifications
-          .slice()
-          .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
-          .map((spec) => ({
-            label: `${spec.name || spec.groupName || "მახასიათებელი"}:`,
-            value: spec.value || "-",
-          }))
+      ? product.specifications.map((group) => ({
+          name: group.name || "მახასიათებლები",
+          fields: (group.fields ?? []).map((field) => ({
+            label: `${field.label}:`,
+            value: field.value || "-",
+          })),
+        }))
       : [
-          { label: "ბრენდი:", value: product.brand.name },
-          { label: "მოდელი:", value: product.model || product.sku },
-          { label: "კატეგორია:", value: product.category.name },
-          ...(product.subCategory
-            ? [{ label: "ტიპი:", value: product.subCategory.name }]
-            : []),
-          { label: "მარაგი:", value: product.stockStatus },
           {
-            label: "რაოდენობა:",
-            value: String(product.totalEffectiveQuantity),
+            name: "ძირითადი",
+            fields: [
+              { label: "ბრენდი:", value: product.brand.name },
+              { label: "მოდელი:", value: product.model || product.sku },
+              { label: "კატეგორია:", value: product.category.name },
+              ...(product.subCategory
+                ? [{ label: "ტიპი:", value: product.subCategory.name }]
+                : []),
+              { label: "მარაგი:", value: product.stockStatus },
+              {
+                label: "რაოდენობა:",
+                value: String(product.totalEffectiveQuantity),
+              },
+            ],
           },
         ];
+
+  // პირველი ჯგუფი ყოველთვის ჩანს; დანარჩენი — "მეტი დეტალი"-ს უკან.
+  const primaryGroups = specGroups.slice(0, 1);
+  const collapsibleGroups = specGroups.slice(1);
+
+  const keyFeatures = product.keyFeatures ?? [];
+  const boxContents = product.boxContents ?? [];
+
+  const alternativeProducts = (product.alternativeProducts ?? []).map(
+    mapStorefrontProductToCard
+  );
+  const accessoryProducts = (product.accessoryProducts ?? []).map(
+    mapStorefrontProductToCard
+  );
+  const upsellProducts = (product.upsellProducts ?? []).map(
+    mapStorefrontProductToCard
+  );
+  // ჯგუფებს ვხატავთ ჩამოსვლის რიგით; უცნობ componentType-ს ვტოვებთ.
+  const compatibleGroups = (product.compatibleProducts ?? [])
+    .map((group) => ({
+      heading: COMPONENT_TYPE_HEADINGS[group.componentType] ?? "",
+      products: (group.products ?? []).map(mapStorefrontProductToCard),
+    }))
+    .filter((group) => group.heading !== "" && group.products.length > 0);
   const relatedProducts =
     product.relatedProducts.length > 0
       ? product.relatedProducts.map(mapStorefrontProductToCard)
@@ -110,10 +158,6 @@ export default function ProductDetail({
       isMounted = false;
     };
   }, [product.category.slug, product.relatedProducts.length, product.slug]);
-
-  const modelSpecs = specs.slice(0, 3);
-  const processorSpecs = specs.slice(3, 10);
-  const videoSpecs = specs.slice(10);
 
   // სტუმრის კალათისთვის — ჩვენების ინფოს ქეშირება.
   const cacheInfo = () =>
@@ -239,70 +283,127 @@ export default function ProductDetail({
         <div className={styles.specsSection}>
           <table>
             <tbody>
-              {/* მოდელი */}
-              <tr>
-                <th
-                  colSpan={2}
-                  className={`${styles.sectionTitle} ${styles.first}`}
-                >
-                  მოდელი
-                </th>
-              </tr>
-              {modelSpecs.map((spec, i) => (
-                <tr key={`model-${i}`}>
-                  <th>{spec.label}</th>
-                  <td>{spec.value}</td>
-                </tr>
-              ))}
-
-              {/* პროცესორი */}
-              <tr>
-                <th colSpan={2} className={styles.sectionTitle}>
-                  პროცესორი
-                </th>
-              </tr>
-              {processorSpecs.map((spec, i) => (
-                <tr key={`cpu-${i}`}>
-                  <th>{spec.label}</th>
-                  <td>{spec.value}</td>
-                </tr>
-              ))}
-
-              {/* ვიდეო ადაპტერი (მხოლოდ showAll=true-ზე გამოჩნდება) */}
-              {showAll && (
-                <>
+              {primaryGroups.map((group, gi) => (
+                <Fragment key={`pg-${gi}`}>
                   <tr>
-                    <th colSpan={2} className={styles.sectionTitle}>
-                      ვიდეო ადაპტერი
+                    <th
+                      colSpan={2}
+                      className={`${styles.sectionTitle} ${styles.first}`}
+                    >
+                      {group.name}
                     </th>
                   </tr>
-                  {videoSpecs.map((spec, i) => (
-                    <tr key={`gpu-${i}`}>
+                  {group.fields.map((spec, i) => (
+                    <tr key={`pg-${gi}-${i}`}>
                       <th>{spec.label}</th>
                       <td>{spec.value}</td>
                     </tr>
                   ))}
-                </>
-              )}
+                </Fragment>
+              ))}
+
+              {/* დანარჩენი ჯგუფები — მხოლოდ showAll=true-ზე */}
+              {showAll &&
+                collapsibleGroups.map((group, gi) => (
+                  <Fragment key={`cg-${gi}`}>
+                    <tr>
+                      <th colSpan={2} className={styles.sectionTitle}>
+                        {group.name}
+                      </th>
+                    </tr>
+                    {group.fields.map((spec, i) => (
+                      <tr key={`cg-${gi}-${i}`}>
+                        <th>{spec.label}</th>
+                        <td>{spec.value}</td>
+                      </tr>
+                    ))}
+                  </Fragment>
+                ))}
             </tbody>
           </table>
 
           {/* ღილაკი მეტის/ნაკლების ჩვენებისთვის */}
-
-          <button
-            className={styles.toggleBtn}
-            onClick={() => setShowAll((prev) => !prev)}
-          >
-            {showAll ? "ნაკლები დეტალი " : "მეტი დეტალი "}
-          </button>
+          {collapsibleGroups.length > 0 && (
+            <button
+              className={styles.toggleBtn}
+              onClick={() => setShowAll((prev) => !prev)}
+            >
+              {showAll ? "ნაკლები დეტალი" : "მეტი დეტალი"}
+            </button>
+          )}
         </div>
       </div>
+
+      {(keyFeatures.length > 0 || boxContents.length > 0) && (
+        <div className={styles.infoBlocks}>
+          {keyFeatures.length > 0 && (
+            <div className={styles.infoCard}>
+              <h4>ძირითადი მახასიათებლები</h4>
+              <ul>
+                {keyFeatures.map((item, i) => (
+                  <li key={`kf-${i}`}>{item}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {boxContents.length > 0 && (
+            <div className={styles.infoCard}>
+              <h4>შეფუთვის შემადგენლობა</h4>
+              <ul>
+                {boxContents.map((item, i) => (
+                  <li key={`bc-${i}`}>{item}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      )}
+
       <ProductReviews productId={product.id} />
+
+      {compatibleGroups.length > 0 && (
+        <div className={styles.compatWrapper}>
+          <h4 className={styles.compatTitle}>თავსებადი კომპონენტები</h4>
+          {compatibleGroups.map((group, gi) => (
+            <ProductSection
+              key={`compat-${gi}`}
+              icon="/icons/Monitor.svg"
+              title={group.heading}
+              products={group.products}
+            />
+          ))}
+        </div>
+      )}
+
+      {alternativeProducts.length > 0 && (
+        <ProductSection
+          icon="/icons/Monitor.svg"
+          title="ალტერნატივები"
+          products={alternativeProducts}
+        />
+      )}
+
       {relatedProducts.length > 0 && (
         <ProductSection
           icon="/icons/Monitor.svg"
           title="მსგავსი პროდუქტები"
           products={relatedProducts}
+        />
+      )}
+
+      {accessoryProducts.length > 0 && (
+        <ProductSection
+          icon="/icons/Monitor.svg"
+          title="აქსესუარები"
+          products={accessoryProducts}
+        />
+      )}
+
+      {upsellProducts.length > 0 && (
+        <ProductSection
+          icon="/icons/Monitor.svg"
+          title="დაამატე შეკვეთას"
+          products={upsellProducts}
         />
       )}
     </div>

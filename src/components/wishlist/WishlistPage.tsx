@@ -11,7 +11,7 @@ export default function WishlistPage() {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
-  const { wishlist, toggleWishlist } = useCommerce();
+  const { wishlist, toggleWishlist, clearWishlist } = useCommerce();
   const wishlistItems: ProductItem[] = wishlist.items
     .filter((item) => item.productName)
     .map((item) => ({
@@ -89,6 +89,7 @@ export default function WishlistPage() {
                 type="wishlist"
                 items={wishlistItems}
                 onRemove={handleRemove}
+                onClearAll={clearWishlist}
                 onNavigate={() => setIsOpen(false)}
               />
             </>

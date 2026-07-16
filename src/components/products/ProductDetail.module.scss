@@ -382,3 +382,79 @@
   align-items: center;
   gap: 6px;
 }
+
+.infoBlocks {
+  max-width: 1392px;
+  width: 100%;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+  box-sizing: border-box;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .infoCard {
+    background-color: rgba(255, 255, 255, 1);
+    border: 1px solid rgba(233, 235, 248, 1);
+    border-radius: 18px;
+    padding: 24px;
+
+    @media (max-width: 480px) {
+      padding: 16px;
+    }
+
+    h4 {
+      color: rgba(59, 63, 66, 1);
+      font-size: 16px;
+      font-weight: 590;
+      margin: 0 0 16px;
+
+      @media (max-width: 480px) {
+        font-size: 14px;
+      }
+    }
+
+    ul {
+      margin: 0;
+      padding-left: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+
+      li {
+        color: rgba(59, 63, 66, 1);
+        font-size: 14px;
+        line-height: 1.5;
+
+        @media (max-width: 480px) {
+          font-size: 12px;
+        }
+      }
+    }
+  }
+}
+
+.compatWrapper {
+  max-width: 1392px;
+  width: 100%;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  box-sizing: border-box;
+
+  .compatTitle {
+    color: rgba(59, 63, 66, 1);
+    font-size: 18px;
+    font-weight: 590;
+    margin: 0 0 8px;
+
+    @media (max-width: 480px) {
+      font-size: 15px;
+    }
+  }
+}

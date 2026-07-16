@@ -14,6 +14,36 @@
   }
 }
 
+.titleWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+
+  .clearAllBtn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    color: rgba(59, 63, 66, 1);
+    font-size: 14px;
+    font-weight: 400;
+    white-space: nowrap;
+    transition: color 0.15s ease;
+
+    img {
+      width: 18px;
+      height: 18px;
+    }
+
+    &:hover {
+      color: rgba(16, 181, 192, 1);
+    }
+  }
+}
+
 .cartList {
   display: flex;
   flex-direction: column;

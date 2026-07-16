@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Step1Contact from "./Step1Contact";
 import Step2Delivery from "./Step2Delivery";
 import Step3Method from "./Step3Method";
@@ -10,7 +11,9 @@ import Breadcrumb from "../ breadcrumb/Breadcrumb";
 import StepPagination from "./components/StepPagination";
 import type { FormValues } from "./Step1Contact";
 import { useCommerce } from "@/contexts/CommerceContext";
+import { useToast } from "@/contexts/ToastContext";
 import { getCurrentUser } from "@/lib/api/auth";
+import { ApiError } from "@/lib/api/client";
 import {
   submitCheckout,
   initiateFlittPayment,
@@ -50,6 +53,8 @@ function mapBank(bank: string): SelectedBank {
 
 export default function CheckoutWizard({ onStepChange }: CheckoutWizardProps) {
   const { cart, clearCart } = useCommerce();
+  const { showToast } = useToast();
+  const router = useRouter();
   const [step, setStep] = useState(1);
   const [orderType, setOrderType] = useState<"store" | "delivery" | null>(null);
   const [contactData, setContactData] = useState<FormValues | null>(null);
@@ -175,9 +180,25 @@ export default function CheckoutWizard({ onStepChange }: CheckoutWizardProps) {
 
       goToStep(5);
     } catch (error) {
-      setSubmitError(
-        error instanceof Error ? error.message : "შეკვეთის გაფორმება ვერ მოხერხდა"
-      );
+      const message =
+        error instanceof Error
+          ? error.message
+          : "შეკვეთის გაფორმება ვერ მოხერხდა";
+
+      // მარაგის დეფიციტი (409 OUT_OF_STOCK) — ბექი აბრუნებს მზა ქართულ ტექსტს
+      // ყველა დეფიციტური პროდუქტით. ვაჩვენებთ და ვაბრუნებთ კალათაზე, სადაც
+      // მომხმარებელი რაოდენობას შეასწორებს (შეკვეთა საერთოდ არ იქმნება).
+      const code =
+        error instanceof ApiError
+          ? (error.details as { code?: string } | null)?.code
+          : undefined;
+      if (code === "OUT_OF_STOCK") {
+        showToast(message, "error");
+        router.push("/basket");
+        return;
+      }
+
+      setSubmitError(message);
     } finally {
       setSubmitting(false);
     }

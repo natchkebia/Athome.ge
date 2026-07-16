@@ -49,10 +49,13 @@ export default function Discount() {
     };
   }, []);
 
-  // real slug-based filtering — show only deals of the selected category
-  const filteredProducts = products.filter(
-    (p) => p.category === FILTER_SLUGS[activeFilter]
-  );
+  // real slug-based filtering — ვამოწმებთ ორივე დონეს: ბარათი ატარებს ზედა
+  // კატეგორიის slug-საც (მაგ. "computers") და ქვეკატეგორიისასაც (მაგ. "laptop"),
+  // ამიტომ tab-ის slug ნებისმიერ დონეს ერგება.
+  const filteredProducts = products.filter((p) => {
+    const slug = FILTER_SLUGS[activeFilter];
+    return p.category === slug || p.subCategory === slug;
+  });
 
   const handleFilterClick = (filter: string) => {
     setActiveFilter(filter);

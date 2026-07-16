@@ -18,9 +18,10 @@ export default function ConfiguratorSummary({
   saving = false,
   addingToCart = false,
 }: Props) {
-  const products = Object.values(selectedProducts).flatMap(
-    (categoryProducts) => categoryProducts || []
-  );
+  // ბოლოს არჩეული კომპონენტი ზემოთ ჩანს (newest first)
+  const products = Object.values(selectedProducts)
+    .flatMap((categoryProducts) => categoryProducts || [])
+    .reverse();
 
   return (
     <div className={styles.summaryColumn}>
@@ -34,6 +35,22 @@ export default function ConfiguratorSummary({
           <span>კონფიგურაციის ჯამი</span>
         </div>
       </aside>
+
+      <div className={styles.selectedList}>
+        {products.length === 0 ? (
+          <p>ჯერ არცერთი ნაწილი არ არის არჩეული</p>
+        ) : (
+          products.map((product) => (
+            <div key={product.id} className={styles.selectedItem}>
+              <span>
+                {product.title} × {product.quantity}
+              </span>
+
+              <strong>{product.price * product.quantity} ₾</strong>
+            </div>
+          ))
+        )}
+      </div>
 
       <div className={styles.summaryActions}>
         <div>
@@ -63,22 +80,6 @@ export default function ConfiguratorSummary({
             <span>მზა კონფიგურაციები</span>
           </button>
         </div>
-      </div>
-
-      <div className={styles.selectedList}>
-        {products.length === 0 ? (
-          <p>ჯერ არცერთი ნაწილი არ არის არჩეული</p>
-        ) : (
-          products.map((product) => (
-            <div key={product.id} className={styles.selectedItem}>
-              <span>
-                {product.title} × {product.quantity}
-              </span>
-
-              <strong>{product.price * product.quantity} ₾</strong>
-            </div>
-          ))
-        )}
       </div>
     </div>
   );

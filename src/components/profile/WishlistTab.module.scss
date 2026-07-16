@@ -78,7 +78,26 @@
 
 .pageVariant .grid {
   margin: 0 auto;
-  max-width: 1068px;
+  max-width: 1392px;
+  // გვერდის ვარიანტზე — ზუსტად 4 ქარდი ერთ რიგში
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+// responsive fallback (მაღალი specificity — plain .grid media-ს ჯობნის)
+@media (max-width: 1200px) {
+  .pageVariant .grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+@media (max-width: 900px) {
+  .pageVariant .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 560px) {
+  .pageVariant .grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 @media (max-width: 768px) {

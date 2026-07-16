@@ -30,7 +30,7 @@ export type CartItem = {
 export default function CartTab({ showSummary = true }: CartTabProps) {
   const router = useRouter();
   const [isContinuing, setIsContinuing] = useState(false);
-  const { cart, updateCartQuantity, removeFromCart } = useCommerce();
+  const { cart, updateCartQuantity, removeFromCart, clearCart } = useCommerce();
   const cartItems: CartItem[] = cart.items
     .filter((item) => item.productName)
     .map((item) => ({
@@ -72,7 +72,17 @@ export default function CartTab({ showSummary = true }: CartTabProps) {
         <h4>ჩემი კალათა</h4>
       ) : (
         <>
-          <h4>ჩემი კალათა</h4>
+          <div className={styles.titleWrapper}>
+            <h4>ჩემი კალათა</h4>
+            <button
+              type="button"
+              className={styles.clearAllBtn}
+              onClick={clearCart}
+            >
+              <img src="/icons/broom.svg" alt="broom" />
+              ყველა წაშლა
+            </button>
+          </div>
 
           <div className={styles.cartList}>
             {cartItems.map((item) => (

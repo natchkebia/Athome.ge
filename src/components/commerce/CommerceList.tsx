@@ -19,6 +19,7 @@ interface CommerceListProps {
   items: ProductItem[];
   onRemove?: (id: string) => void;
   onQuantityChange?: (id: string, newQty: number) => void;
+  onClearAll?: () => void;
   onNavigate?: () => void;
 }
 
@@ -27,6 +28,7 @@ export default function CommerceList({
   items,
   onRemove,
   onQuantityChange,
+  onClearAll,
   onNavigate,
 }: CommerceListProps) {
   const getTotal = () => {
@@ -55,6 +57,16 @@ export default function CommerceList({
       <div className={styles.list}>
         {items.map((item) => (
           <div className={styles.item} key={item.id}>
+            {/* წაშლის ღილაკი — ორივესთვის (კალათა და სურვილები), ბრენდულ ფერში */}
+            <button
+              type="button"
+              onClick={() => onRemove?.(item.id)}
+              className={styles.removeBtn}
+              aria-label="წაშლა"
+            >
+              ×
+            </button>
+
             <img
               src={img(item.image, 100)}
               alt={item.title}
@@ -71,8 +83,8 @@ export default function CommerceList({
                   )}
                 </div>
               </div>
-              <div className={styles.actions}>
-                {type === "cart" ? (
+              {type === "cart" && (
+                <div className={styles.actions}>
                   <div className={styles.quantity}>
                     <button
                       onClick={() =>
@@ -93,21 +105,24 @@ export default function CommerceList({
                       +
                     </button>
                   </div>
-                ) : (
-                  <button
-                    onClick={() => onRemove?.(item.id)}
-                    className={styles.wishlistBtn}
-                  >
-                    X
-                  </button>
-                )}
-              </div>
+                </div>
+              )}
             </div>
           </div>
         ))}
       </div>
 
       <div className={styles.footer}>
+        {onClearAll && items.length > 0 && (
+          <button
+            type="button"
+            className={styles.clearAllBtn}
+            onClick={onClearAll}
+          >
+            <img src="/icons/broom.svg" alt="broom" />
+            ყველა წაშლა
+          </button>
+        )}
         {type === "cart" ? (
           <>
             <p>

@@ -17,13 +17,6 @@ import { normalizeMediaUrl } from "@/lib/storefront/products";
 import { img } from "@/lib/media/img";
 import styles from "./compare.module.scss";
 
-function specLabel(spec: {
-  name?: string;
-  groupName?: string;
-}): string | null {
-  return spec.name || spec.groupName || null;
-}
-
 // თითო პროდუქტისთვის ვაშენებთ "მახასიათებელი → მნიშვნელობა" სიას.
 // საბაზისო ველები ყოველთვის გვაქვს, ამიტომ ცხრილი არასდროს რჩება ცარიელი —
 // ზემოდან ემატება specifications/attributes, თუ პროდუქტს აქვს.
@@ -41,14 +34,15 @@ function buildSpecMap(detail: StorefrontProductDetail): Map<string, string> {
   setIf("ტიპი", detail.subCategory?.name);
   setIf("მარაგი", detail.stockStatus);
 
-  detail.specifications?.forEach((spec) => {
-    const label = specLabel(spec);
-    if (label) setIf(label, spec.value);
+  // specifications ახლა ჯგუფებადაა: {name, fields:[{label,value}]}
+  detail.specifications?.forEach((group) => {
+    group.fields?.forEach((field) => {
+      if (field.label) setIf(field.label, field.value);
+    });
   });
 
   detail.attributes?.forEach((attr) => {
-    const label = attr.name || attr.groupName;
-    if (label) setIf(label, attr.value);
+    if (attr.name) setIf(attr.name, attr.selectedValue);
   });
 
   return map;

@@ -11,7 +11,7 @@ export default function BasketPage() {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
-  const { cart, updateCartQuantity, removeFromCart } = useCommerce();
+  const { cart, updateCartQuantity, removeFromCart, clearCart } = useCommerce();
   const basket: ProductItem[] = cart.items
     .filter((item) => item.productName)
     .map((item) => ({
@@ -102,6 +102,7 @@ export default function BasketPage() {
                 items={basket}
                 onQuantityChange={handleQuantityChange}
                 onRemove={handleRemove}
+                onClearAll={clearCart}
                 onNavigate={() => setIsOpen(false)}
               />
             </>

@@ -21,7 +21,9 @@ export class ApiError extends Error {
 function getApiErrorMessage(status: number, details: unknown) {
   if (details && typeof details === "object") {
     const record = details as Record<string, unknown>;
-    const message = record.message ?? record.title ?? record.detail;
+    // RFC7807 problem+json — `detail` არის კონკრეტული ტექსტი (მაგ. OUT_OF_STOCK-ის
+    // ქართული აღწერა), `title` კი ზოგადი ("Conflict"). ამიტომ detail პრიორიტეტულია.
+    const message = record.message ?? record.detail ?? record.title;
 
     if (typeof message === "string" && message.trim()) {
       return message;
