@@ -27,6 +27,26 @@ export interface ProductCardProps {
   layout?: "grid" | "list";
 }
 
+function ZoomIcon() {
+  return (
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 20 20"
+      fill="none"
+      aria-hidden="true"
+    >
+      <circle cx="9" cy="9" r="6" stroke="currentColor" strokeWidth="1.6" />
+      <path
+        d="M13.5 13.5L17 17"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
 export default function DiscountCard({
   id,
   discount = 0,
@@ -203,7 +223,7 @@ export default function DiscountCard({
             onClick={openZoom}
             aria-label="სურათის გადიდება"
           >
-            <img src="/icons/Search.svg" alt="zoom" />
+            <ZoomIcon />
           </button>
           <button
             className={`${styles.listIconBtn} ${
@@ -275,7 +295,7 @@ export default function DiscountCard({
             onClick={openZoom}
             aria-label="სურათის გადიდება"
           >
-            <img src="/icons/Search.svg" alt="zoom" />
+            <ZoomIcon />
           </button>
         </div>
 
