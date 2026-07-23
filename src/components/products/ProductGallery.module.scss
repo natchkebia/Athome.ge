@@ -45,6 +45,15 @@
   object-fit: contain;
   margin-top: -18%;
   mix-blend-mode: multiply;
+  cursor: zoom-in;
+  transition: transform 0.35s ease;
+  transform-origin: center;
+
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      transform: scale(1.65);
+    }
+  }
 
   @media (max-width: 768px) {
     width: min(72vw, 280px);

@@ -7,7 +7,7 @@ import AtHomeLoader from "@/components/shared/AtHomeLoader";
 import { useCompare } from "@/contexts/CompareContext";
 import { useCommerce } from "@/contexts/CommerceContext";
 import { useToast } from "@/contexts/ToastContext";
-import { getStoredAuthTokens } from "@/lib/auth/tokens";
+import { cacheProductInfo } from "@/lib/commerce/guestStore";
 import { flyToTarget } from "@/lib/ui/flyToCart";
 import {
   getStorefrontProduct,
@@ -30,9 +30,6 @@ function buildSpecMap(detail: StorefrontProductDetail): Map<string, string> {
   setIf("SKU", detail.sku);
   setIf("ბრენდი", detail.brand?.name);
   setIf("მოდელი", detail.model);
-  setIf("კატეგორია", detail.category?.name);
-  setIf("ტიპი", detail.subCategory?.name);
-  setIf("მარაგი", detail.stockStatus);
 
   // specifications ახლა ჯგუფებადაა: {name, fields:[{label,value}]}
   detail.specifications?.forEach((group) => {
@@ -124,10 +121,31 @@ export default function ComparePage() {
     sourceEl?: HTMLElement | null,
     imageUrl?: string
   ) => {
-    const wasLoggedIn = Boolean(getStoredAuthTokens()?.accessToken);
+    const item = items.find((entry) => entry.id === productId);
+    const detail = details[productId];
+
+    // Guest cart სრულ ჩანაწერს product-info cache-დან აგებს. შედარების გვერდიც
+    // იმავე მონაცემებს წერს, რასაც პროდუქტის ბარათი და დეტალური გვერდი.
+    if (item) {
+      cacheProductInfo({
+        productId,
+        productName: detail?.name || item.title,
+        imageUrl: imageUrl || normalizeMediaUrl(item.image),
+        slug: detail?.slug || item.slug,
+        sellingPrice:
+          detail?.pricing.effectivePrice ?? item.newPrice ?? item.oldPrice ?? 0,
+        oldPrice:
+          detail &&
+          detail.pricing.sellingPrice > detail.pricing.effectivePrice
+            ? detail.pricing.sellingPrice
+            : item.oldPrice,
+        isInStock: detail?.isAvailable ?? true,
+      });
+    }
+
     if (sourceEl && imageUrl) flyToTarget(sourceEl, imageUrl, "cart");
     await addToCart(productId);
-    if (wasLoggedIn) showToast("კალათაში დაემატა");
+    showToast("კალათაში დაემატა");
   };
 
   if (items.length === 0) {

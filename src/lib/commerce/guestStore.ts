@@ -90,10 +90,18 @@ export function addGuestCartItem(productId: number, quantity = 1): ProfileCart {
 
   if (index >= 0) {
     const newQty = items[index].quantity + quantity;
+    const price = info?.sellingPrice ?? items[index].sellingPrice;
     items[index] = {
       ...items[index],
+      // ძველი, არასრულად შენახული ჩანაწერიც აღდგეს შემდეგ add-ზე.
+      productName: info?.productName || items[index].productName,
+      imageUrl: info?.imageUrl || items[index].imageUrl,
+      slug: info?.slug || items[index].slug,
+      sellingPrice: price,
+      oldPrice: info?.oldPrice ?? items[index].oldPrice,
+      isInStock: info?.isInStock ?? items[index].isInStock,
       quantity: newQty,
-      lineTotal: items[index].sellingPrice * newQty,
+      lineTotal: price * newQty,
     };
   } else {
     const price = info?.sellingPrice ?? 0;

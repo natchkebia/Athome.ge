@@ -42,6 +42,7 @@
 
 .table {
   border-collapse: collapse;
+  table-layout: fixed;
   width: 100%;
   min-width: 640px;
 
@@ -69,8 +70,9 @@
 
 .productCell {
   position: relative;
-  min-width: 200px;
   background: #ffffff;
+  width: auto;
+  overflow: hidden;
 }
 
 .removeBtn {
@@ -100,6 +102,8 @@
   text-decoration: none;
   color: inherit;
   gap: 10px;
+  min-width: 0;
+  width: 100%;
 }
 
 .imageBox {
@@ -118,11 +122,17 @@
 }
 
 .productTitle {
+  display: block;
+  width: 100%;
+  min-width: 0;
   font-size: 13px;
   font-weight: 500;
   color: rgba(59, 63, 66, 1);
   text-align: center;
   line-height: 1.4;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .priceBox {
@@ -130,6 +140,8 @@
   align-items: baseline;
   gap: 8px;
   margin: 12px 0;
+  min-width: 0;
+  white-space: nowrap;
 }
 
 .newPrice {
