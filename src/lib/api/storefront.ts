@@ -276,6 +276,7 @@ export type StorefrontProductsQuery = {
   search?: string;
   categorySlug?: string;
   subCategorySlug?: string;
+  miniCategorySlug?: string;
   brandSlug?: string;
   minPrice?: number;
   maxPrice?: number;
@@ -286,6 +287,43 @@ export type StorefrontProductsQuery = {
   dealsOnly?: boolean;
   sortBy?: StorefrontProductsSortBy;
   sortDescending?: boolean;
+  attr?: string[];
+  range?: string[];
+};
+
+export type StorefrontFilterOption = {
+  optionId: number;
+  value: string;
+  label: string;
+  productCount: number;
+  sortOrder: number;
+};
+
+export type StorefrontCategoryFilter = {
+  fieldId: number;
+  fieldKey: string;
+  displayName: string;
+  unit?: string | null;
+  widgetType: "checkbox" | "select" | "radio" | "range" | "toggle" | "colorSwatch";
+  sortOrder: number;
+  options?: StorefrontFilterOption[];
+  range?: {
+    absoluteMin: number;
+    absoluteMax: number;
+    fieldMin?: number | null;
+    fieldMax?: number | null;
+    unit?: string | null;
+    step: number;
+  } | null;
+};
+
+export type StorefrontCategoryFilterSet = {
+  categoryId: number;
+  subCategoryId?: number | null;
+  miniCategoryId?: number | null;
+  filterCount: number;
+  totalProductCount: number;
+  filters: StorefrontCategoryFilter[];
 };
 
 export function getStorefrontBanners(type?: string) {
@@ -347,6 +385,7 @@ export function getStorefrontProducts(params: StorefrontProductsQuery = {}) {
         Search: params.search,
         CategorySlug: params.categorySlug,
         SubCategorySlug: params.subCategorySlug,
+        MiniCategorySlug: params.miniCategorySlug,
         BrandSlug: params.brandSlug,
         MinPrice: params.minPrice,
         MaxPrice: params.maxPrice,
@@ -357,10 +396,49 @@ export function getStorefrontProducts(params: StorefrontProductsQuery = {}) {
         DealsOnly: params.dealsOnly,
         SortBy: params.sortBy,
         SortDescending: params.sortDescending,
+        Attr: params.attr,
+        Range: params.range,
       },
       useProxy: true,
     }
   );
+}
+
+export async function getStorefrontCategoryFilters(
+  slug: string,
+  params: {
+    attr?: string[];
+    range?: string[];
+    minPrice?: number;
+    maxPrice?: number;
+  } = {}
+) {
+  const levels = ["categories", "subcategories", "minicategories"];
+
+  for (const level of levels) {
+    try {
+      return await apiRequest<StorefrontCategoryFilterSet>(
+        `/api/storefront/${level}/${encodeURIComponent(slug)}/filters`,
+        {
+          query: {
+            IncludeEmptyOptions: false,
+            IncludeProductCounts: true,
+            Attr: params.attr,
+            Range: params.range,
+            MinPrice: params.minPrice,
+            MaxPrice: params.maxPrice,
+          },
+          useProxy: true,
+        }
+      );
+    } catch (error) {
+      if (!(error instanceof Error) || !("status" in error) || error.status !== 404) {
+        throw error;
+      }
+    }
+  }
+
+  throw new Error(`Filters for '${slug}' were not found.`);
 }
 
 export function getStorefrontProductsByCategory(

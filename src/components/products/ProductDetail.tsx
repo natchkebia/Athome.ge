@@ -4,7 +4,9 @@ import { Fragment, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import styles from "./ProductDetail.module.scss";
 import ProductGallery from "./ProductGallery";
-import ProductReviews from "./ProductReviews";
+// დროებით გამორთულია დამკვეთის მოთხოვნით.
+// დასაბრუნებლად გააქტიურდეს import და ქვემოთ არსებული ProductReviews ბლოკი.
+// import ProductReviews from "./ProductReviews";
 import StockCheck from "./StockCheck";
 import ProductSection from "../shared/ProductSection";
 import {
@@ -359,7 +361,9 @@ export default function ProductDetail({
         </div>
       )}
 
+      {/* დროებით გამორთულია დამკვეთის მოთხოვნით.
       <ProductReviews productId={product.id} />
+      */}
 
       {compatibleGroups.length > 0 && (
         <div className={styles.compatWrapper}>

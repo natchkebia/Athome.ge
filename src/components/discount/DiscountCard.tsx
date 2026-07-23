@@ -172,7 +172,7 @@ export default function DiscountCard({
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src={img(image, 900)}
+          src={img(image, 1400)}
           alt={title}
           className={styles.zoomImg}
           style={{

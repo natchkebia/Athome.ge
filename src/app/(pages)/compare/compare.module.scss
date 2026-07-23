@@ -58,7 +58,7 @@
 .rowLabel {
   width: 200px;
   min-width: 160px;
-  background: rgba(246, 248, 251, 1);
+  background: rgba(16, 181, 192, 0.06);
   font-size: 13px;
   font-weight: 600;
   color: rgba(59, 63, 66, 1);
@@ -177,6 +177,7 @@
 }
 
 .specCell {
+  background: rgba(16, 181, 192, 0.06);
   font-size: 13px;
   color: rgba(59, 63, 66, 1);
 }
@@ -184,7 +185,6 @@
 // რიგი, სადაც პროდუქტებს განსხვავებული მნიშვნელობა აქვთ.
 .diffRow {
   .specCell {
-    background: rgba(16, 181, 192, 0.06);
     font-weight: 600;
   }
 

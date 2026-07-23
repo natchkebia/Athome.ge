@@ -1,7 +1,10 @@
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "");
 
 type ApiRequestOptions = RequestInit & {
-  query?: Record<string, string | number | boolean | undefined | null>;
+  query?: Record<
+    string,
+    string | number | boolean | (string | number)[] | undefined | null
+  >;
   useProxy?: boolean;
   token?: string | null;
 };
@@ -74,7 +77,11 @@ function buildUrl(
 
   Object.entries(query ?? {}).forEach(([key, value]) => {
     if (value !== undefined && value !== null && value !== "") {
-      url.searchParams.set(key, String(value));
+      if (Array.isArray(value)) {
+        value.forEach((item) => url.searchParams.append(key, String(item)));
+      } else {
+        url.searchParams.set(key, String(value));
+      }
     }
   });
 

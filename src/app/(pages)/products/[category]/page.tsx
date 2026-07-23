@@ -6,7 +6,9 @@ import { useParams } from "next/navigation";
 import styles from "./products.module.scss";
 import DiscountCard from "@/components/discount/DiscountCard";
 import CategoryCard from "@/components/categorSection/CategoriCard";
-import ProductFilter from "@/components/products/ProductFilter";
+import DynamicProductFilter, {
+  DynamicFilterValues,
+} from "@/components/products/DynamicProductFilter";
 import ProductSortBar from "@/components/products/ProductSortBar";
 import EmptyState from "@/components/products/EmptyState";
 import Breadcrumb from "@/components/ breadcrumb/Breadcrumb";
@@ -16,7 +18,9 @@ import {
   getStorefrontCategoryProducts,
   getStorefrontProducts,
   getStorefrontProductsByCategory,
+  getStorefrontCategoryFilters,
   StorefrontCategory,
+  StorefrontCategoryFilterSet,
 } from "@/lib/api/storefront";
 import {
   mapStorefrontProductToCard,
@@ -53,6 +57,15 @@ function ProductsPageInner() {
   });
 
   const [products, setProducts] = useState<StorefrontProductCard[]>([]);
+  const [filterSchema, setFilterSchema] =
+    useState<StorefrontCategoryFilterSet | null>(null);
+  const [priceBounds, setPriceBounds] = useState<[number, number]>([0, 8500]);
+  const [dynamicFilters, setDynamicFilters] = useState<DynamicFilterValues>({
+    price: [0, 8500],
+    attributes: {},
+    ranges: {},
+  });
+  const [dynamicFiltersActive, setDynamicFiltersActive] = useState(false);
   // undefined = ჯერ იტვირთება; null = ვერ მოიძებნა; object = ჩატვირთულია.
   const [categoryDetails, setCategoryDetails] =
     useState<StorefrontCategory | null | undefined>(undefined);
@@ -61,7 +74,6 @@ function ProductsPageInner() {
   // listing-ის იმავე წყაროდან (products endpoint totalCount) ვიღებთ.
   const [subcatCounts, setSubcatCounts] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
-  const [filtersActive, setFiltersActive] = useState(false);
   const [visibleCount, setVisibleCount] = useState(9);
   const [view, setView] = useState<"grid" | "list">("grid");
   const { wishlistProductIds, toggleWishlist, addToCart } = useCommerce();
@@ -89,6 +101,24 @@ function ProductsPageInner() {
   }, [category]);
 
   useEffect(() => {
+    let active = true;
+    setFilterSchema(null);
+    setDynamicFiltersActive(false);
+
+    getStorefrontCategoryFilters(category)
+      .then((schema) => {
+        if (active) setFilterSchema(schema);
+      })
+      .catch(() => {
+        if (active) setFilterSchema(null);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [category]);
+
+  useEffect(() => {
     // კატეგორიის დეტალებს ველოდებით; თუ ქვეკატეგორიები აქვს, პროდუქტებს არ ვტვირთავთ
     // (ნაცვლად ბრტყელი სიისა — ქვეკატეგორიების grid გამოჩნდება).
     if (categoryDetails === undefined) return;
@@ -112,7 +142,22 @@ function ProductsPageInner() {
             ? items
             : await getStorefrontProductsByCategory(category, PRODUCT_LIMIT);
         if (!isMounted) return;
-        setProducts(list.map(mapStorefrontProductToCard));
+        const cards = list.map(mapStorefrontProductToCard);
+        setProducts(cards);
+        const highestPrice = Math.max(
+          0,
+          ...cards.map((product) => product.newPrice ?? 0)
+        );
+        const nextBounds: [number, number] = [
+          0,
+          Math.max(1, Math.ceil(highestPrice / 100) * 100),
+        ];
+        setPriceBounds(nextBounds);
+        setDynamicFilters({
+          price: nextBounds,
+          attributes: {},
+          ranges: {},
+        });
       })
       .catch(() => {
         if (isMounted) setProducts([]);
@@ -125,6 +170,127 @@ function ProductsPageInner() {
       isMounted = false;
     };
   }, [category, categoryDetails]);
+
+  const filterSubCategoryId = filterSchema?.subCategoryId;
+  const filterMiniCategoryId = filterSchema?.miniCategoryId;
+  const hasFilterSchema = filterSchema !== null;
+
+  useEffect(() => {
+    if (!dynamicFiltersActive || !hasFilterSchema) return;
+    let active = true;
+
+    const attr = Object.entries(dynamicFilters.attributes).flatMap(
+      ([fieldKey, values]) =>
+        values.map((value) => `${fieldKey}:${value}`)
+    );
+    const range = Object.entries(dynamicFilters.ranges).map(
+      ([fieldKey, [min, max]]) => `${fieldKey}:${min}:${max}`
+    );
+
+    const baseQuery = {
+      pageSize: PRODUCT_LIMIT,
+      categorySlug:
+        !filterSubCategoryId && !filterMiniCategoryId
+          ? category
+          : undefined,
+      subCategorySlug:
+        filterSubCategoryId && !filterMiniCategoryId
+          ? category
+          : undefined,
+      miniCategorySlug: filterMiniCategoryId ? category : undefined,
+      minPrice:
+        dynamicFilters.price[0] !== priceBounds[0]
+          ? dynamicFilters.price[0]
+          : undefined,
+      maxPrice:
+        dynamicFilters.price[1] !== priceBounds[1]
+          ? dynamicFilters.price[1]
+          : undefined,
+    };
+
+    setLoading(true);
+
+    void (async () => {
+      try {
+        // Facet schema იმავე არჩევანებით ახლდება: სხვა ფილტრებში მხოლოდ
+        // მიმდინარე შედეგებთან თავსებადი option-ები და count-ები რჩება.
+        const nextSchemaPromise = getStorefrontCategoryFilters(category, {
+          attr,
+          range,
+          minPrice: baseQuery.minPrice,
+          maxPrice: baseQuery.maxPrice,
+        });
+
+        // Backend-ის products endpoint მრავალ Attr-ს ამ ეტაპზე სრულად არ
+        // კვეთს. ამიტომ თითო field-ის შედეგებს ცალ-ცალკე ვიღებთ:
+        // ერთი field-ის option-ები OR-ია, სხვადასხვა field-ები კი AND.
+        const groups = await Promise.all([
+          ...Object.entries(dynamicFilters.attributes)
+            .filter(([, values]) => values.length > 0)
+            .map(async ([fieldKey, values]) => {
+              const responses = await Promise.all(
+                values.map((value) =>
+                  getStorefrontProducts({
+                    ...baseQuery,
+                    attr: [`${fieldKey}:${value}`],
+                  })
+                )
+              );
+              return Array.from(
+                new Map(
+                  responses
+                    .flatMap((response) => response.items)
+                    .map((product) => [product.id, product])
+                ).values()
+              );
+            }),
+          ...Object.entries(dynamicFilters.ranges).map(
+            async ([fieldKey, [min, max]]) =>
+              (
+                await getStorefrontProducts({
+                  ...baseQuery,
+                  range: [`${fieldKey}:${min}:${max}`],
+                })
+              ).items
+          ),
+        ]);
+
+        const resultItems =
+          groups.length === 0
+            ? (await getStorefrontProducts(baseQuery)).items
+            : groups[0].filter((product) =>
+                groups
+                  .slice(1)
+                  .every((group) =>
+                    group.some((candidate) => candidate.id === product.id)
+                  )
+              );
+        const nextSchema = await nextSchemaPromise;
+
+        if (active) {
+          setFilterSchema(nextSchema);
+          setProducts(resultItems.map(mapStorefrontProductToCard));
+          setVisibleCount(9);
+        }
+      } catch {
+        if (active) setProducts([]);
+      } finally {
+        if (active) setLoading(false);
+      }
+    })();
+
+    return () => {
+      active = false;
+    };
+  }, [
+    category,
+    dynamicFilters,
+    dynamicFiltersActive,
+    hasFilterSchema,
+    filterSubCategoryId,
+    filterMiniCategoryId,
+    priceBounds,
+  ]);
 
   // ქვეკატეგორიებს backend-ში სურათი არ აქვთ და ხის productCount არასანდოა.
   // ერთ მოთხოვნაზე (pageSize:1) ვიღებთ ორივეს: წარმომადგენლობით სურათს (პირველი
@@ -170,33 +336,7 @@ function ProductsPageInner() {
   }, [categoryDetails]);
 
   const filteredProducts = useMemo(() => {
-    if (!filtersActive) return products;
-    let result = [...products];
-
-    result = result.filter(
-      (p) =>
-        (p.newPrice ?? 0) >= filters.price[0] &&
-        (p.newPrice ?? 0) <= filters.price[1]
-    );
-
-    const filterKeys: (keyof typeof filters)[] = [
-      "brands",
-      "condition",
-      "processor",
-      "ram",
-      "gpu",
-      "color",
-      "screen",
-    ];
-
-    filterKeys.forEach((key) => {
-      const values = filters[key] as string[];
-      if (values.length > 0) {
-        result = result.filter((p) =>
-          values.some((v) => p.title.toLowerCase().includes(v.toLowerCase()))
-        );
-      }
-    });
+    const result = [...products];
 
     if (filters.sort === "price-asc")
       result.sort((a, b) => (a.newPrice ?? 0) - (b.newPrice ?? 0));
@@ -208,11 +348,10 @@ function ProductsPageInner() {
       result.sort((a, b) => b.title.localeCompare(a.title));
 
     return result;
-  }, [products, filters, filtersActive]);
+  }, [products, filters.sort]);
 
   const handleUpdateFilters = (newValues: Partial<typeof filters>) => {
     setFilters((prev) => ({ ...prev, ...newValues }));
-    setFiltersActive(true);
     setVisibleCount(9);
   };
 
@@ -253,7 +392,6 @@ function ProductsPageInner() {
         [key]: (prev[key as FilterKey] as string[]).filter((v) => v !== value),
       }));
     }
-    setFiltersActive(true);
     setVisibleCount(9);
   };
 
@@ -299,8 +437,8 @@ function ProductsPageInner() {
     );
   }
 
-  if (loading) return <AtHomeLoader variant="page" />;
-  if (products.length === 0) {
+  if (loading && !dynamicFiltersActive) return <AtHomeLoader variant="page" />;
+  if (products.length === 0 && !dynamicFiltersActive) {
     return (
       <>
         <Breadcrumb items={breadcrumbs} />
@@ -314,7 +452,17 @@ function ProductsPageInner() {
       <Breadcrumb items={breadcrumbs} />
       <div className={`${styles.container} site-wrapper`}>
         <div className={styles.sidebar}>
-          <ProductFilter filters={filters} onChange={handleUpdateFilters} />
+          {filterSchema && (
+            <DynamicProductFilter
+              schema={filterSchema}
+              values={dynamicFilters}
+              priceBounds={priceBounds}
+              onChange={(values) => {
+                setDynamicFilters(values);
+                setDynamicFiltersActive(true);
+              }}
+            />
+          )}
         </div>
 
         <div className={styles.content}>
