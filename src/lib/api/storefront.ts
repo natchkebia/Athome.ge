@@ -404,8 +404,9 @@ export function getStorefrontProducts(params: StorefrontProductsQuery = {}) {
   );
 }
 
-export async function getStorefrontCategoryFilters(
+export function getStorefrontCategoryFilters(
   slug: string,
+  level: "categories" | "subcategories" | "minicategories",
   params: {
     attr?: string[];
     range?: string[];
@@ -413,32 +414,20 @@ export async function getStorefrontCategoryFilters(
     maxPrice?: number;
   } = {}
 ) {
-  const levels = ["categories", "subcategories", "minicategories"];
-
-  for (const level of levels) {
-    try {
-      return await apiRequest<StorefrontCategoryFilterSet>(
-        `/api/storefront/${level}/${encodeURIComponent(slug)}/filters`,
-        {
-          query: {
-            IncludeEmptyOptions: false,
-            IncludeProductCounts: true,
-            Attr: params.attr,
-            Range: params.range,
-            MinPrice: params.minPrice,
-            MaxPrice: params.maxPrice,
-          },
-          useProxy: true,
-        }
-      );
-    } catch (error) {
-      if (!(error instanceof Error) || !("status" in error) || error.status !== 404) {
-        throw error;
-      }
+  return apiRequest<StorefrontCategoryFilterSet>(
+    `/api/storefront/${level}/${encodeURIComponent(slug)}/filters`,
+    {
+      query: {
+        IncludeEmptyOptions: false,
+        IncludeProductCounts: true,
+        Attr: params.attr,
+        Range: params.range,
+        MinPrice: params.minPrice,
+        MaxPrice: params.maxPrice,
+      },
+      useProxy: true,
     }
-  }
-
-  throw new Error(`Filters for '${slug}' were not found.`);
+  );
 }
 
 export function getStorefrontProductsByCategory(

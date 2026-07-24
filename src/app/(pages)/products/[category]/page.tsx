@@ -14,7 +14,7 @@ import EmptyState from "@/components/products/EmptyState";
 import Breadcrumb from "@/components/ breadcrumb/Breadcrumb";
 import AtHomeLoader from "@/components/shared/AtHomeLoader";
 import {
-  getStorefrontCategory,
+  getStorefrontCategories,
   getStorefrontCategoryProducts,
   getStorefrontProducts,
   getStorefrontProductsByCategory,
@@ -30,6 +30,7 @@ import { useCommerce } from "@/contexts/CommerceContext";
 
 // ყველა პროდუქტი ჩაიტვირთოს (endpoint limit-ს არ ჭრის); 1000 ფარავს ყველაზე დიდ კატეგორიას.
 const PRODUCT_LIMIT = 1000;
+type CategoryLevel = "categories" | "subcategories" | "minicategories";
 
 // ქვეკატეგორიის ბარათების ფონის ფერები (მთავარი გვერდის კატეგორიების მსგავსი).
 const SUBCAT_BG = [
@@ -69,6 +70,10 @@ function ProductsPageInner() {
   // undefined = ჯერ იტვირთება; null = ვერ მოიძებნა; object = ჩატვირთულია.
   const [categoryDetails, setCategoryDetails] =
     useState<StorefrontCategory | null | undefined>(undefined);
+  const [categoryLevel, setCategoryLevel] =
+    useState<CategoryLevel | null | undefined>(undefined);
+  const [categoryName, setCategoryName] = useState("");
+  const [resolvedCategorySlug, setResolvedCategorySlug] = useState("");
   const [subcatImages, setSubcatImages] = useState<Record<string, string>>({});
   // ქვეკატეგორიის ნამდვილი რაოდენობა — ხის productCount არასანდოა, ამიტომ
   // listing-ის იმავე წყაროდან (products endpoint totalCount) ვიღებთ.
@@ -86,13 +91,60 @@ function ProductsPageInner() {
   useEffect(() => {
     let isMounted = true;
     setCategoryDetails(undefined);
+    setCategoryLevel(undefined);
+    setResolvedCategorySlug("");
 
-    getStorefrontCategory(category)
-      .then((details) => {
-        if (isMounted) setCategoryDetails(details);
+    getStorefrontCategories()
+      .then((categories) => {
+        if (!isMounted) return;
+
+        const topCategory = categories.find((item) => item.slug === category);
+        if (topCategory) {
+          setCategoryDetails(topCategory);
+          setCategoryLevel("categories");
+          setCategoryName(topCategory.name);
+          setResolvedCategorySlug(category);
+          return;
+        }
+
+        for (const top of categories) {
+          const subCategory = top.subCategories.find(
+            (item) => item.slug === category
+          );
+          if (subCategory) {
+            setCategoryDetails(null);
+            setCategoryLevel("subcategories");
+            setCategoryName(subCategory.name);
+            setResolvedCategorySlug(category);
+            return;
+          }
+
+          for (const sub of top.subCategories) {
+            const miniCategory = sub.miniCategories.find(
+              (item) => item.slug === category
+            );
+            if (miniCategory) {
+              setCategoryDetails(null);
+              setCategoryLevel("minicategories");
+              setCategoryName(miniCategory.name);
+              setResolvedCategorySlug(category);
+              return;
+            }
+          }
+        }
+
+        setCategoryDetails(null);
+        setCategoryLevel(null);
+        setCategoryName(category);
+        setResolvedCategorySlug(category);
       })
       .catch(() => {
-        if (isMounted) setCategoryDetails(null);
+        if (isMounted) {
+          setCategoryDetails(null);
+          setCategoryLevel(null);
+          setCategoryName(category);
+          setResolvedCategorySlug(category);
+        }
       });
 
     return () => {
@@ -101,11 +153,14 @@ function ProductsPageInner() {
   }, [category]);
 
   useEffect(() => {
+    if (categoryLevel === undefined || resolvedCategorySlug !== category) return;
+
     let active = true;
     setFilterSchema(null);
     setDynamicFiltersActive(false);
+    if (categoryLevel === null) return;
 
-    getStorefrontCategoryFilters(category)
+    getStorefrontCategoryFilters(category, categoryLevel)
       .then((schema) => {
         if (active) setFilterSchema(schema);
       })
@@ -116,12 +171,18 @@ function ProductsPageInner() {
     return () => {
       active = false;
     };
-  }, [category]);
+  }, [category, categoryLevel, resolvedCategorySlug]);
 
   useEffect(() => {
     // კატეგორიის დეტალებს ველოდებით; თუ ქვეკატეგორიები აქვს, პროდუქტებს არ ვტვირთავთ
     // (ნაცვლად ბრტყელი სიისა — ქვეკატეგორიების grid გამოჩნდება).
-    if (categoryDetails === undefined) return;
+    if (
+      categoryDetails === undefined ||
+      categoryLevel === undefined ||
+      resolvedCategorySlug !== category
+    ) {
+      return;
+    }
     if (categoryDetails && (categoryDetails.subCategories?.length ?? 0) > 0) {
       setProducts([]);
       setLoading(false);
@@ -133,14 +194,15 @@ function ProductsPageInner() {
     setLoading(true);
     setVisibleCount(9);
 
-    // მთავარი კატეგორიებისთვის — /categories/{slug}/products (სრული კონტენტი).
-    // sub/mini slug-ზე ეს ცარიელია → fallback by-category/{slug} (exact-level).
-    getStorefrontCategoryProducts(category, PRODUCT_LIMIT)
-      .then(async (items) => {
-        const list =
-          items.length > 0
-            ? items
-            : await getStorefrontProductsByCategory(category, PRODUCT_LIMIT);
+    // slug-ის წინასწარ განსაზღვრული დონის მიხედვით პირდაპირ სწორ endpoint-ს
+    // ვიყენებთ, რათა მოსალოდნელი 404 მოთხოვნები ბრაუზერში საერთოდ არ გაიგზავნოს.
+    const productsRequest =
+      categoryLevel === "categories"
+        ? getStorefrontCategoryProducts(category, PRODUCT_LIMIT)
+        : getStorefrontProductsByCategory(category, PRODUCT_LIMIT);
+
+    productsRequest
+      .then((list) => {
         if (!isMounted) return;
         const cards = list.map(mapStorefrontProductToCard);
         setProducts(cards);
@@ -169,7 +231,7 @@ function ProductsPageInner() {
     return () => {
       isMounted = false;
     };
-  }, [category, categoryDetails]);
+  }, [category, categoryDetails, categoryLevel, resolvedCategorySlug]);
 
   const filterSubCategoryId = filterSchema?.subCategoryId;
   const filterMiniCategoryId = filterSchema?.miniCategoryId;
@@ -183,8 +245,9 @@ function ProductsPageInner() {
       ([fieldKey, values]) =>
         values.map((value) => `${fieldKey}:${value}`)
     );
-    const range = Object.entries(dynamicFilters.ranges).map(
-      ([fieldKey, [min, max]]) => `${fieldKey}:${min}:${max}`
+    const range = Object.entries(dynamicFilters.ranges).flatMap(
+      ([fieldKey, selectedValues]) =>
+        selectedValues.map((value) => `${fieldKey}:${value}:${value}`)
     );
 
     const baseQuery = {
@@ -214,12 +277,18 @@ function ProductsPageInner() {
       try {
         // Facet schema იმავე არჩევანებით ახლდება: სხვა ფილტრებში მხოლოდ
         // მიმდინარე შედეგებთან თავსებადი option-ები და count-ები რჩება.
-        const nextSchemaPromise = getStorefrontCategoryFilters(category, {
-          attr,
-          range,
-          minPrice: baseQuery.minPrice,
-          maxPrice: baseQuery.maxPrice,
-        });
+        if (!categoryLevel) return;
+
+        const nextSchemaPromise = getStorefrontCategoryFilters(
+          category,
+          categoryLevel,
+          {
+            attr,
+            range,
+            minPrice: baseQuery.minPrice,
+            maxPrice: baseQuery.maxPrice,
+          }
+        );
 
         // Backend-ის products endpoint მრავალ Attr-ს ამ ეტაპზე სრულად არ
         // კვეთს. ამიტომ თითო field-ის შედეგებს ცალ-ცალკე ვიღებთ:
@@ -244,15 +313,25 @@ function ProductsPageInner() {
                 ).values()
               );
             }),
-          ...Object.entries(dynamicFilters.ranges).map(
-            async ([fieldKey, [min, max]]) =>
-              (
-                await getStorefrontProducts({
-                  ...baseQuery,
-                  range: [`${fieldKey}:${min}:${max}`],
-                })
-              ).items
-          ),
+          ...Object.entries(dynamicFilters.ranges)
+            .filter(([, selectedValues]) => selectedValues.length > 0)
+            .map(async ([fieldKey, selectedValues]) => {
+              const responses = await Promise.all(
+                selectedValues.map((value) =>
+                  getStorefrontProducts({
+                    ...baseQuery,
+                    range: [`${fieldKey}:${value}:${value}`],
+                  })
+                )
+              );
+              return Array.from(
+                new Map(
+                  responses
+                    .flatMap((response) => response.items)
+                    .map((product) => [product.id, product])
+                ).values()
+              );
+            }),
         ]);
 
         const resultItems =
@@ -284,6 +363,7 @@ function ProductsPageInner() {
     };
   }, [
     category,
+    categoryLevel,
     dynamicFilters,
     dynamicFiltersActive,
     hasFilterSchema,
@@ -403,7 +483,7 @@ function ProductsPageInner() {
   const hasMore = visibleCount < filteredProducts.length;
   const breadcrumbs = [
     { label: "მთავარი გვერდი", href: "/" },
-    { label: categoryDetails?.name || category },
+    { label: categoryDetails?.name || categoryName || category },
   ];
 
   const subCategories = categoryDetails?.subCategories ?? [];

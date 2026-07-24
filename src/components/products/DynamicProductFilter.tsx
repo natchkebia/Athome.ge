@@ -8,7 +8,7 @@ import styles from "./ProductFilter.module.scss";
 export type DynamicFilterValues = {
   price: [number, number];
   attributes: Record<string, string[]>;
-  ranges: Record<string, [number, number]>;
+  ranges: Record<string, number[]>;
 };
 
 type Props = {
@@ -54,6 +54,17 @@ export default function DynamicProductFilter({
     onChange({
       ...values,
       attributes: { ...values.attributes, [fieldKey]: next },
+    });
+  };
+
+  const toggleRangeValue = (fieldKey: string, value: number) => {
+    const current = values.ranges[fieldKey] ?? [];
+    const next = current.includes(value)
+      ? current.filter((item) => item !== value)
+      : [...current, value].sort((a, b) => a - b);
+    onChange({
+      ...values,
+      ranges: { ...values.ranges, [fieldKey]: next },
     });
   };
 
@@ -125,7 +136,6 @@ export default function DynamicProductFilter({
         <div className={styles.dropdownWraper}>
           {schema.filters.map((filter, index) => {
             const isOpen = !!open[filter.fieldKey];
-            const selectedRange = values.ranges[filter.fieldKey];
             return (
               <div key={filter.fieldId}>
                 <button
@@ -147,44 +157,48 @@ export default function DynamicProductFilter({
                 </button>
 
                 {isOpen && filter.widgetType === "range" && filter.range && (
-                  <div className={styles.dynamicRange}>
-                    <input
-                      type="number"
-                      step={filter.range.step || 1}
-                      min={filter.range.absoluteMin}
-                      max={selectedRange?.[1] ?? filter.range.absoluteMax}
-                      value={selectedRange?.[0] ?? filter.range.absoluteMin}
-                      onChange={(event) => {
-                        const min = Number(event.target.value);
-                        const max = selectedRange?.[1] ?? filter.range!.absoluteMax;
-                        onChange({
-                          ...values,
-                          ranges: {
-                            ...values.ranges,
-                            [filter.fieldKey]: [min, max],
-                          },
-                        });
-                      }}
-                    />
-                    <span>—</span>
-                    <input
-                      type="number"
-                      step={filter.range.step || 1}
-                      min={selectedRange?.[0] ?? filter.range.absoluteMin}
-                      max={filter.range.absoluteMax}
-                      value={selectedRange?.[1] ?? filter.range.absoluteMax}
-                      onChange={(event) => {
-                        const max = Number(event.target.value);
-                        const min = selectedRange?.[0] ?? filter.range!.absoluteMin;
-                        onChange({
-                          ...values,
-                          ranges: {
-                            ...values.ranges,
-                            [filter.fieldKey]: [min, max],
-                          },
-                        });
-                      }}
-                    />
+                  <div className={styles.brandList}>
+                    {Array.from(
+                      {
+                        length:
+                          Math.floor(
+                            (filter.range.absoluteMax -
+                              filter.range.absoluteMin) /
+                              (filter.range.step || 1)
+                          ) + 1,
+                      },
+                      (_, optionIndex) => {
+                        const step = filter.range!.step || 1;
+                        const precision = String(step).split(".")[1]?.length ?? 0;
+                        return Number(
+                          (
+                            filter.range!.absoluteMin +
+                            optionIndex * step
+                          ).toFixed(precision)
+                        );
+                      }
+                    ).map((rangeValue) => (
+                      <label
+                        key={`${filter.fieldKey}:${rangeValue}`}
+                        className={styles.brandItem}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={(values.ranges[filter.fieldKey] ?? []).includes(
+                            rangeValue
+                          )}
+                          onChange={() =>
+                            toggleRangeValue(filter.fieldKey, rangeValue)
+                          }
+                        />
+                        <span>
+                          {rangeValue}
+                          {filter.unit ?? filter.range?.unit
+                            ? ` ${filter.unit ?? filter.range?.unit}`
+                            : ""}
+                        </span>
+                      </label>
+                    ))}
                   </div>
                 )}
 
@@ -198,22 +212,25 @@ export default function DynamicProductFilter({
                             option.value
                           )
                       )
-                      .map((option) => (
-                      <label key={option.optionId} className={styles.brandItem}>
-                        <input
-                          type="checkbox"
-                          checked={(values.attributes[filter.fieldKey] ?? []).includes(
-                            option.value
-                          )}
-                          onChange={() =>
-                            toggleOption(filter.fieldKey, option.value)
-                          }
-                        />
-                        <span>{option.label}</span>
-                        <span className={styles.optionCount}>
-                          {option.productCount}
-                        </span>
-                      </label>
+                      .map((option, optionIndex) => (
+                        <label
+                          key={`${filter.fieldKey}:${option.optionId}:${option.value}:${optionIndex}`}
+                          className={styles.brandItem}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={(
+                              values.attributes[filter.fieldKey] ?? []
+                            ).includes(option.value)}
+                            onChange={() =>
+                              toggleOption(filter.fieldKey, option.value)
+                            }
+                          />
+                          <span>{option.label}</span>
+                          <span className={styles.optionCount}>
+                            {option.productCount}
+                          </span>
+                        </label>
                       ))}
                   </div>
                 )}
