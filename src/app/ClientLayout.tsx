@@ -25,6 +25,7 @@ export default function ClientLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const isInnerPage = pathname !== "/";
   const previousPathname = useRef(pathname);
   const [hideTopBar, setHideTopBar] = useState(false);
   const [isRouteLoading, setIsRouteLoading] = useState(false);
@@ -170,7 +171,11 @@ export default function ClientLayout({
             <Navbar />
           </header>
 
-          <main className="page-content">{children}</main>
+          <main
+            className={`page-content${isInnerPage ? " page-content--inner" : ""}`}
+          >
+            {children}
+          </main>
           <Footer />
           <CompareBar />
           <TestModeBadge />

@@ -12,6 +12,7 @@ body {
   font-family: "SF Georgian Rounded", sans-serif;
   display: flex;
   flex-direction: column;
+  --site-gutter: 40px;
 }
 
 .site-wrapper {
@@ -51,6 +52,11 @@ body {
   flex: 1 0 auto;
 }
 
+.page-content--inner {
+  width: 100%;
+  padding-inline: var(--site-gutter);
+}
+
 .fixed-header.scrolled + .page-content {
   margin-top: 158px;
 }
@@ -78,6 +84,10 @@ img {
 }
 
 @media (max-width: 1024px) {
+  body {
+    --site-gutter: 16px;
+  }
+
   .fixed-header {
     position: static;
   }
@@ -110,6 +120,10 @@ img {
 }
 
 @media (max-width: 480px) {
+  body {
+    --site-gutter: 12px;
+  }
+
   .header-logo {
     width: 116px;
   }
