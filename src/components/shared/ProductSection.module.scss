@@ -8,9 +8,31 @@
   gap: 10px;
 }
 
+.compactHeader {
+  width: 100%;
+  margin-top: 24px;
+  padding: 0;
+
+  img {
+    width: 24px;
+    height: 24px;
+  }
+
+  .sectionTitle {
+    color: #3b3f42;
+    font-size: 16px;
+    font-weight: 590;
+  }
+}
+
 @media (max-width: 768px) {
   .sectionHeader {
     margin-top: 48px;
     padding: 0 12px;
+  }
+
+  .compactHeader {
+    margin-top: 20px;
+    padding: 0;
   }
 }

@@ -15,8 +15,16 @@ type Props = {
   loading?: boolean;
   selectedProducts: SelectedConfiguratorProduct[];
   onClose: () => void;
-  onSelect: (product: ConfiguratorProduct, quantity: number) => void;
+  onSelect: (
+    product: ConfiguratorProduct,
+    quantity: number,
+  ) => Promise<ProductSelectionResult>;
   onUpdateQuantity: (product: ConfiguratorProduct, quantity: number) => void;
+};
+
+export type ProductSelectionResult = {
+  allowed: boolean;
+  message?: string;
 };
 
 const brands = ["ყველა", "AsRock", "Asus", "Gigabyte", "Msi"];
@@ -32,6 +40,10 @@ export default function ConfiguratorProductModal({
 }: Props) {
   const [searchValue, setSearchValue] = useState("");
   const [activeBrand, setActiveBrand] = useState("ყველა");
+  const [checkingProductId, setCheckingProductId] = useState<number | null>(null);
+  const [compatibilityErrors, setCompatibilityErrors] = useState<
+    Record<number, string>
+  >({});
 
   const [quantities, setQuantities] = useState<Record<number, number>>(() => {
     return selectedProducts.reduce<Record<number, number>>((acc, product) => {
@@ -108,6 +120,31 @@ export default function ConfiguratorProductModal({
     return quantities[product.id] || 1;
   };
 
+  const handleSelect = async (
+    product: ConfiguratorProduct,
+    quantity: number,
+  ) => {
+    setCheckingProductId(product.id);
+    setCompatibilityErrors((prev) => {
+      const next = { ...prev };
+      delete next[product.id];
+      return next;
+    });
+
+    try {
+      const result = await onSelect(product, quantity);
+      if (!result.allowed) {
+        setCompatibilityErrors((prev) => ({
+          ...prev,
+          [product.id]:
+            result.message || "ეს პროდუქტი არჩეულ კომპონენტებთან თავსებადი არ არის.",
+        }));
+      }
+    } finally {
+      setCheckingProductId(null);
+    }
+  };
+
   return (
     <div className={styles.modalOverlay}>
       <div className={styles.modal}>
@@ -159,6 +196,8 @@ export default function ConfiguratorProductModal({
                 const isSelected = Boolean(getSelectedProduct(product.id));
                 const quantity = getQuantity(product);
                 const rowTotal = product.price * quantity;
+                const compatibilityError = compatibilityErrors[product.id];
+                const isChecking = checkingProductId === product.id;
 
                 return (
                   <div
@@ -180,6 +219,13 @@ export default function ConfiguratorProductModal({
                           </li>
                         ))}
                       </ul>
+
+                      {compatibilityError && (
+                        <div className={styles.productCompatibilityError}>
+                          <strong>✕ არ არის თავსებადი</strong>
+                          <span>{compatibilityError}</span>
+                        </div>
+                      )}
                     </div>
 
                     <div className={styles.productAction}>
@@ -203,9 +249,14 @@ export default function ConfiguratorProductModal({
                       <button
                         type="button"
                         className={isSelected ? styles.removeProductBtn : ""}
-                        onClick={() => onSelect(product, quantity)}
+                        disabled={isChecking}
+                        onClick={() => handleSelect(product, quantity)}
                       >
-                        {isSelected ? "წაშლა" : "დამატება"}
+                        {isChecking
+                          ? "მოწმდება..."
+                          : isSelected
+                            ? "წაშლა"
+                            : "დამატება"}
                       </button>
                     </div>
                   </div>

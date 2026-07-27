@@ -7,6 +7,19 @@
   padding: 0 16px;
 }
 
+.compactSlider {
+  max-width: none;
+  margin-top: 16px;
+  margin-bottom: 32px;
+  padding: 0;
+
+  .swiper {
+    :global(.swiper-slide) {
+      width: calc((100% - 72px) / 4);
+    }
+  }
+}
+
 .topBar {
   display: flex;
   align-items: center;
@@ -81,6 +94,11 @@
   .sliderWrapper {
     margin-bottom: 48px;
     padding: 0 12px;
+  }
+
+  .compactSlider {
+    margin-bottom: 24px;
+    padding: 0;
   }
 
   .topBar {

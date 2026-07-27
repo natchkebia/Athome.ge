@@ -38,7 +38,7 @@
   .textContainer {
     display: flex;
     flex-direction: column;
-    height: 608px;
+    min-height: 608px;
     justify-content: space-between;
     flex: 1;
     min-width: 0;
@@ -65,12 +65,31 @@
       }
     }
 
-    .shortDescription {
+    .shortDescriptionWrapper {
       margin: 12px 0 0;
+    }
+
+    .shortDescription {
+      margin: 0;
       color: rgba(105, 108, 110, 1);
       font-size: 14px;
-      line-height: 1.5;
-      overflow-wrap: break-word;
+    }
+
+    .shortDescriptionCollapsed {
+      max-height: 7.15em;
+      overflow: hidden;
+    }
+
+    .descriptionToggle {
+      margin-top: 8px;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      color: rgba(16, 181, 192, 1);
+      font: inherit;
+      font-size: 14px;
+      font-weight: 590;
+      cursor: pointer;
     }
 
     .meta {
@@ -259,6 +278,83 @@
   }
 }
 
+.descriptionSection {
+  max-width: 1392px;
+  width: 100%;
+  margin: 0 auto 48px;
+  padding: 24px;
+  box-sizing: border-box;
+  background-color: #fff;
+  border: 1px solid rgba(233, 235, 248, 1);
+  border-radius: 18px;
+
+  @media (max-width: 768px) {
+    margin-bottom: 32px;
+    padding: 16px;
+  }
+
+  h4 {
+    margin: 0 0 16px;
+    color: rgba(59, 63, 66, 1);
+    font-size: 16px;
+    font-weight: 590;
+  }
+}
+
+.richText {
+  color: rgba(59, 63, 66, 1);
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+
+  p {
+    margin: 0 0 1em;
+  }
+
+  p:last-child {
+    margin-bottom: 0;
+  }
+
+  strong,
+  b {
+    font-weight: 600;
+  }
+
+  ul,
+  ol {
+    margin: 0 0 1em;
+    padding-inline-start: 1.5em;
+  }
+
+  li {
+    margin-bottom: 0.35em;
+  }
+
+  a {
+    color: rgba(16, 181, 192, 1);
+    text-decoration: underline;
+  }
+
+  img {
+    max-width: 100%;
+    height: auto;
+  }
+
+  table {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+    border-collapse: collapse;
+  }
+
+  th,
+  td {
+    padding: 8px 12px;
+    border: 1px solid rgba(233, 235, 248, 1);
+    text-align: start;
+  }
+}
+
 .specsSectionWrapper {
   max-width: 1392px;
   width: 100%;
@@ -386,7 +482,7 @@
 .infoBlocks {
   max-width: 1392px;
   width: 100%;
-  margin: 0 auto;
+  margin: 24px auto 0;
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 24px;
@@ -395,6 +491,7 @@
   @media (max-width: 768px) {
     grid-template-columns: 1fr;
     gap: 16px;
+    margin-top: 16px;
   }
 
   .infoCard {
@@ -441,17 +538,25 @@
 .compatWrapper {
   max-width: 1392px;
   width: 100%;
-  margin: 0 auto;
+  margin: 48px auto 0;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  padding: 24px;
   box-sizing: border-box;
+  background: #fff;
+  border: 1px solid rgba(233, 235, 248, 1);
+  border-radius: 18px;
+
+  @media (max-width: 768px) {
+    margin-top: 32px;
+    padding: 16px;
+  }
 
   .compatTitle {
     color: rgba(59, 63, 66, 1);
     font-size: 18px;
     font-weight: 590;
-    margin: 0 0 8px;
+    margin: 0;
 
     @media (max-width: 480px) {
       font-size: 15px;

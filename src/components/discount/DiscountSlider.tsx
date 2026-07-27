@@ -25,12 +25,14 @@ interface Product {
 
 interface DiscountSliderProps {
   products: Product[];
-  onToggleWishlist?: (id: number) => void; 
+  onToggleWishlist?: (id: number) => void;
+  compact?: boolean;
 }
 
 export default function DiscountSlider({
   products,
   onToggleWishlist,
+  compact = false,
 }: DiscountSliderProps) {
   const [progress, setProgress] = useState(10);
   const sliderId = useId().replace(/:/g, "");
@@ -49,7 +51,11 @@ export default function DiscountSlider({
   };
 
   return (
-    <div className={styles.sliderWrapper}>
+    <div
+      className={`${styles.sliderWrapper} ${
+        compact ? styles.compactSlider : ""
+      }`}
+    >
       <div className={styles.topBar}>
         <div className={styles.rangeContainer}>
           <div className={styles.rangeTrack}>

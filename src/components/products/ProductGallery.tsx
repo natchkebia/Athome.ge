@@ -11,13 +11,19 @@ interface ProductGalleryProps {
 
 export default function ProductGallery({ images }: ProductGalleryProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const thumbnailsRef = useRef<HTMLDivElement | null>(null);
   const thumbnailRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
   useEffect(() => {
-    thumbnailRefs.current[currentIndex]?.scrollIntoView({
+    const container = thumbnailsRef.current;
+    const thumbnail = thumbnailRefs.current[currentIndex];
+    if (!container || !thumbnail) return;
+
+    container.scrollTo({
+      left:
+        thumbnail.offsetLeft -
+        (container.clientWidth - thumbnail.clientWidth) / 2,
       behavior: "smooth",
-      block: "nearest",
-      inline: "center",
     });
   }, [currentIndex]);
 
@@ -58,7 +64,7 @@ export default function ProductGallery({ images }: ProductGalleryProps) {
           <img src="/icons/DiscountArrowLeft.svg" alt="DiscountArrowLeft.svg" />
         </button>
 
-        <div className={styles.thumbnails}>
+        <div ref={thumbnailsRef} className={styles.thumbnails}>
           {images.map((imageUrl, i) => (
             <button
               key={i}

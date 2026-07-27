@@ -564,6 +564,29 @@
   }
 }
 
+.productCompatibilityError {
+  margin: 14px 0 0;
+  padding: 10px 12px;
+  border: 1px solid #ffb4aa;
+  border-radius: 8px;
+  background: #fff1ef;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  strong {
+    color: #c9362b;
+    font-size: 14px;
+    font-weight: 650;
+  }
+
+  span {
+    color: #a83228;
+    font-size: 13px;
+    line-height: 1.4;
+  }
+}
+
 .productAction {
   width: 100%;
   min-height: 170px;
@@ -632,6 +655,11 @@
 
     &:hover {
       background: #0fa1ab;
+    }
+
+    &:disabled {
+      cursor: wait;
+      opacity: 0.65;
     }
   }
 }

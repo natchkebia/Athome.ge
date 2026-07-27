@@ -15,6 +15,7 @@ import {
 } from "./configuratorData";
 import ConfiguratorCategoryCard from "./ConfiguratorCategoryCard";
 import ConfiguratorProductModal from "./ConfiguratorProductModal";
+import type { ProductSelectionResult } from "./ConfiguratorProductModal";
 import ConfiguratorSummary from "./ConfiguratorSummary";
 import Breadcrumb from "../ breadcrumb/Breadcrumb";
 import { useCommerce } from "@/contexts/CommerceContext";
@@ -30,9 +31,42 @@ import {
   saveConfiguratorBuild,
   type ConfiguratorBuildSlot,
   type ConfiguratorCheckResult,
+  type ConfiguratorIssue,
   type ConfiguratorProductCard,
   type ConfiguratorSlot,
 } from "@/lib/api/configurator";
+
+function translateCompatibilityIssue(issue: ConfiguratorIssue) {
+  const values = (issue.message ?? "").match(/'([^']+)'/g)?.map((value) =>
+    value.slice(1, -1),
+  );
+
+  switch (issue.ruleCode?.toUpperCase()) {
+    case "SOCKET_MISMATCH":
+      return values?.length && values.length >= 2
+        ? `პროცესორის სოკეტი „${values[0]}“ დედაპლატის სოკეტს „${values[1]}“ არ ემთხვევა.`
+        : "პროცესორისა და დედაპლატის სოკეტები ერთმანეთს არ ემთხვევა.";
+    case "MEMORY_TYPE_MISMATCH":
+    case "RAM_TYPE_MISMATCH":
+      return values?.length && values.length >= 2
+        ? `ოპერატიული მეხსიერების ტიპი „${values[0]}“ დედაპლატის ტიპს „${values[1]}“ არ ემთხვევა.`
+        : "ოპერატიული მეხსიერების ტიპი დედაპლატასთან თავსებადი არ არის.";
+    case "INSUFFICIENT_PSU_WATTAGE":
+    case "PSU_WATTAGE_INSUFFICIENT":
+      return "არჩეული კვების ბლოკის სიმძლავრე ამ კონფიგურაციისთვის საკმარისი არ არის.";
+    case "FORM_FACTOR_MISMATCH":
+    case "CASE_FORM_FACTOR_MISMATCH":
+      return "დედაპლატის ზომა არჩეულ ქეისში თავსებადი არ არის.";
+    case "COOLER_SOCKET_MISMATCH":
+      return "პროცესორის ქულერი არჩეული პროცესორის სოკეტთან თავსებადი არ არის.";
+    case "GPU_LENGTH_EXCEEDS_CASE":
+      return "ვიდეობარათის სიგრძე არჩეული ქეისისთვის ზედმეტად დიდია.";
+    case "COOLER_HEIGHT_EXCEEDS_CASE":
+      return "პროცესორის ქულერის სიმაღლე არჩეული ქეისისთვის ზედმეტად დიდია.";
+    default:
+      return "ეს პროდუქტი არჩეულ კომპონენტებთან თავსებადი არ არის.";
+  }
+}
 
 type SelectedProducts = Partial<
   Record<ConfiguratorCategoryKey, SelectedConfiguratorProduct[]>
@@ -260,16 +294,59 @@ export default function Configurator() {
     return Math.min(Math.max(1, quantity), product.stock);
   };
 
-  const handleSelectProduct = (
+  const handleSelectProduct = async (
     product: ConfiguratorProduct,
     quantity: number
-  ) => {
+  ): Promise<ProductSelectionResult> => {
     const safeQuantity = getSafeQuantity(product, quantity);
 
     const categoryProducts = selectedProducts[product.category] || [];
     const alreadySelected = categoryProducts.some(
       (item) => item.id === product.id
     );
+
+    // უკვე არჩეულ პროდუქტზე დაჭერა წაშლაა და თავსებადობის შემოწმება არ სჭირდება.
+    if (!alreadySelected) {
+      const candidateSlot = FRONTEND_TO_BACKEND_SLOT[product.category];
+
+      if (candidateSlot) {
+        const candidateSlots = backendSlots.filter(
+          (item) => item.slot !== candidateSlot
+        );
+        candidateSlots.push({ slot: candidateSlot, productId: product.id });
+
+        // ერთი კომპონენტი ჯერ ვერავისთან იქნება შეუთავსებელი.
+        if (candidateSlots.length >= 2) {
+          try {
+            const result = await checkConfiguratorBuild(candidateSlots);
+            const isBlocked =
+              result.verdict === "incompatible" ||
+              result.blockingCount > 0 ||
+              !result.isCompatible;
+
+            if (isBlocked) {
+              const message = result.allIssues
+                .map(translateCompatibilityIssue)
+                .slice(0, 3)
+                .join(" ");
+
+              return {
+                allowed: false,
+                message:
+                  message ||
+                  "ეს პროდუქტი არჩეულ კომპონენტებთან თავსებადი არ არის.",
+              };
+            }
+          } catch {
+            return {
+              allowed: false,
+              message:
+                "თავსებადობის შემოწმება ვერ მოხერხდა. გთხოვთ, კიდევ სცადოთ.",
+            };
+          }
+        }
+      }
+    }
 
     setSelectedProducts((prev) => {
       const prevCategory = prev[product.category] || [];
@@ -299,6 +376,8 @@ export default function Configurator() {
     if (!alreadySelected) {
       setSelectedCategory(null);
     }
+
+    return { allowed: true };
   };
 
   const handleUpdateQuantity = (
@@ -468,7 +547,7 @@ export default function Configurator() {
                   {checkResult.allIssues.length > 0 && (
                     <ul>
                       {checkResult.allIssues.slice(0, 5).map((issue, i) => (
-                        <li key={i}>{issue.message}</li>
+                        <li key={i}>{translateCompatibilityIssue(issue)}</li>
                       ))}
                     </ul>
                   )}

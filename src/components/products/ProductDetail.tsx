@@ -2,6 +2,7 @@
 
 import { Fragment, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import DOMPurify from "isomorphic-dompurify";
 import styles from "./ProductDetail.module.scss";
 import ProductGallery from "./ProductGallery";
 // დროებით გამორთულია დამკვეთის მოთხოვნით.
@@ -47,6 +48,35 @@ const COMPONENT_TYPE_HEADINGS: Record<string, string> = {
   LiquidCooler: "თხევადი გაგრილება (AIO)",
 };
 
+function sanitizeRichText(html: string) {
+  const sanitized = DOMPurify.sanitize(html)
+    // Rich-text editor-ის ცარიელი აბზაცები ვიზუალურ დიდ დაშორებებს ქმნის.
+    .replace(/<p>(?:\s|&nbsp;|<br\s*\/?>)*<\/p>/gi, "")
+    .replace(/(?:<br\s*\/?>)?(?:\s|&nbsp;)+(?=<\/p>)/gi, "");
+
+  // მხოლოდ ტექსტურ კვანძებში არსებული bare URL-ები გადავაქციოთ ბმულებად;
+  // უკვე არსებულ HTML ატრიბუტებსა და <a>-ებს არ ვეხებით.
+  let insideAnchor = false;
+  return sanitized
+    .split(/(<[^>]+>)/g)
+    .map((part) => {
+      if (part.startsWith("<")) {
+        if (/^<a\b/i.test(part)) insideAnchor = true;
+        if (/^<\/a\b/i.test(part)) insideAnchor = false;
+        return part;
+      }
+
+      if (insideAnchor) return part;
+
+      return part.replace(
+        /https?:\/\/[^\s<]+/gi,
+        (url) =>
+          `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`,
+      );
+    })
+    .join("");
+}
+
 export interface ProductDetailProps {
   product: StorefrontProductDetail;
   routeCategory?: string;
@@ -59,6 +89,7 @@ export default function ProductDetail({
   routeSlug,
 }: ProductDetailProps) {
   const [showAll, setShowAll] = useState(false);
+  const [showFullShortDescription, setShowFullShortDescription] = useState(false);
   const { addToCart } = useCommerce();
   const { toggleCompare, compareIds, maxItems } = useCompare();
   const { showToast } = useToast();
@@ -108,6 +139,12 @@ export default function ProductDetail({
 
   const keyFeatures = product.keyFeatures ?? [];
   const boxContents = product.boxContents ?? [];
+  const shortDescriptionText = (product.shortDescription ?? "")
+    .replace(/<[^>]*>/g, " ")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  const hasLongShortDescription = shortDescriptionText.length > 240;
 
   const alternativeProducts = (product.alternativeProducts ?? []).map(
     mapStorefrontProductToCard
@@ -160,6 +197,10 @@ export default function ProductDetail({
       isMounted = false;
     };
   }, [product.category.slug, product.relatedProducts.length, product.slug]);
+
+  useEffect(() => {
+    setShowFullShortDescription(false);
+  }, [product.id]);
 
   // სტუმრის კალათისთვის — ჩვენების ინფოს ქეშირება.
   const cacheInfo = () =>
@@ -215,9 +256,30 @@ export default function ProductDetail({
           <div>
             <h2 className={styles.title}>{product.name}</h2>
             {product.shortDescription && (
-              <p className={styles.shortDescription}>
-                {product.shortDescription}
-              </p>
+              <div className={styles.shortDescriptionWrapper}>
+                <div
+                  className={`${styles.shortDescription} ${styles.richText} ${
+                    hasLongShortDescription && !showFullShortDescription
+                      ? styles.shortDescriptionCollapsed
+                      : ""
+                  }`}
+                  dangerouslySetInnerHTML={{
+                    __html: sanitizeRichText(product.shortDescription),
+                  }}
+                />
+                {hasLongShortDescription && (
+                  <button
+                    type="button"
+                    className={styles.descriptionToggle}
+                    aria-expanded={showFullShortDescription}
+                    onClick={() =>
+                      setShowFullShortDescription((current) => !current)
+                    }
+                  >
+                    {showFullShortDescription ? "ნაკლების ნახვა" : "მეტის ნახვა"}
+                  </button>
+                )}
+              </div>
             )}
             <div className={styles.meta}>
               <div className={styles.stockWrapper}>
@@ -279,6 +341,18 @@ export default function ProductDetail({
           </div>
         </div>
       </div>
+
+      {product.descriptionHtml && (
+        <section className={styles.descriptionSection}>
+          <h4>პროდუქტის აღწერა</h4>
+          <div
+            className={styles.richText}
+            dangerouslySetInnerHTML={{
+              __html: sanitizeRichText(product.descriptionHtml),
+            }}
+          />
+        </section>
+      )}
 
       <div className={styles.specsSectionWrapper}>
         <h4>დამატებითი მახასიათებლები</h4>
@@ -374,6 +448,7 @@ export default function ProductDetail({
               icon="/icons/Monitor.svg"
               title={group.heading}
               products={group.products}
+              compact
             />
           ))}
         </div>

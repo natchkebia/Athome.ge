@@ -114,7 +114,8 @@
   display: flex;
   gap: 12px;
   justify-content: flex-start;
-  max-width: calc(100% - 48px);
+  width: calc(100% - 32px);
+  max-width: none;
   overflow-x: auto;
   padding: 0 2px 4px;
   scroll-behavior: smooth;
@@ -132,7 +133,7 @@
 }
 
 .thumbBox {
-  width: 148px;
+  width: calc((100% - 36px) / 4);
   height: 150px;
   background: rgba(255, 255, 255, 1);
   border: 1px solid rgba(236, 242, 246, 1);
@@ -142,17 +143,19 @@
   justify-content: center;
   cursor: pointer;
   transition: all 0.2s ease;
-  flex: 0 0 auto;
+  flex: 0 0 calc((100% - 36px) / 4);
   scroll-snap-align: center;
 
   @media (max-width: 768px) {
     width: 112px;
     height: 100px;
+    flex-basis: 112px;
   }
 
   @media (max-width: 480px) {
     width: 92px;
     height: 84px;
+    flex-basis: 92px;
   }
 
   img {
