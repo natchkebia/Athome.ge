@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useEffect, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import DOMPurify from "isomorphic-dompurify";
 import styles from "./ProductDetail.module.scss";
@@ -49,15 +49,36 @@ const COMPONENT_TYPE_HEADINGS: Record<string, string> = {
 };
 
 function sanitizeRichText(html: string) {
-  const sanitized = DOMPurify.sanitize(html)
+  let sanitized = DOMPurify.sanitize(html)
     // Rich-text editor-ის ცარიელი აბზაცები ვიზუალურ დიდ დაშორებებს ქმნის.
     .replace(/<p>(?:\s|&nbsp;|<br\s*\/?>)*<\/p>/gi, "")
     .replace(/(?:<br\s*\/?>)?(?:\s|&nbsp;)+(?=<\/p>)/gi, "");
 
+  // თუ რედაქტორში პროდუქტის წყაროს URL ცალკე აბზაცადაა ჩასმული,
+  // URL-ის ნაცვლად აღწერის თავში პირველი გამუქებული სათაური გავხადოთ ბმული.
+  const standaloneUrl = sanitized.match(
+    /<p>\s*(https?:\/\/[^\s<]+)\s*<\/p>/i,
+  );
+
+  if (standaloneUrl && !/<(?:strong|b)>\s*<a\b/i.test(sanitized)) {
+    let linkedHeading = false;
+    sanitized = sanitized.replace(
+      /<(strong|b)>([\s\S]*?)<\/\1>/i,
+      (_match, tag, content) => {
+        linkedHeading = true;
+        return `<${tag}><a href="${standaloneUrl[1]}">${content}</a></${tag}>`;
+      },
+    );
+
+    if (linkedHeading) {
+      sanitized = sanitized.replace(standaloneUrl[0], "");
+    }
+  }
+
   // მხოლოდ ტექსტურ კვანძებში არსებული bare URL-ები გადავაქციოთ ბმულებად;
   // უკვე არსებულ HTML ატრიბუტებსა და <a>-ებს არ ვეხებით.
   let insideAnchor = false;
-  return sanitized
+  const linkedHtml = sanitized
     .split(/(<[^>]+>)/g)
     .map((part) => {
       if (part.startsWith("<")) {
@@ -75,6 +96,16 @@ function sanitizeRichText(html: string) {
       );
     })
     .join("");
+
+  // აღწერაში რედაქტორიდან უკვე მოსული ბმულებიც ახალ ჩანართში გავხსნათ.
+  // ატრიბუტებს sanitize-ის შემდეგ ვამატებთ, რადგან DOMPurify `target`-ს შლის.
+  return linkedHtml.replace(/<a\b([^>]*)>/gi, (_match, rawAttributes) => {
+    const attributes = String(rawAttributes)
+      .replace(/\s+target\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/gi, "")
+      .replace(/\s+rel\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/gi, "");
+
+    return `<a${attributes} target="_blank" rel="noopener noreferrer">`;
+  });
 }
 
 export interface ProductDetailProps {
@@ -90,6 +121,9 @@ export default function ProductDetail({
 }: ProductDetailProps) {
   const [showAll, setShowAll] = useState(false);
   const [showFullShortDescription, setShowFullShortDescription] = useState(false);
+  const [isShortDescriptionOverflowing, setIsShortDescriptionOverflowing] =
+    useState(false);
+  const shortDescriptionRef = useRef<HTMLDivElement>(null);
   const { addToCart } = useCommerce();
   const { toggleCompare, compareIds, maxItems } = useCompare();
   const { showToast } = useToast();
@@ -139,13 +173,6 @@ export default function ProductDetail({
 
   const keyFeatures = product.keyFeatures ?? [];
   const boxContents = product.boxContents ?? [];
-  const shortDescriptionText = (product.shortDescription ?? "")
-    .replace(/<[^>]*>/g, " ")
-    .replace(/&nbsp;/gi, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-  const hasLongShortDescription = shortDescriptionText.length > 240;
-
   const alternativeProducts = (product.alternativeProducts ?? []).map(
     mapStorefrontProductToCard
   );
@@ -200,7 +227,25 @@ export default function ProductDetail({
 
   useEffect(() => {
     setShowFullShortDescription(false);
+    setIsShortDescriptionOverflowing(false);
   }, [product.id]);
+
+  useEffect(() => {
+    const description = shortDescriptionRef.current;
+    if (!description || showFullShortDescription) return;
+
+    const measureOverflow = () => {
+      setIsShortDescriptionOverflowing(
+        description.scrollHeight > description.clientHeight + 1,
+      );
+    };
+
+    measureOverflow();
+    const observer = new ResizeObserver(measureOverflow);
+    observer.observe(description);
+
+    return () => observer.disconnect();
+  }, [product.shortDescription, showFullShortDescription]);
 
   // სტუმრის კალათისთვის — ჩვენების ინფოს ქეშირება.
   const cacheInfo = () =>
@@ -258,8 +303,9 @@ export default function ProductDetail({
             {product.shortDescription && (
               <div className={styles.shortDescriptionWrapper}>
                 <div
+                  ref={shortDescriptionRef}
                   className={`${styles.shortDescription} ${styles.richText} ${
-                    hasLongShortDescription && !showFullShortDescription
+                    !showFullShortDescription
                       ? styles.shortDescriptionCollapsed
                       : ""
                   }`}
@@ -267,7 +313,7 @@ export default function ProductDetail({
                     __html: sanitizeRichText(product.shortDescription),
                   }}
                 />
-                {hasLongShortDescription && (
+                {isShortDescriptionOverflowing && (
                   <button
                     type="button"
                     className={styles.descriptionToggle}

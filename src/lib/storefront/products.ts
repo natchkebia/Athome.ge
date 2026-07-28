@@ -41,7 +41,8 @@ export function mapStorefrontProductToCard(
   return {
     id: product.id,
     image: normalizeMediaUrl(product.thumbnailUrl),
-    title: product.shortTitle || product.name,
+    // ქარდსა და პროდუქტის შიდა გვერდზე ერთი canonical სათაური გამოჩნდეს.
+    title: product.name,
     oldPrice: hasDiscount ? referencePrice : undefined,
     newPrice: product.effectivePrice,
     discount,
