@@ -11,6 +11,7 @@ export async function POST(request: NextRequest) {
   }
 
   const url = new URL("/api/storefront/checkout", API_BASE_URL);
+  request.nextUrl.searchParams.forEach((value, key) => url.searchParams.set(key, value));
   const body = await request.text();
 
   const response = await fetch(url, {

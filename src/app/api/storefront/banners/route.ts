@@ -13,7 +13,11 @@ export async function GET(request: NextRequest) {
   const url = new URL("/api/storefront/banners", API_BASE_URL);
   const type = request.nextUrl.searchParams.get("type");
 
-  if (type) {
+  request.nextUrl.searchParams.forEach((value, key) => {
+    url.searchParams.set(key, value);
+  });
+
+  if (type && !url.searchParams.has("type")) {
     url.searchParams.set("type", type);
   }
 

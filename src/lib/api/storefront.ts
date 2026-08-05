@@ -164,6 +164,12 @@ export type StorefrontProductDetail = Omit<
   accessoryProducts: StorefrontProduct[];
   upsellProducts: StorefrontProduct[];
   compatibleProducts: StorefrontCompatibleGroup[];
+  seo?: {
+    metaTitle?: string;
+    metaDescription?: string;
+    canonicalUrl?: string;
+    ogImageUrl?: string;
+  } | null;
 };
 
 export type StorefrontProductReview = {

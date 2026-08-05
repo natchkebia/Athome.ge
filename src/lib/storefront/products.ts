@@ -46,6 +46,7 @@ export function mapStorefrontProductToCard(
     oldPrice: hasDiscount ? referencePrice : undefined,
     newPrice: product.effectivePrice,
     discount,
+    promotionLabel: product.activePromotion?.promotionName,
     isNew: product.isNewArrival,
     category: product.category.slug,
     subCategory: product.subCategory?.slug,

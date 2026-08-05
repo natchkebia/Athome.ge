@@ -1,4 +1,6 @@
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
+import { headers } from "next/headers";
 import styles from "./page.module.scss";
 import Breadcrumb from "@/components/ breadcrumb/Breadcrumb";
 import BlogComments from "@/components/blogComments/BlogComments";
@@ -13,6 +15,25 @@ type Props = {
     slug: string;
   }>;
 };
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { slug } = await params;
+  const requestHeaders = await headers();
+  const locale = requestHeaders.get("x-lang") === "en" ? "en" : "ka";
+  const blog = await getStorefrontBlogPost(slug);
+  const kaPath = `/news/${encodeURIComponent(slug)}`;
+  const currentPath = locale === "en" ? `/en${kaPath}` : kaPath;
+  const site = "https://athome.ge";
+
+  return {
+    title: blog?.metaTitle || blog?.title || "Athome.ge",
+    description: blog?.metaDescription || blog?.summary,
+    alternates: {
+      canonical: `${site}${currentPath}`,
+      languages: { ka: `${site}${kaPath}`, en: `${site}/en${kaPath}`, "x-default": `${site}${kaPath}` },
+    },
+  };
+}
 
 export default async function NewsDetailPage({ params }: Props) {
   const { slug } = await params;

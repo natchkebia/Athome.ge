@@ -11,6 +11,7 @@ export async function GET(request: NextRequest) {
   }
 
   const url = new URL("/api/storefront/brands/featured", API_BASE_URL);
+  request.nextUrl.searchParams.forEach((value, key) => url.searchParams.set(key, value));
   const limit = request.nextUrl.searchParams.get("limit");
 
   if (limit) {

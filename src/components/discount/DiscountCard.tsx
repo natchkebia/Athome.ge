@@ -13,6 +13,7 @@ import { img } from "@/lib/media/img";
 export interface ProductCardProps {
   id: string;
   discount?: number;
+  promotionLabel?: string;
   image: string;
   title: string;
   oldPrice?: number;
@@ -50,6 +51,7 @@ function ZoomIcon() {
 export default function DiscountCard({
   id,
   discount = 0,
+  promotionLabel,
   image,
   title,
   oldPrice,
@@ -192,8 +194,8 @@ export default function DiscountCard({
     return (
       <div className={styles.cardList}>
         <div className={styles.listImage} ref={imageRef}>
-          {discount > 0 && (
-            <div className={styles.discountBadge}>-{discount}%</div>
+          {(promotionLabel || discount > 0) && (
+            <div className={styles.discountBadge}>{promotionLabel || `-${discount}%`}</div>
           )}
           {isNew && <div className={styles.newBadge}>NEW</div>}
           <Image
@@ -259,10 +261,10 @@ export default function DiscountCard({
   return (
     <div className={styles.card}>
       <div className={styles.cardWrapper}>
-        {(discount > 0 || isNew) && (
+        {(promotionLabel || discount > 0 || isNew) && (
           <div className={styles.badges}>
-            {discount > 0 && (
-              <div className={styles.discountBadge}>-{discount}%</div>
+            {(promotionLabel || discount > 0) && (
+              <div className={styles.discountBadge}>{promotionLabel || `-${discount}%`}</div>
             )}
             {isNew && <div className={styles.newBadge}>NEW</div>}
           </div>

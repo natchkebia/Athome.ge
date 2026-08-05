@@ -1,3 +1,5 @@
+import { getBrowserLocale } from "@/lib/i18n/locale";
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "");
 
 type ApiRequestOptions = RequestInit & {
@@ -92,7 +94,14 @@ export async function apiRequest<T>(
   path: string,
   { query, headers, useProxy, token, body, ...options }: ApiRequestOptions = {}
 ): Promise<T> {
-  const requestUrl = buildUrl(path, query, useProxy);
+  const isLanguageAware =
+    path.startsWith("/api/storefront/") || path.startsWith("/api/profile/");
+  const locale = isLanguageAware ? getBrowserLocale() : undefined;
+  const requestUrl = buildUrl(
+    path,
+    locale ? { ...query, lang: locale } : query,
+    useProxy
+  );
   // eslint-disable-next-line no-console
   console.log("[API REQUEST →]", options.method ?? "GET", requestUrl);
   const response = await fetch(requestUrl, {
@@ -104,6 +113,7 @@ export async function apiRequest<T>(
         ? { "Content-Type": "application/json" }
         : {}),
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(locale ? { "X-Lang": locale } : {}),
       ...headers,
     },
   });

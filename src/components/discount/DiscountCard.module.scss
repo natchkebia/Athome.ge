@@ -26,8 +26,11 @@
   flex: 0 0 236px;
 }
 .discountBadge {
-  width: 36px;
-  height: 36px;
+  width: fit-content;
+  min-width: 36px;
+  min-height: 36px;
+  max-width: min(190px, calc(100% - 76px));
+  padding: 6px 10px;
   border-radius: 50px;
   position: absolute;
   top: 23px;
@@ -39,6 +42,9 @@
   justify-content: center;
   font-size: 12px;
   font-weight: 510;
+  line-height: 1.15;
+  text-align: center;
+  overflow-wrap: anywhere;
 }
 .newBadge {
   width: 32px;

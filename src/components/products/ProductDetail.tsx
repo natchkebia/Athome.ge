@@ -298,6 +298,11 @@ export default function ProductDetail({
         <ProductGallery images={images} />
 
         <div className={styles.textContainer}>
+          {product.activePromotion?.promotionName && (
+            <div className={styles.promotionBadge}>
+              {product.activePromotion.promotionName}
+            </div>
+          )}
           <div>
             <h2 className={styles.title}>{product.name}</h2>
             {product.shortDescription && (

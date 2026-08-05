@@ -44,6 +44,19 @@
     min-width: 0;
     max-width: 100%;
 
+    .promotionBadge {
+      align-self: flex-start;
+      max-width: 100%;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: #ef0d4a;
+      color: #fff;
+      font-size: 13px;
+      font-weight: 590;
+      line-height: 1.25;
+      overflow-wrap: anywhere;
+    }
+
     @media (max-width: 1200px) {
       height: auto;
       gap: 18px;

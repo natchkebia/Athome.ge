@@ -8,7 +8,7 @@ type RouteContext = {
   }>;
 };
 
-export async function GET(_request: NextRequest, context: RouteContext) {
+export async function GET(request: NextRequest, context: RouteContext) {
   if (!API_BASE_URL) {
     return NextResponse.json(
       { message: "NEXT_PUBLIC_API_URL is not configured" },
@@ -17,11 +17,13 @@ export async function GET(_request: NextRequest, context: RouteContext) {
   }
 
   const { slug } = await context.params;
+  const url = new URL(
+    `/api/storefront/categories/${encodeURIComponent(slug)}`,
+    API_BASE_URL
+  );
+  request.nextUrl.searchParams.forEach((value, key) => url.searchParams.set(key, value));
   const response = await fetch(
-    new URL(
-      `/api/storefront/categories/${encodeURIComponent(slug)}`,
-      API_BASE_URL
-    ),
+    url,
     {
       headers: {
         Accept: "application/json",

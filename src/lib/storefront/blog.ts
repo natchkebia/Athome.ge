@@ -1,3 +1,5 @@
+import { headers } from "next/headers";
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "");
 
 export type StorefrontBlogPost = {
@@ -43,9 +45,13 @@ function getStorefrontUrl(path: string) {
 }
 
 async function fetchStorefront<T>(url: URL) {
+  const requestHeaders = await headers();
+  const locale = requestHeaders.get("x-lang") === "en" ? "en" : "ka";
+  url.searchParams.set("lang", locale);
   const response = await fetch(url, {
     headers: {
       Accept: "application/json",
+      "X-Lang": locale,
     },
     cache: "no-store",
   });
