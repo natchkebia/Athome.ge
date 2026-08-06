@@ -25,7 +25,8 @@ const items: ServiceItem[] = [
     icon: "/icons/Check.svg",
     alt: "Check",
     title: "გარანტია",
-    subtitle: "სუკან დაბრუნების პოლიტიკა",
+    subtitle: "უკან დაბრუნების პოლიტიკა",
+    href: "/return-policy",
   },
   {
     icon: "/icons/Setting.svg",
@@ -46,7 +47,7 @@ const Service = () => {
   const locale = useStorefrontLocale();
   const englishItems: ServiceItem[] = [
     { icon: "/icons/Moped.svg", alt: "Moped", title: "Delivery", subtitle: "Throughout Georgia", href: "/delivery-info" },
-    { icon: "/icons/Check.svg", alt: "Check", title: "Warranty", subtitle: "Return policy" },
+    { icon: "/icons/Check.svg", alt: "Check", title: "Warranty", subtitle: "Return policy", href: "/return-policy" },
     { icon: "/icons/Setting.svg", alt: "Setting", title: "Service", subtitle: "Repair and maintenance", href: "/services" },
     { icon: "/icons/Talking-man.svg", alt: "Talking-man", title: "Support", subtitle: "Corporate sales" },
   ];

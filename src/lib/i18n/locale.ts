@@ -7,8 +7,11 @@ export function localeFromPathname(pathname: string): StorefrontLocale {
 }
 
 export function localizedPath(pathname: string, locale: StorefrontLocale) {
-  const withoutEnglishPrefix =
-    pathname === "/en" ? "/" : pathname.replace(/^\/en(?=\/)/, "");
+  // Normalize accidental locale segments as well (for example /en/ka), so a
+  // language switch can never create a nested or invalid locale route.
+  const withoutEnglishPrefix = pathname === "/en"
+    ? "/"
+    : pathname.replace(/^\/en(?=\/)/, "").replace(/^\/ka(?=\/|$)/, "") || "/";
 
   return locale === "en"
     ? withoutEnglishPrefix === "/"

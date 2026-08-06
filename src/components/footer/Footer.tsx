@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import styles from "./Footer.module.scss";
 import { useStorefrontLocale } from "@/lib/i18n/useStorefrontLocale";
 
@@ -25,7 +26,7 @@ export default function Footer() {
             </li>
             <li>
               <img src="/icons/footerLocation.svg" alt="Location" />
-              <span>{en ? "115 Akaki Tsereteli Ave, Tbilisi" : "თბილისი, აკაკი წერეთლის გამზირი #115"}</span>
+              <span>{en ? "73 Merab Kostava St, Tbilisi" : "თბილისი, მერაბ კოსტავას ქუჩა #73"}</span>
             </li>
             <li>
               <img src="/icons/footerLocation.svg" alt="Location" />
@@ -72,10 +73,10 @@ export default function Footer() {
           <div className={styles["menu-column"]}>
             <h4>{en ? "Terms and conditions" : "წესები და პირობები"}</h4>
             <ul>
-              <li>{en ? "Terms and conditions" : "წესები და პირობები"}</li>
-              <li>{en ? "Warranty terms" : "სარანტიო პირობები"}</li>
-              <li>{en ? "Delivery terms" : "მიწოდების წესები და პირობები"}</li>
-              <li>{en ? "Privacy policy" : "პერსონალური მონაცემთა პოლიტიკა"}</li>
+              <li><Link href="/terms-and-conditions">{en ? "Terms and conditions" : "წესები და პირობები"}</Link></li>
+              <li><Link href="/return-policy">{en ? "Return policy" : "დაბრუნების პოლიტიკა"}</Link></li>
+              <li><Link href="/delivery-info">{en ? "Delivery" : "მიწოდება"}</Link></li>
+              <li><Link href="/privacy-policy">{en ? "Privacy policy" : "კონფიდენციალურობის პოლიტიკა"}</Link></li>
             </ul>
           </div>
         </div>

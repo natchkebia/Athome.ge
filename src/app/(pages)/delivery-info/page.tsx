@@ -76,9 +76,12 @@ export default async function DeliveryInfoPage() {
         <Breadcrumb items={localizedBreadcrumbs} />
       </div>
       <main className={styles.deliveryPage}>
+        <header className={styles.hero}>
+          <span>{locale === "en" ? "Flexible delivery" : "მოქნილი მიწოდება"}</span>
+          <h1>{locale === "en" ? "Choose the delivery option that suits you" : "აირჩიეთ თქვენზე მორგებული მიწოდება"}</h1>
+          <p>{locale === "en" ? "Same-day delivery in Tbilisi, express service, regional delivery, or free pickup from one of our branches." : "იმავე დღის მიწოდება თბილისში, ექსპრეს სერვისი, რეგიონებში გაგზავნა ან უფასო გატანა ჩვენი ფილიალებიდან."}</p>
+        </header>
         <section className={styles.deliveryLayout}>
-          <aside className={styles.leftBox}></aside>
-
           <div className={styles.cards}>
             {localizedItems.map((item, index) => (
               <article className={styles.card} key={index}>
@@ -100,6 +103,28 @@ export default async function DeliveryInfoPage() {
               </article>
             ))}
           </div>
+
+          <aside className={styles.sidebar}>
+            <div className={styles.sideCard}>
+              <span>{locale === "en" ? "Our branches" : "ჩვენი ფილიალები"}</span>
+              <h2>{locale === "en" ? "Free store pickup" : "უფასო გატანა მაღაზიიდან"}</h2>
+              <div className={styles.branch}>
+                <strong>{locale === "en" ? "Tsereteli" : "წერეთელი"}</strong>
+                <p>{locale === "en" ? "115 Akaki Tsereteli Ave, Tbilisi" : "თბილისი, აკაკი წერეთლის გამზირი #115"}</p>
+                <a href="tel:+995599093209">+995 599 09 32 09</a>
+              </div>
+              <div className={styles.branch}>
+                <strong>{locale === "en" ? "Saburtalo" : "საბურთალო"}</strong>
+                <p>{locale === "en" ? "73 Merab Kostava St, Tbilisi" : "თბილისი, მერაბ კოსტავას ქუჩა #73"}</p>
+                <a href="tel:+995595094209">+995 595 09 42 09</a>
+              </div>
+            </div>
+            <div className={styles.hours}>
+              <strong>{locale === "en" ? "Working hours" : "სამუშაო საათები"}</strong>
+              <p>{locale === "en" ? "Mon–Sat · 11:00–20:00 (both branches)" : "ორშ–შაბ · 11:00–20:00 (ორივე ფილიალი)"}</p>
+              <p>{locale === "en" ? "Sun · 11:00–18:00 (Saburtalo only)" : "კვირა · 11:00–18:00 (მხოლოდ საბურთალო)"}</p>
+            </div>
+          </aside>
         </section>
       </main>
     </>

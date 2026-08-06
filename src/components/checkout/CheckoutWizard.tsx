@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Step1Contact from "./Step1Contact";
 import Step2Delivery from "./Step2Delivery";
@@ -15,6 +15,7 @@ import { useToast } from "@/contexts/ToastContext";
 import { getCurrentUser } from "@/lib/api/auth";
 import { ApiError } from "@/lib/api/client";
 import { useStorefrontLocale } from "@/lib/i18n/useStorefrontLocale";
+import { getStorefrontProduct } from "@/lib/api/storefront";
 import {
   submitCheckout,
   initiateFlittPayment,
@@ -31,10 +32,11 @@ type CheckoutWizardProps = {
 type DeliverySelection = {
   method: string;
   address: {
-    id?: string;
+    id?: string | number;
+    savedAddressId?: number;
     city?: string;
-    street?: string;
-    house?: string;
+    line1?: string;
+    line2?: string;
     coords?: { lat: number; lng: number };
   } | null;
 };
@@ -60,6 +62,7 @@ export default function CheckoutWizard({ onStepChange }: CheckoutWizardProps) {
   const [step, setStep] = useState(1);
   const [orderType, setOrderType] = useState<"store" | "delivery" | null>(null);
   const [pickupBranchCode, setPickupBranchCode] = useState<string | null>(null);
+  const [stockLocationCodes, setStockLocationCodes] = useState<string[] | null>(null);
   const [contactData, setContactData] = useState<FormValues | null>(null);
   const [deliveryData, setDeliveryData] = useState<DeliverySelection | null>(
     null
@@ -75,6 +78,59 @@ export default function CheckoutWizard({ onStepChange }: CheckoutWizardProps) {
     { label: en ? "Home" : "მთავარი გვერდი", href: "/" },
     { label: en ? "Checkout" : "მიწოდების დეტალები" },
   ];
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadCartStockLocations() {
+      const productSlugs = Array.from(
+        new Set(cart.items.map((item) => item.slug).filter((slug): slug is string => Boolean(slug))),
+      );
+
+      const uniqueProductCount = new Set(cart.items.map((item) => item.productId)).size;
+      if (productSlugs.length === 0 || productSlugs.length < uniqueProductCount) {
+        setStockLocationCodes([]);
+        return;
+      }
+
+      const cartItemsBySlug = new Map(
+        cart.items
+          .filter((item): item is typeof item & { slug: string } => Boolean(item.slug))
+          .map((item) => [item.slug, item]),
+      );
+      const results = await Promise.allSettled(
+        productSlugs.map(async (slug) => ({
+          detail: await getStorefrontProduct(slug),
+          requiredQuantity: cartItemsBySlug.get(slug)?.quantity ?? 1,
+        })),
+      );
+      if (cancelled) return;
+
+      // A pickup location is eligible only when every cart item is available
+      // there in the requested quantity. A failed lookup is treated
+      // conservatively: no pickup branch is offered for an unverified cart.
+      if (results.some((result) => result.status === "rejected")) {
+        setStockLocationCodes([]);
+        return;
+      }
+
+      const locationSets = results.map((result) => {
+        if (result.status !== "fulfilled") return new Set<string>();
+        return new Set(
+          result.value.detail.stockLocations
+            ?.filter((location) => location.quantity >= result.value.requiredQuantity)
+            .map((location) => location.code) ?? [],
+        );
+      });
+      const eligibleCodes = locationSets[0]
+        ? Array.from(locationSets[0]).filter((code) => locationSets.every((locations) => locations.has(code)))
+        : [];
+      setStockLocationCodes(eligibleCodes);
+    }
+
+    loadCartStockLocations();
+    return () => { cancelled = true; };
+  }, [cart.items]);
 
   const handleStep2Next = () => {
     if (orderType === "store") {
@@ -113,11 +169,15 @@ export default function CheckoutWizard({ onStepChange }: CheckoutWizardProps) {
       shippingMethodId: null,
       shippingFullName: isCourier ? fullName : null,
       shippingLine1: isCourier
-        ? [address?.street, address?.house].filter(Boolean).join(" ") || null
+        ? address?.line1 || null
         : null,
+      shippingLine2: isCourier ? address?.line2 || null : null,
       shippingCity: isCourier ? address?.city ?? null : null,
+      shippingCountry: isCourier ? "GE" : null,
+      shippingPhone: isCourier ? contactData?.phone ?? null : null,
       deliveryLatitude: isCourier ? address?.coords?.lat ?? null : null,
       deliveryLongitude: isCourier ? address?.coords?.lng ?? null : null,
+      savedAddressId: isCourier ? address?.savedAddressId ?? null : null,
       paymentMethod,
       selectedBank:
         paymentMethod === "bankTransfer" ? "bog" : mapBank(payment.bank),
@@ -230,6 +290,7 @@ export default function CheckoutWizard({ onStepChange }: CheckoutWizardProps) {
           <Step2Delivery
             onOptionChange={setOrderType}
             onPickupBranchChange={setPickupBranchCode}
+            stockLocationCodes={stockLocationCodes}
             onNext={handleStep2Next}
             onPrev={() => goToStep(1)}
           />
@@ -237,6 +298,12 @@ export default function CheckoutWizard({ onStepChange }: CheckoutWizardProps) {
 
         {step === 3 && (
           <Step3Method
+            customerName={
+              contactData?.type === "company"
+                ? contactData.companyName
+                : [contactData?.firstName, contactData?.lastName].filter(Boolean).join(" ")
+            }
+            customerPhone={contactData?.phone}
             onNext={(data: DeliverySelection) => {
               setDeliveryData(data);
               goToStep(4);

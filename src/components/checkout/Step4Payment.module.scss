@@ -175,12 +175,15 @@
   .termsLink {
     border: none;
     outline: none;
-    background-color: #fff;
-    color: rgba(57, 105, 225, 1);
-    border-bottom: 1px solid rgba(57, 105, 225, 1);
+    background: transparent;
+    color: inherit;
     cursor: pointer;
     padding: 0;
     font: inherit;
+    font-weight: 600;
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 2px;
   }
 }
 

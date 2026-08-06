@@ -17,6 +17,16 @@ function publicOrigin(request: NextRequest): string {
 
 export function middleware(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
+
+  // Georgian is represented by an unprefixed URL. Canonicalize stale/malformed
+  // locale paths such as /ka and /en/ka instead of trying to render them.
+  if (pathname === "/ka" || pathname.startsWith("/ka/") || pathname === "/en/ka" || pathname.startsWith("/en/ka/")) {
+    const normalized = pathname
+      .replace(/^\/en\/ka(?=\/|$)/, "")
+      .replace(/^\/ka(?=\/|$)/, "") || "/";
+    return NextResponse.redirect(new URL(normalized + search, publicOrigin(request)));
+  }
+
   const isEnglishPath = pathname === "/en" || pathname.startsWith("/en/");
   const savedLocale = request.cookies.get(LOCALE_COOKIE)?.value;
 

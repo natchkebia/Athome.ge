@@ -13,13 +13,17 @@ interface Step2DeliveryProps {
   onPrev?: () => void;
   onOptionChange?: (value: "store" | "delivery") => void;
   onPickupBranchChange?: (code: string | null) => void;
+  stockLocationCodes?: string[] | null;
 }
+
+const DEFAULT_BRANCH_PRIORITY = ["saburtalo", "tsereteli", "warehouse", "online"];
 
 export default function Step2Delivery({
   onNext,
   onPrev,
   onOptionChange,
   onPickupBranchChange,
+  stockLocationCodes,
 }: Step2DeliveryProps) {
   const en = useStorefrontLocale() === "en";
   const [selectedOption, setSelectedOption] = useState<"store" | "delivery">(
@@ -28,6 +32,14 @@ export default function Step2Delivery({
   const [branches, setBranches] = useState<PickupBranch[]>([]);
   const [selectedBranch, setSelectedBranch] = useState<string | null>(null);
   const [branchesError, setBranchesError] = useState<string | null>(null);
+  const visibleBranches = branches
+    .filter((branch) => stockLocationCodes?.includes(branch.code))
+    .sort((left, right) => {
+      const leftPriority = DEFAULT_BRANCH_PRIORITY.indexOf(left.code);
+      const rightPriority = DEFAULT_BRANCH_PRIORITY.indexOf(right.code);
+      return (leftPriority < 0 ? Number.MAX_SAFE_INTEGER : leftPriority) -
+        (rightPriority < 0 ? Number.MAX_SAFE_INTEGER : rightPriority);
+    });
 
   useEffect(() => {
     onOptionChange?.("store");
@@ -41,6 +53,30 @@ export default function Step2Delivery({
         ),
       );
   }, [onOptionChange]);
+
+  useEffect(() => {
+    if (branches.length === 0 || stockLocationCodes === null || stockLocationCodes === undefined) {
+      return;
+    }
+
+    const availableStock = new Set(stockLocationCodes);
+    const branchCodes = new Set(branches.map((branch) => branch.code));
+    if (selectedBranch && availableStock.has(selectedBranch) && branchCodes.has(selectedBranch)) {
+      return;
+    }
+    const preferredBranch = DEFAULT_BRANCH_PRIORITY.find(
+      (code) => availableStock.has(code) && branchCodes.has(code),
+    );
+    const nextBranch = preferredBranch ?? branches.find((branch) => availableStock.has(branch.code))?.code;
+
+    if (nextBranch) {
+      setSelectedBranch(nextBranch);
+      onPickupBranchChange?.(nextBranch);
+    } else {
+      setSelectedBranch(null);
+      onPickupBranchChange?.(null);
+    }
+  }, [branches, onPickupBranchChange, selectedBranch, stockLocationCodes]);
 
   const select = (value: "store" | "delivery") => {
     setSelectedOption(value);
@@ -99,7 +135,7 @@ export default function Step2Delivery({
               <p className={styles.error}>{branchesError}</p>
             ) : (
               <div className={styles.branches}>
-                {branches.map((branch) => (
+                {visibleBranches.map((branch) => (
                   <label
                     key={branch.code}
                     className={`${styles.branch} ${
@@ -119,6 +155,13 @@ export default function Step2Delivery({
                     </span>
                   </label>
                 ))}
+                {stockLocationCodes !== null && visibleBranches.length === 0 && (
+                  <p className={styles.error}>
+                    {en
+                      ? "The complete order is not currently available at a pickup branch. Please choose delivery."
+                      : "სრული შეკვეთა ამჟამად არცერთ ფილიალში არ არის. გთხოვთ, აირჩიოთ ადგილზე მიტანა."}
+                  </p>
+                )}
               </div>
             )}
             <p>{en ? "Your order will be ready for collection the following day between 17:00 and 20:00." : "აღნიშნული პირობის გამოყენებისას მომხმარებელი შეძენილი ნივთი უნდა გაიტანოს მეორე დღეს 17:00 - 20:00-მდე..."}</p>
@@ -136,7 +179,7 @@ export default function Step2Delivery({
           onClick={onNext}
           disabled={
             selectedOption === "store" &&
-            (!selectedBranch || branches.length === 0)
+            (!selectedBranch || visibleBranches.length === 0)
           }
         >
           {en ? "Continue" : "გაგრძელება"}

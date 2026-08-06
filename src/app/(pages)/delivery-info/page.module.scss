@@ -1,6 +1,8 @@
 .deliveryPage {
+  max-width: 1390px;
+  margin: 0 auto;
   width: 100%;
-  padding: 28px 16px 60px;
+  padding: 20px 24px 80px;
 }
 
 .breadcrumb {
@@ -14,26 +16,40 @@
 }
 
 .deliveryLayout {
-  max-width: 1390px;
-  margin: 0 auto;
   display: grid;
-  grid-template-columns: 420px 1fr;
+  grid-template-columns: minmax(0, 1fr) 360px;
   gap: 24px;
+  margin-top: 24px;
 }
 
-.leftBox {
-  min-height: 680px;
-  border-radius: 16px;
-  background: #f5f7fa;
+.hero {
+  position: relative;
+  overflow: hidden;
+  padding: 54px 60px;
+  border-radius: 24px;
+  background: linear-gradient(125deg, #20262a, #333c41);
+  color: #fff;
+
+  &::after {
+    content: "";
+    position: absolute;
+    right: -80px;
+    top: -120px;
+    width: 340px;
+    height: 340px;
+    border: 75px solid rgba(255, 49, 95, .16);
+    border-radius: 50%;
+  }
+
+  span { color: #ff315f; font-size: 12px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+  h1 { position: relative; z-index: 1; max-width: 760px; margin: 14px 0 18px; font-size: clamp(30px, 4vw, 50px); line-height: 1.15; }
+  p { position: relative; z-index: 1; max-width: 720px; margin: 0; color: #cbd1d5; font-size: 15px; line-height: 1.75; }
 }
 
 .cards {
-  padding: 22px;
-  border-radius: 16px;
-  background: #f5f7fa;
   display: flex;
   flex-direction: column;
-  gap: 22px;
+  gap: 16px;
 }
 
 .card {
@@ -41,10 +57,38 @@
   grid-template-columns: 58px 1fr;
   gap: 18px;
   align-items: flex-start;
-  padding: 26px 24px;
-  border-radius: 14px;
+  padding: 28px;
+  border-radius: 18px;
   background: #fff;
   border: 1px solid #eef1f4;
+}
+
+.sidebar { display: flex; flex-direction: column; gap: 16px; }
+
+.sideCard {
+  padding: 30px;
+  border-radius: 18px;
+  background: #20262a;
+  color: #fff;
+
+  > span { color: #ff315f; font-size: 11px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
+  h2 { margin: 10px 0 24px; font-size: 22px; line-height: 1.35; }
+}
+
+.branch {
+  padding: 18px 0;
+  border-top: 1px solid rgba(255,255,255,.12);
+  strong { font-size: 15px; }
+  p { margin: 6px 0; color: #bdc5ca; font-size: 13px; line-height: 1.55; }
+  a { color: #fff; font-size: 13px; font-weight: 700; text-decoration: none; }
+}
+
+.hours {
+  padding: 24px 26px;
+  border-radius: 18px;
+  background: #fff0f3;
+  strong { display: block; margin-bottom: 12px; font-size: 15px; }
+  p { margin: 6px 0; color: #66585c; font-size: 12px; line-height: 1.55; }
 }
 
 .iconBox {
@@ -118,15 +162,14 @@
     grid-template-columns: 1fr;
   }
 
-  .leftBox {
-    min-height: 260px;
-  }
 }
 
 @media (max-width: 620px) {
   .deliveryPage {
-    padding: 20px 12px 45px;
+    padding: 16px 12px 45px;
   }
+
+  .hero { padding: 36px 24px; border-radius: 18px; }
 
   .cards {
     padding: 12px;

@@ -4,7 +4,9 @@ import { headers } from "next/headers";
 import DOMPurify from "isomorphic-dompurify";
 import styles from "./page.module.scss";
 import Breadcrumb from "@/components/ breadcrumb/Breadcrumb";
-import BlogComments from "@/components/blogComments/BlogComments";
+// Comments are temporarily hidden. Keep the component in the project so the
+// section can be restored when comment moderation is ready.
+// import BlogComments from "@/components/blogComments/BlogComments";
 import {
   formatBlogDate,
   getStorefrontBlogPost,
@@ -87,7 +89,7 @@ export default async function NewsDetailPage({ params }: Props) {
           dangerouslySetInnerHTML={{ __html: bodyHtml }}
         />
 
-        <BlogComments />
+        {/* <BlogComments /> */}
       </main>
     </>
   );

@@ -6,10 +6,26 @@ import DeliveryMethodCard from "./components/DeliveryMethodCard";
 import AddressSelector from "./components/AddressSelector";
 import { useStorefrontLocale } from "@/lib/i18n/useStorefrontLocale";
 
-export default function Step3Delivery({ onNext, onPrev }: any) {
+type DeliveryAddress = {
+  id?: string | number;
+  savedAddressId?: number;
+  city: string;
+  line1: string;
+  line2?: string;
+  coords?: { lat: number; lng: number };
+};
+
+type Step3DeliveryProps = {
+  onNext?: (data: { method: string; address: DeliveryAddress }) => void;
+  onPrev?: () => void;
+  customerName?: string;
+  customerPhone?: string;
+};
+
+export default function Step3Delivery({ onNext, onPrev, customerName, customerPhone }: Step3DeliveryProps) {
   const en = useStorefrontLocale() === "en";
   const [method, setMethod] = useState<string>("");
-  const [address, setAddress] = useState<any>(null);
+  const [address, setAddress] = useState<DeliveryAddress | null>(null);
 
   function handleNext() {
     if (!method || !address) return;
@@ -78,7 +94,11 @@ export default function Step3Delivery({ onNext, onPrev }: any) {
       />
 
       <div className={styles.dropdowns}>
-        <AddressSelector onSelect={(data: any) => setAddress(data)} />
+        <AddressSelector
+          customerName={customerName}
+          customerPhone={customerPhone}
+          onSelect={setAddress}
+        />
       </div>
 
       <button

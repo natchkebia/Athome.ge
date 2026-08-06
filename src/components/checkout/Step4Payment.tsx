@@ -237,7 +237,7 @@ export default function Step4Payment({
           onChange={(e) => setAcceptedTerms(e.target.checked)}
         />
         <span>
-          {en ? "Please confirm that you have read and agree to the " : "გთხოვთ, დააჭიროთ აქ, რომ გაეცნოთ და დაეთანხმოთ"}
+          {en ? "Please confirm that you have read and agree to the" : "გთხოვთ, დააჭიროთ აქ, რომ გაეცნოთ და დაეთანხმოთ"}{" "}
           <button
             type="button"
             className={styles.termsLink}

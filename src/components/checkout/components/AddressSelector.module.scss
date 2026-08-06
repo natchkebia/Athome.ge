@@ -163,6 +163,20 @@
   }
 }
 
+.mapHint {
+  margin: 0 4px;
+  color: #68747b;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.formError {
+  margin: 0 4px;
+  color: #eb4e39;
+  font-size: 12px;
+  font-weight: 600;
+}
+
 /* ---- MAP BOX ---- */
 .mapBox {
   width: 100%;
@@ -187,6 +201,11 @@
 
   &:hover {
     background: rgba(15, 161, 171, 1);
+  }
+
+  &:disabled {
+    cursor: wait;
+    opacity: .65;
   }
 }
 
