@@ -6,12 +6,14 @@ import { useState } from "react";
 import MinimalProductItem, { ProductItem } from "./MinimalProductItem";
 import { useCommerce } from "@/contexts/CommerceContext";
 import { normalizeMediaUrl } from "@/lib/storefront/products";
+import { useStorefrontLocale } from "@/lib/i18n/useStorefrontLocale";
 
 interface CartSummaryProps {
   showItems?: boolean;
 }
 
 export default function CartSummary({ showItems = true }: CartSummaryProps) {
+  const en = useStorefrontLocale() === "en";
   const router = useRouter();
   const [isContinuing, setIsContinuing] = useState(false);
   const { cart } = useCommerce();
@@ -62,24 +64,24 @@ export default function CartSummary({ showItems = true }: CartSummaryProps) {
           style={{ marginTop: showItems ? "" : "0px" }}
         >
           <div className={styles.row}>
-            <p>რაოდენობა</p>
+            <p>{en ? "Quantity" : "რაოდენობა"}</p>
             <span>{totalQuantity}x</span>
           </div>
 
           <div className={styles.row}>
-            <p>ღირებულება</p>
+            <p>{en ? "Subtotal" : "ღირებულება"}</p>
             <span>{totalPrice.toLocaleString()} ₾</span>
           </div>
 
           {totalDiscount > 0 && (
             <div className={styles.row}>
-              <p>დანაზოგი</p>
+              <p>{en ? "Savings" : "დანაზოგი"}</p>
               <span>{totalDiscount.toLocaleString()} ₾</span>
             </div>
           )}
 
           <div className={styles.totalRow}>
-            <p>ჯამი</p>
+            <p>{en ? "Total" : "ჯამი"}</p>
             <span>{totalPrice.toLocaleString()} ₾</span>
           </div>
         </div>
@@ -91,7 +93,7 @@ export default function CartSummary({ showItems = true }: CartSummaryProps) {
             style={{ marginTop: showItems ? "" : "10px" }}
           >
             {isContinuing && <span className={styles.spinner} />}
-            <span>ყიდვის გაგრძელება</span>
+            <span>{en ? "Proceed to checkout" : "ყიდვის გაგრძელება"}</span>
           </button>
         )}
       </div>

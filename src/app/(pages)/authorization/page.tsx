@@ -15,9 +15,12 @@ import {
 import { storeProfileGender } from "@/lib/auth/profilePreferences";
 import AtHomeLoader from "@/components/shared/AtHomeLoader";
 import styles from "./authorization.module.scss";
+import { useStorefrontLocale } from "@/lib/i18n/useStorefrontLocale";
 
 export default function AuthForm() {
   const router = useRouter();
+  const locale = useStorefrontLocale();
+  const en = locale === "en";
   const socialRedirectUri =
     typeof window === "undefined"
       ? ""
@@ -733,10 +736,10 @@ export default function AuthForm() {
                   <div className={styles.imageWrapper}>
                     <img src="/icons/authorization.svg" alt="person" />
                   </div>
-                  <h3 className={styles.mainTittle}>ავტორიზაცია</h3>
+                  <h3 className={styles.mainTittle}>{en ? "Sign in" : "ავტორიზაცია"}</h3>
                 </div>
               ) : (
-                <h3 className={styles.mainTittle}>რეგისტრაცია</h3>
+                <h3 className={styles.mainTittle}>{en ? "Registration" : "რეგისტრაცია"}</h3>
               )}
 
               {/* --- ტაბები --- */}
@@ -748,7 +751,7 @@ export default function AuthForm() {
                     setActiveTab("login");
                   }}
                 >
-                  ავტორიზაცია
+                  {en ? "Sign in" : "ავტორიზაცია"}
                 </button>
                 <button
                   className={activeTab === "register" ? styles.active : ""}
@@ -757,7 +760,7 @@ export default function AuthForm() {
                     setActiveTab("register");
                   }}
                 >
-                  რეგისტრაცია
+                  {en ? "Registration" : "რეგისტრაცია"}
                 </button>
               </div>
 
@@ -770,7 +773,7 @@ export default function AuthForm() {
                 >
                   <input
                     type="email"
-                    placeholder="ელ. ფოსტა"
+                    placeholder={en ? "Email" : "ელ. ფოსტა"}
                     name="email"
                     autoComplete="username"
                     required
@@ -778,7 +781,7 @@ export default function AuthForm() {
                   <div className={styles.passwordField}>
                     <input
                       type={showLoginPassword ? "text" : "password"}
-                      placeholder="პაროლი"
+                      placeholder={en ? "Password" : "პაროლი"}
                       name="password"
                       autoComplete="current-password"
                       required
@@ -805,7 +808,7 @@ export default function AuthForm() {
                       setActiveTab("reset");
                     }}
                   >
-                    დაგავიწყდა პაროლი?
+                    {en ? "Forgot password?" : "დაგავიწყდა პაროლი?"}
                   </div>
 
                   {feedback && (
@@ -824,7 +827,7 @@ export default function AuthForm() {
                     className={styles.submit}
                     disabled={isSubmitting}
                   >
-                    შესვლა
+                    {en ? "Sign in" : "შესვლა"}
                   </button>
 
                   <div className={styles.socials}>
@@ -835,7 +838,7 @@ export default function AuthForm() {
                       onClick={() => handleSocialLogin("facebook")}
                     >
                       <img src="/icons/facebook.svg" alt="facebook" />
-                      Facebook - ით შესვლა
+                      {en ? "Sign in with Facebook" : "Facebook - ით შესვლა"}
                     </button>
                     <button
                       type="button"
@@ -844,12 +847,12 @@ export default function AuthForm() {
                       onClick={() => handleSocialLogin("google")}
                     >
                       <img src="/icons/google.svg" alt="google" />
-                      Google - ით შესვლა
+                      {en ? "Sign in with Google" : "Google - ით შესვლა"}
                     </button>
                   </div>
 
                   <p className={styles.footerText}>
-                    არ ხარ დარეგისტრირებული?
+                    {en ? "Not registered yet?" : "არ ხარ დარეგისტრირებული?"}
                     <span
                       onClick={() => {
                         clearFeedback();
@@ -857,7 +860,7 @@ export default function AuthForm() {
                       }}
                     >
                       {" "}
-                      შექმენი
+                      {en ? "Create an account" : "შექმენი"}
                     </span>
                   </p>
                 </form>

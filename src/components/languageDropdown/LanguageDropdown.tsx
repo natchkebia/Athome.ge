@@ -4,7 +4,8 @@ import { useState } from "react";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import styles from "./LanguageDropdown.module.scss";
-import { localizedPath, localeFromPathname, LOCALE_COOKIE } from "@/lib/i18n/locale";
+import { localizedPath, LOCALE_COOKIE } from "@/lib/i18n/locale";
+import { useStorefrontLocale } from "@/lib/i18n/useStorefrontLocale";
 
 const languages = [
   { code: "ka", label: "ქარ", flag: "/icons/Geo.svg" },
@@ -13,9 +14,10 @@ const languages = [
 
 export default function LanguageDropdown() {
   const pathname = usePathname();
+  const locale = useStorefrontLocale();
   const [open, setOpen] = useState(false);
   const selected =
-    languages.find((language) => language.code === localeFromPathname(pathname)) ??
+    languages.find((language) => language.code === locale) ??
     languages[0];
 
   const toggleDropdown = () => setOpen(!open);

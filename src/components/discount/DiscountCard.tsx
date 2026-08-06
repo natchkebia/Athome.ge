@@ -9,6 +9,7 @@ import { useToast } from "@/contexts/ToastContext";
 import { cacheProductInfo } from "@/lib/commerce/guestStore";
 import { flyToTarget } from "@/lib/ui/flyToCart";
 import { img } from "@/lib/media/img";
+import { useStorefrontLocale } from "@/lib/i18n/useStorefrontLocale";
 
 export interface ProductCardProps {
   id: string;
@@ -64,6 +65,8 @@ export default function DiscountCard({
   slug,
   layout = "grid",
 }: ProductCardProps) {
+  const locale = useStorefrontLocale();
+  const en = locale === "en";
   const { toggleCompare, compareIds, maxItems } = useCompare();
   const { showToast } = useToast();
   const isCompared = compareIds.has(Number(id));
@@ -111,9 +114,9 @@ export default function DiscountCard({
       oldPrice,
     });
 
-    if (result === "added") showToast("შედარების სიაში დაემატა");
-    else if (result === "removed") showToast("შედარების სიიდან ამოიშალა");
-    else showToast(`შედარებაში მაქსიმუმ ${maxItems} პროდუქტია`, "error");
+    if (result === "added") showToast(en ? "Added to comparison" : "შედარების სიაში დაემატა");
+    else if (result === "removed") showToast(en ? "Removed from comparison" : "შედარების სიიდან ამოიშალა");
+    else showToast(en ? `You can compare up to ${maxItems} products` : `შედარებაში მაქსიმუმ ${maxItems} პროდუქტია`, "error");
   };
 
   // სტუმრის კალათა/სურვილებისთვის — ჩვენების ინფოს ქეშირება add-ისას.
@@ -161,7 +164,7 @@ export default function DiscountCard({
         type="button"
         className={styles.zoomClose}
         onClick={closeZoom}
-        aria-label="დახურვა"
+        aria-label={en ? "Close" : "დახურვა"}
       >
         ×
       </button>
@@ -183,7 +186,7 @@ export default function DiscountCard({
           }}
         />
       </div>
-            <p className={styles.zoomHint}>გასადიდებლად გადაატარეთ კურსორი</p>
+            <p className={styles.zoomHint}>{en ? "Hover to zoom" : "გასადიდებლად გადაატარეთ კურსორი"}</p>
           </div>,
           document.body
         )
@@ -250,7 +253,7 @@ export default function DiscountCard({
           </button>
           <button className={styles.addBtn} onClick={handleAddToCart}>
             <img src="/icons/CartWhite.svg" alt="cart" />
-            დამატება
+            {en ? "Add to cart" : "დამატება"}
           </button>
         </div>
         {zoomOverlay}
@@ -326,7 +329,7 @@ export default function DiscountCard({
 
         <button className={styles.addBtn} onClick={handleAddToCart}>
           <img src="/icons/CartWhite.svg" alt="cart" />
-          დამატება
+          {en ? "Add to cart" : "დამატება"}
         </button>
       </div>
       {zoomOverlay}

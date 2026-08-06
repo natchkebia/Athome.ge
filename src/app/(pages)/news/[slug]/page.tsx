@@ -23,7 +23,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const blog = await getStorefrontBlogPost(slug);
   const kaPath = `/news/${encodeURIComponent(slug)}`;
   const currentPath = locale === "en" ? `/en${kaPath}` : kaPath;
+<<<<<<< HEAD
   const site = (process.env.NEXT_PUBLIC_SITE_URL ?? "https://ithome.ge");
+=======
+  const site = process.env.NEXT_PUBLIC_SITE_URL ?? "https://ithome.ge";
+>>>>>>> ca6d4df8351e30d05ce75f64aab84fd518cda22a
 
   return {
     title: blog?.metaTitle || blog?.title || "Athome.ge",

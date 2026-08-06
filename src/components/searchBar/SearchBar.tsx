@@ -9,9 +9,11 @@ import {
   StorefrontSearchSuggestion,
 } from "@/lib/api/storefront";
 import styles from "./SearchBar.module.scss";
+import { useStorefrontLocale } from "@/lib/i18n/useStorefrontLocale";
 
 export default function SearchBar() {
   const router = useRouter();
+  const locale = useStorefrontLocale();
   const searchRef = useRef<HTMLDivElement>(null);
   const [categories, setCategories] = useState<StorefrontCategory[]>([]);
   const [selectedCategory, setSelectedCategory] =
@@ -23,7 +25,7 @@ export default function SearchBar() {
   );
   const [suggestionsOpen, setSuggestionsOpen] = useState(false);
   const trimmedQuery = query.trim();
-  const categoryLabel = selectedCategory?.name || "კატეგორია";
+  const categoryLabel = selectedCategory?.name || (locale === "en" ? "Category" : "კატეგორია");
 
   const toggleDropdown = () => setIsDropdownOpen(!isDropdownOpen);
 
@@ -131,7 +133,7 @@ export default function SearchBar() {
               }`}
               onClick={() => handleCategorySelect(null)}
             >
-              ყველა კატეგორია
+              {locale === "en" ? "All categories" : "ყველა კატეგორია"}
             </li>
             {categories.map((cat) => (
               <li
@@ -150,7 +152,7 @@ export default function SearchBar() {
       <input
         className={styles.searchInput}
         type="text"
-        placeholder="რას ეძებ?"
+        placeholder={locale === "en" ? "What are you looking for?" : "რას ეძებ?"}
         value={query}
         onChange={handleInputChange}
         onKeyDown={handleKeyPress}
@@ -158,7 +160,7 @@ export default function SearchBar() {
       />
 
       <button className={styles.searchBtn} onClick={executeSearch}>
-        ძებნა
+        {locale === "en" ? "Search" : "ძებნა"}
       </button>
 
       {suggestionsOpen && suggestions.length > 0 && (
@@ -172,10 +174,10 @@ export default function SearchBar() {
               <span>{suggestion.label}</span>
               <small>
                 {suggestion.type === "brand"
-                  ? "ბრენდი"
+                  ? locale === "en" ? "Brand" : "ბრენდი"
                   : suggestion.type === "category"
-                  ? "კატეგორია"
-                  : "პროდუქტი"}
+                  ? locale === "en" ? "Category" : "კატეგორია"
+                  : locale === "en" ? "Product" : "პროდუქტი"}
               </small>
             </button>
           ))}

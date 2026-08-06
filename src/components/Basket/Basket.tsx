@@ -6,8 +6,10 @@ import CommerceList, { ProductItem } from "@/components/commerce/CommerceList";
 import styles from "./Basket.module.scss";
 import { useCommerce } from "@/contexts/CommerceContext";
 import { normalizeMediaUrl } from "@/lib/storefront/products";
+import { useStorefrontLocale } from "@/lib/i18n/useStorefrontLocale";
 
 export default function BasketPage() {
+  const en = useStorefrontLocale() === "en";
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
@@ -80,8 +82,8 @@ export default function BasketPage() {
           {basket.length === 0 ? (
             <>
               <div>
-                <p className={styles.dropdownText}>კალათა ცარიელია</p>
-                <span>შესაძენად, დაამატე ნივთები კალათაში</span>
+                <p className={styles.dropdownText}>{en ? "Your cart is empty" : "კალათა ცარიელია"}</p>
+                <span>{en ? "Add items to your cart to purchase them" : "შესაძენად, დაამატე ნივთები კალათაში"}</span>
               </div>
               <img
                 src="/icons/Basket.svg"
@@ -92,7 +94,7 @@ export default function BasketPage() {
                 className={styles.dropdownButton}
                 onClick={handleGoToBasket}
               >
-                გადადი კალათაში
+                {en ? "Go to cart" : "გადადი კალათაში"}
               </button>
             </>
           ) : (

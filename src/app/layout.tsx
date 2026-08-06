@@ -4,6 +4,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import ClientLayout from "./ClientLayout";
 import { headers } from "next/headers";
+import { StorefrontLocaleProvider } from "@/lib/i18n/useStorefrontLocale";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -30,7 +31,9 @@ export default async function RootLayout({
   return (
     <html lang={locale}>
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        <ClientLayout>{children}</ClientLayout>
+        <StorefrontLocaleProvider locale={locale}>
+          <ClientLayout>{children}</ClientLayout>
+        </StorefrontLocaleProvider>
       </body>
     </html>
   );

@@ -1,5 +1,8 @@
+"use client";
+
 import Link from "next/link";
 import styles from "./Service.module.scss";
+import { useStorefrontLocale } from "@/lib/i18n/useStorefrontLocale";
 
 type ServiceItem = {
   icon: string;
@@ -40,10 +43,18 @@ const items: ServiceItem[] = [
 ];
 
 const Service = () => {
+  const locale = useStorefrontLocale();
+  const englishItems: ServiceItem[] = [
+    { icon: "/icons/Moped.svg", alt: "Moped", title: "Delivery", subtitle: "Throughout Georgia", href: "/delivery-info" },
+    { icon: "/icons/Check.svg", alt: "Check", title: "Warranty", subtitle: "Return policy" },
+    { icon: "/icons/Setting.svg", alt: "Setting", title: "Service", subtitle: "Repair and maintenance", href: "/services" },
+    { icon: "/icons/Talking-man.svg", alt: "Talking-man", title: "Support", subtitle: "Corporate sales" },
+  ];
+  const visibleItems = locale === "en" ? englishItems : items;
   return (
     <div className={styles.wrapper}>
       <div className={styles.container}>
-        {items.map((item) => {
+        {visibleItems.map((item) => {
           const content = (
             <>
               <div className={styles.iconCircle}>

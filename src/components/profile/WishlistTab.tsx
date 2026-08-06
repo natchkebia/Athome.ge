@@ -5,12 +5,14 @@ import styles from "./WishlistTab.module.scss";
 import DiscountCard from "../discount/DiscountCard";
 import { useCommerce } from "@/contexts/CommerceContext";
 import { normalizeMediaUrl } from "@/lib/storefront/products";
+import { useStorefrontLocale } from "@/lib/i18n/useStorefrontLocale";
 
 interface WishlistTabProps {
   variant?: "profile" | "page";
 }
 
 export default function WishlistTab({ variant = "profile" }: WishlistTabProps) {
+  const en = useStorefrontLocale() === "en";
   const [isMovingToCart, setIsMovingToCart] = useState(false);
   const {
     wishlist,
@@ -53,17 +55,17 @@ export default function WishlistTab({ variant = "profile" }: WishlistTabProps) {
       }`}
     >
       {wishlistItems.length === 0 ? (
-        <h4 className={styles.title}>ჩემი სურვილების სია</h4>
+        <h4 className={styles.title}>{en ? "My wishlist" : "ჩემი სურვილების სია"}</h4>
       ) : (
         <>
           <div className={styles.titleWrapper}>
-            <h4 className={styles.title}>ჩემი სურვილების სია</h4>
+            <h4 className={styles.title}>{en ? "My wishlist" : "ჩემი სურვილების სია"}</h4>
             <button
               className={styles.removeBtn}
               onClick={clearWishlist}
             >
               <img src="/icons/broom.svg" alt="broom" />
-              ყველა წაშლა
+              {en ? "Remove all" : "ყველა წაშლა"}
             </button>
           </div>
 
@@ -86,7 +88,7 @@ export default function WishlistTab({ variant = "profile" }: WishlistTabProps) {
               onClick={handleAddWishlistToCart}
               disabled={isMovingToCart}
             >
-              კალათაში გადატანა
+              {en ? "Move to cart" : "კალათაში გადატანა"}
             </button>
           </div>
         </>

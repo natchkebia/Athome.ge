@@ -15,11 +15,13 @@ import {
   StorefrontProductCard,
 } from "@/lib/storefront/products";
 import { useCommerce } from "@/contexts/CommerceContext";
+import { useStorefrontLocale } from "@/lib/i18n/useStorefrontLocale";
 
 // ყველა ფასდაკლებული პროდუქტი ჩაიტვირთოს (endpoint limit-ს არ ჭრის).
 const DEALS_LIMIT = 1000;
 
 export default function DiscountsPage() {
+  const en = useStorefrontLocale() === "en";
   const { wishlistProductIds, toggleWishlist, addToCart } = useCommerce();
 
   const [filters, setFilters] = useState({
@@ -157,10 +159,9 @@ export default function DiscountsPage() {
   const visibleProducts = filteredProducts.slice(0, visibleCount);
   const hasMore = visibleCount < filteredProducts.length;
 
-  const breadcrumbs = [
-    { label: "მთავარი გვერდი", href: "/" },
-    { label: "ფასდაკლებები" },
-  ];
+  const breadcrumbs = en
+    ? [{ label: "Home", href: "/" }, { label: "Discounts" }]
+    : [{ label: "მთავარი გვერდი", href: "/" }, { label: "ფასდაკლებები" }];
 
   if (loading) return <AtHomeLoader variant="page" />;
   if (products.length === 0) {
@@ -189,7 +190,7 @@ export default function DiscountsPage() {
                   view === "grid" ? styles.viewBtnActive : ""
                 }`}
                 onClick={() => setView("grid")}
-                aria-label="ბადით ჩვენება"
+                aria-label={en ? "Grid view" : "ბადით ჩვენება"}
                 aria-pressed={view === "grid"}
               >
                 <span className={`${styles.viewIcon} ${styles.viewIconGrid}`} />
@@ -199,7 +200,7 @@ export default function DiscountsPage() {
                   view === "list" ? styles.viewBtnActive : ""
                 }`}
                 onClick={() => setView("list")}
-                aria-label="სიად ჩვენება"
+                aria-label={en ? "List view" : "სიად ჩვენება"}
                 aria-pressed={view === "list"}
               >
                 <span className={`${styles.viewIcon} ${styles.viewIconList}`} />

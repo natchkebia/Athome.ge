@@ -8,6 +8,7 @@ import {
   getFeaturedStorefrontBrands,
   StorefrontBrand,
 } from "@/lib/api/storefront";
+import { useStorefrontLocale } from "@/lib/i18n/useStorefrontLocale";
 
 function normalizeLogoUrl(logoUrl: string) {
   if (logoUrl.startsWith("/media/http")) {
@@ -18,6 +19,7 @@ function normalizeLogoUrl(logoUrl: string) {
 }
 
 export default function BrandSlider() {
+  const locale = useStorefrontLocale();
   const [brands, setBrands] = useState<StorefrontBrand[]>([]);
 
   useEffect(() => {
@@ -53,7 +55,7 @@ export default function BrandSlider() {
 
   return (
     <div className={styles.sliderWrapper}>
-      <h2 className={styles.title}>ბრენდები</h2>
+      <h2 className={styles.title}>{locale === "en" ? "Brands" : "ბრენდები"}</h2>
 
       <div className={styles.slider} aria-label="Featured brands">
         <div className={styles.track}>

@@ -6,8 +6,10 @@ import CommerceList, { ProductItem } from "@/components/commerce/CommerceList";
 import styles from "./WishlistPage.module.scss";
 import { useCommerce } from "@/contexts/CommerceContext";
 import { normalizeMediaUrl } from "@/lib/storefront/products";
+import { useStorefrontLocale } from "@/lib/i18n/useStorefrontLocale";
 
 export default function WishlistPage() {
+  const en = useStorefrontLocale() === "en";
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
@@ -68,8 +70,8 @@ export default function WishlistPage() {
           {wishlistItems.length === 0 ? (
             <>
               <div>
-                <p className={styles.dropdownText}>სურვილების სია ცარიელია</p>
-                <span>შესაძენად, დაამატე ნივთები კალათაში</span>
+                <p className={styles.dropdownText}>{en ? "Your wishlist is empty" : "სურვილების სია ცარიელია"}</p>
+                <span>{en ? "Save products here for later" : "შესაძენად, დაამატე ნივთები კალათაში"}</span>
               </div>
               <img
                 src="/icons/wishlist.svg"
@@ -80,7 +82,7 @@ export default function WishlistPage() {
                 className={styles.dropdownButton}
                 onClick={handleGoToWishlist}
               >
-                ნახე სურვილების სია
+                {en ? "View wishlist" : "ნახე სურვილების სია"}
               </button>
             </>
           ) : (

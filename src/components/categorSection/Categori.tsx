@@ -8,6 +8,7 @@ import {
   StorefrontCategory,
 } from "@/lib/api/storefront";
 import { normalizeMediaUrl } from "@/lib/storefront/products";
+import { useStorefrontLocale } from "@/lib/i18n/useStorefrontLocale";
 
 const bgColors = [
   "#F0F8F8",
@@ -21,6 +22,7 @@ const bgColors = [
 ];
 
 export default function Categories() {
+  const locale = useStorefrontLocale();
   const [storefrontCategories, setStorefrontCategories] = useState<
     StorefrontCategory[]
   >([]);
@@ -70,7 +72,7 @@ export default function Categories() {
   return (
     <section className={styles.categoriesSection}>
       <div>
-        <h2 className={styles.title}>კატეგორიები</h2>
+        <h2 className={styles.title}>{locale === "en" ? "Categories" : "კატეგორიები"}</h2>
         <div className={styles.grid}>
           {visibleCategories.map((cat) => (
             <CategoryCard

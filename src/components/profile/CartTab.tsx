@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useCommerce } from "@/contexts/CommerceContext";
 import { normalizeMediaUrl } from "@/lib/storefront/products";
+import { useStorefrontLocale } from "@/lib/i18n/useStorefrontLocale";
 
 interface CartTabProps {
   showSummary?: boolean;
@@ -28,6 +29,7 @@ export type CartItem = {
 };
 
 export default function CartTab({ showSummary = true }: CartTabProps) {
+  const en = useStorefrontLocale() === "en";
   const router = useRouter();
   const [isContinuing, setIsContinuing] = useState(false);
   const { cart, updateCartQuantity, removeFromCart, clearCart } = useCommerce();
@@ -69,18 +71,18 @@ export default function CartTab({ showSummary = true }: CartTabProps) {
   return (
     <div className={styles.cartSection}>
       {cartItems.length === 0 ? (
-        <h4>ჩემი კალათა</h4>
+        <h4>{en ? "My cart" : "ჩემი კალათა"}</h4>
       ) : (
         <>
           <div className={styles.titleWrapper}>
-            <h4>ჩემი კალათა</h4>
+            <h4>{en ? "My cart" : "ჩემი კალათა"}</h4>
             <button
               type="button"
               className={styles.clearAllBtn}
               onClick={clearCart}
             >
               <img src="/icons/broom.svg" alt="broom" />
-              ყველა წაშლა
+              {en ? "Remove all" : "ყველა წაშლა"}
             </button>
           </div>
 
@@ -91,12 +93,12 @@ export default function CartTab({ showSummary = true }: CartTabProps) {
                   <img src={item.image} alt={item.title} />
 
                   <div className={styles.info}>
-                    <p>კოდი: {item.id}</p>
+                    <p>{en ? "Code" : "კოდი"}: {item.id}</p>
                     <h5>{item.title}</h5>
 
                     {item.isSystem && (
                       <p>
-                        სისტემის კომპონენტები:{" "}
+                        {en ? "System components" : "სისტემის კომპონენტები"}:{" "}
                         {item.systemProducts?.length || 0}
                       </p>
                     )}
@@ -143,7 +145,7 @@ export default function CartTab({ showSummary = true }: CartTabProps) {
           {showSummary && (
             <div className={styles.summary}>
               <div className={styles.total}>
-                ჯამური თანხა: <strong>{total.toLocaleString()} ₾</strong>
+                {en ? "Total amount" : "ჯამური თანხა"}: <strong>{total.toLocaleString()} ₾</strong>
               </div>
 
               <button
@@ -154,7 +156,7 @@ export default function CartTab({ showSummary = true }: CartTabProps) {
                 disabled={isContinuing}
               >
                 {isContinuing && <span className={styles.spinner} />}
-                <span>შეკვეთის გაფორმება</span>
+                <span>{en ? "Proceed to checkout" : "შეკვეთის გაფორმება"}</span>
               </button>
             </div>
           )}

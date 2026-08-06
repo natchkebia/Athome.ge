@@ -2,7 +2,11 @@ import type { Metadata } from "next";
 import { headers } from "next/headers";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "");
+<<<<<<< HEAD
 const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL ?? "https://ithome.ge");
+=======
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://ithome.ge";
+>>>>>>> ca6d4df8351e30d05ce75f64aab84fd518cda22a
 
 type Props = { children: React.ReactNode; params: Promise<{ brandSlug: string }> };
 

@@ -1,5 +1,6 @@
 import Breadcrumb from "@/components/ breadcrumb/Breadcrumb";
 import styles from "./page.module.scss";
+import { headers } from "next/headers";
 
 const contacts = [
   {
@@ -21,21 +22,31 @@ const breadcrumbs = [
   { label: "მთავარი გვერდი", href: "/" },
   { label: "კონტაქტი" },
 ];
-export default function ContactPage() {
+export default async function ContactPage() {
+  const locale = (await headers()).get("x-lang") === "en" ? "en" : "ka";
+  const localizedContacts = locale === "en"
+    ? [
+        { ...contacts[0], address: "115 Akaki Tsereteli Avenue, Tbilisi", workTime: "Monday–Saturday: 11:00–20:00" },
+        { ...contacts[1], address: "73 Merab Kostava Street, Tbilisi", workTime: "Monday–Saturday: 11:00–20:00    Sunday: 11:00–18:00" },
+      ]
+    : contacts;
+  const localizedBreadcrumbs = locale === "en"
+    ? [{ label: "Home", href: "/" }, { label: "Contact" }]
+    : breadcrumbs;
   return (
     <>
       <div style={{ marginLeft: "30px" }}>
-        <Breadcrumb items={breadcrumbs} />
+        <Breadcrumb items={localizedBreadcrumbs} />
       </div>
       <main className={styles.contactPage}>
         <section className={styles.contactGrid}>
-          {contacts.map((item, index) => (
+          {localizedContacts.map((item, index) => (
             <article className={styles.contactCard} key={index}>
               <div className={styles.mapBox}>
                 <iframe
                   src={`https://maps.google.com/maps?q=${encodeURIComponent(
                     item.mapQuery,
-                  )}&z=16&output=embed`}
+                  )}&z=16&output=embed&hl=${locale}`}
                   loading="lazy"
                   referrerPolicy="no-referrer-when-downgrade"
                   title={item.address}

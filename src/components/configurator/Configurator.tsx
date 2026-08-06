@@ -35,36 +35,43 @@ import {
   type ConfiguratorProductCard,
   type ConfiguratorSlot,
 } from "@/lib/api/configurator";
+import { useStorefrontLocale } from "@/lib/i18n/useStorefrontLocale";
 
-function translateCompatibilityIssue(issue: ConfiguratorIssue) {
+function translateCompatibilityIssue(issue: ConfiguratorIssue, en: boolean) {
   const values = (issue.message ?? "").match(/'([^']+)'/g)?.map((value) =>
     value.slice(1, -1),
   );
 
   switch (issue.ruleCode?.toUpperCase()) {
     case "SOCKET_MISMATCH":
+      if (en) return values?.length && values.length >= 2
+        ? `Processor socket “${values[0]}” does not match motherboard socket “${values[1]}”.`
+        : "The processor and motherboard sockets do not match.";
       return values?.length && values.length >= 2
         ? `პროცესორის სოკეტი „${values[0]}“ დედაპლატის სოკეტს „${values[1]}“ არ ემთხვევა.`
         : "პროცესორისა და დედაპლატის სოკეტები ერთმანეთს არ ემთხვევა.";
     case "MEMORY_TYPE_MISMATCH":
     case "RAM_TYPE_MISMATCH":
+      if (en) return values?.length && values.length >= 2
+        ? `Memory type “${values[0]}” does not match motherboard type “${values[1]}”.`
+        : "The selected memory is not compatible with the motherboard.";
       return values?.length && values.length >= 2
         ? `ოპერატიული მეხსიერების ტიპი „${values[0]}“ დედაპლატის ტიპს „${values[1]}“ არ ემთხვევა.`
         : "ოპერატიული მეხსიერების ტიპი დედაპლატასთან თავსებადი არ არის.";
     case "INSUFFICIENT_PSU_WATTAGE":
     case "PSU_WATTAGE_INSUFFICIENT":
-      return "არჩეული კვების ბლოკის სიმძლავრე ამ კონფიგურაციისთვის საკმარისი არ არის.";
+      return en ? "The selected power supply does not provide enough wattage for this configuration." : "არჩეული კვების ბლოკის სიმძლავრე ამ კონფიგურაციისთვის საკმარისი არ არის.";
     case "FORM_FACTOR_MISMATCH":
     case "CASE_FORM_FACTOR_MISMATCH":
-      return "დედაპლატის ზომა არჩეულ ქეისში თავსებადი არ არის.";
+      return en ? "The motherboard form factor is not compatible with the selected case." : "დედაპლატის ზომა არჩეულ ქეისში თავსებადი არ არის.";
     case "COOLER_SOCKET_MISMATCH":
-      return "პროცესორის ქულერი არჩეული პროცესორის სოკეტთან თავსებადი არ არის.";
+      return en ? "The CPU cooler is not compatible with the selected processor socket." : "პროცესორის ქულერი არჩეული პროცესორის სოკეტთან თავსებადი არ არის.";
     case "GPU_LENGTH_EXCEEDS_CASE":
-      return "ვიდეობარათის სიგრძე არჩეული ქეისისთვის ზედმეტად დიდია.";
+      return en ? "The graphics card is too long for the selected case." : "ვიდეობარათის სიგრძე არჩეული ქეისისთვის ზედმეტად დიდია.";
     case "COOLER_HEIGHT_EXCEEDS_CASE":
-      return "პროცესორის ქულერის სიმაღლე არჩეული ქეისისთვის ზედმეტად დიდია.";
+      return en ? "The CPU cooler is too tall for the selected case." : "პროცესორის ქულერის სიმაღლე არჩეული ქეისისთვის ზედმეტად დიდია.";
     default:
-      return "ეს პროდუქტი არჩეულ კომპონენტებთან თავსებადი არ არის.";
+      return en ? "This product is not compatible with the selected components." : "ეს პროდუქტი არჩეულ კომპონენტებთან თავსებადი არ არის.";
   }
 }
 
@@ -87,6 +94,14 @@ const REQUIRED_SYSTEM_CATEGORIES: ConfiguratorCategoryKey[] = [
   "case",
   "storage",
 ];
+
+const EN_CATEGORY_TITLES: Record<ConfiguratorCategoryKey, string> = {
+  processor: "Processor", motherboard: "Motherboard", ram: "Memory", gpu: "Graphics card",
+  psu: "Power supply", cooler: "CPU cooler", case: "Case", drive: "Hard drive",
+  storage: "SSD storage", caseFan: "Case fan", os: "System license", monitor: "Monitor",
+  headphones: "Headset", keyboard: "Keyboard", mouse: "Mouse", microphone: "Microphone",
+  speaker: "Speakers",
+};
 
 // backend slot -> a representative frontend key (for reconstructing a loaded build)
 const BACKEND_TO_FRONTEND_SLOT: Record<ConfiguratorSlot, ConfiguratorCategoryKey> =
@@ -124,6 +139,7 @@ function adaptCard(
 }
 
 export default function Configurator() {
+  const en = useStorefrontLocale() === "en";
   const router = useRouter();
   const searchParams = useSearchParams();
   const { addToCart } = useCommerce();
@@ -326,7 +342,7 @@ export default function Configurator() {
 
             if (isBlocked) {
               const message = result.allIssues
-                .map(translateCompatibilityIssue)
+                .map((issue) => translateCompatibilityIssue(issue, en))
                 .slice(0, 3)
                 .join(" ");
 
@@ -334,14 +350,15 @@ export default function Configurator() {
                 allowed: false,
                 message:
                   message ||
-                  "ეს პროდუქტი არჩეულ კომპონენტებთან თავსებადი არ არის.",
+                  (en ? "This product is not compatible with the selected components." : "ეს პროდუქტი არჩეულ კომპონენტებთან თავსებადი არ არის."),
               };
             }
           } catch {
             return {
               allowed: false,
-              message:
-                "თავსებადობის შემოწმება ვერ მოხერხდა. გთხოვთ, კიდევ სცადოთ.",
+              message: en
+                ? "Compatibility check failed. Please try again."
+                : "თავსებადობის შემოწმება ვერ მოხერხდა. გთხოვთ, კიდევ სცადოთ.",
             };
           }
         }
@@ -426,11 +443,11 @@ export default function Configurator() {
 
     if (missingCategories.length > 0) {
       const missingNames = missingCategories
-        .map((category) => category!.title)
+        .map((category) => en ? EN_CATEGORY_TITLES[category!.key] : category!.title)
         .join(", ");
       setAlert({
         type: "warning",
-        message: `სისტემის შესანახად სავალდებულოა შემდეგი კომპონენტების არჩევა: ${missingNames}`,
+        message: en ? `Select the following required components before saving: ${missingNames}` : `სისტემის შესანახად სავალდებულოა შემდეგი კომპონენტების არჩევა: ${missingNames}`,
       });
       return;
     }
@@ -438,7 +455,7 @@ export default function Configurator() {
     setSaving(true);
     try {
       const result = await saveConfiguratorBuild(
-        `კონფიგურაცია ${new Date().toLocaleDateString("ka-GE")}`,
+        `${en ? "Configuration" : "კონფიგურაცია"} ${new Date().toLocaleDateString(en ? "en-GB" : "ka-GE")}`,
         backendSlots
       );
       const shareUrl =
@@ -449,22 +466,22 @@ export default function Configurator() {
       setAlert({
         type: "success",
         message: shareUrl
-          ? `კონფიგურაცია შენახულია. გასაზიარებელი ბმული: ${shareUrl}`
-          : "კონფიგურაცია შენახულია.",
+          ? en ? `Configuration saved. Share link: ${shareUrl}` : `კონფიგურაცია შენახულია. გასაზიარებელი ბმული: ${shareUrl}`
+          : en ? "Configuration saved." : "კონფიგურაცია შენახულია.",
       });
     } catch {
       setAlert({
         type: "warning",
-        message: "კონფიგურაციის შენახვა ვერ მოხერხდა. სცადეთ მოგვიანებით.",
+        message: en ? "Could not save the configuration. Please try again later." : "კონფიგურაციის შენახვა ვერ მოხერხდა. სცადეთ მოგვიანებით.",
       });
     } finally {
       setSaving(false);
     }
-  }, [backendSlots, selectedProducts]);
+  }, [backendSlots, en, selectedProducts]);
 
   const handleAddToCart = useCallback(async () => {
     if (allSelectedProducts.length === 0) {
-      setAlert({ type: "warning", message: "ჯერ აირჩიეთ კომპონენტები." });
+      setAlert({ type: "warning", message: en ? "Select components first." : "ჯერ აირჩიეთ კომპონენტები." });
       return;
     }
     setAddingToCart(true);
@@ -476,17 +493,16 @@ export default function Configurator() {
     } catch {
       setAlert({
         type: "warning",
-        message: "კალათაში დამატება ვერ მოხერხდა.",
+        message: en ? "Could not add the configuration to the cart." : "კალათაში დამატება ვერ მოხერხდა.",
       });
     } finally {
       setAddingToCart(false);
     }
-  }, [addToCart, allSelectedProducts, router]);
+  }, [addToCart, allSelectedProducts, en, router]);
 
-  const breadcrumbs = [
-    { label: "მთავარი გვერდი", href: "/" },
-    { label: "კონფიგურატორი" },
-  ];
+  const breadcrumbs = en
+    ? [{ label: "Home", href: "/" }, { label: "Configurator" }]
+    : [{ label: "მთავარი გვერდი", href: "/" }, { label: "კონფიგურატორი" }];
 
   return (
     <>
@@ -501,7 +517,7 @@ export default function Configurator() {
               <div className={styles.toolbar}>
                 <div className={styles.switchRow}>
                   <span className={!showPeripherals ? styles.activeLabel : ""}>
-                    სისტემური ბლოკი
+                    {en ? "System unit" : "სისტემური ბლოკი"}
                   </span>
 
                   <button
@@ -510,13 +526,13 @@ export default function Configurator() {
                       showPeripherals ? styles.switchActive : ""
                     }`}
                     onClick={() => setShowPeripherals((prev) => !prev)}
-                    aria-label="კონფიგურატორის ტიპის შეცვლა"
+                    aria-label={en ? "Switch configurator type" : "კონფიგურატორის ტიპის შეცვლა"}
                   >
                     <span className={styles.switchThumb} />
                   </button>
 
                   <span className={showPeripherals ? styles.activeLabel : ""}>
-                    მონიტორი და პერიფერია
+                    {en ? "Monitor and peripherals" : "მონიტორი და პერიფერია"}
                   </span>
                 </div>
 
@@ -525,7 +541,7 @@ export default function Configurator() {
                   className={styles.resetViewBtn}
                   onClick={handleClearConfiguration}
                 >
-                  კონფიგურაციის გასუფთავება
+                  {en ? "Clear configuration" : "კონფიგურაციის გასუფთავება"}
                 </button>
               </div>
 
@@ -536,18 +552,18 @@ export default function Configurator() {
                 >
                   <strong>
                     {checkResult.verdict === "compatible" &&
-                      "✓ კომპონენტები თავსებადია"}
+                      (en ? "✓ Components are compatible" : "✓ კომპონენტები თავსებადია")}
                     {checkResult.verdict === "hasWarnings" &&
-                      "⚠ თავსებადია, მაგრამ არის გაფრთხილებები"}
+                      (en ? "⚠ Compatible, with warnings" : "⚠ თავსებადია, მაგრამ არის გაფრთხილებები")}
                     {checkResult.verdict === "incompatible" &&
-                      "✕ კომპონენტები არ არის თავსებადი"}
+                      (en ? "✕ Components are not compatible" : "✕ კომპონენტები არ არის თავსებადი")}
                     {checkResult.verdict === "partialBuild" &&
-                      "კონფიგურაცია არასრულია"}
+                      (en ? "Configuration is incomplete" : "კონფიგურაცია არასრულია")}
                   </strong>
                   {checkResult.allIssues.length > 0 && (
                     <ul>
                       {checkResult.allIssues.slice(0, 5).map((issue, i) => (
-                        <li key={i}>{translateCompatibilityIssue(issue)}</li>
+                        <li key={i}>{translateCompatibilityIssue(issue, en)}</li>
                       ))}
                     </ul>
                   )}
@@ -580,7 +596,7 @@ export default function Configurator() {
 
         {selectedCategory && (
           <ConfiguratorProductModal
-            title={activeCategoryTitle || "დეტალები"}
+            title={selectedCategory && en ? EN_CATEGORY_TITLES[selectedCategory] : activeCategoryTitle || (en ? "Details" : "დეტალები")}
             products={modalProducts}
             loading={modalLoading}
             selectedProducts={selectedProducts[selectedCategory] || []}
@@ -597,7 +613,7 @@ export default function Configurator() {
                 type="button"
                 className={styles.alertClose}
                 onClick={() => setAlert(null)}
-                aria-label="დახურვა"
+                aria-label={en ? "Close" : "დახურვა"}
               >
                 ×
               </button>
@@ -623,7 +639,7 @@ export default function Configurator() {
                       className={styles.alertLink}
                       onClick={() => router.push("/profile?tab=configurations")}
                     >
-                      ამ გვერდზე
+                      {en ? "View saved configurations" : "ამ გვერდზე"}
                     </button>
                   </>
                 )}

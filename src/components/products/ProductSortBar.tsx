@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import styles from "./ProductSortBar.module.scss";
 import { ChevronDown, ChevronUp } from "react-bootstrap-icons";
+import { useStorefrontLocale } from "@/lib/i18n/useStorefrontLocale";
 
 interface ProductSortBarProps {
   filters: {
@@ -15,10 +16,11 @@ export default function ProductSortBar({
   filters,
   onChange,
 }: ProductSortBarProps) {
+  const en = useStorefrontLocale() === "en";
   const sortOptions = [
-    { value: "default", label: "ყველა" },
-    { value: "price-asc", label: "უახლესი" },
-    { value: "price-desc", label: "გაყიდვადი" },
+    { value: "default", label: en ? "All" : "ყველა" },
+    { value: "price-asc", label: en ? "Newest" : "უახლესი" },
+    { value: "price-desc", label: en ? "Best selling" : "გაყიდვადი" },
     { value: "a-z", label: "A-Z" },
     { value: "z-a", label: "Z-A" },
   ];
@@ -45,7 +47,7 @@ export default function ProductSortBar({
   };
 
   const activeLabel =
-    sortOptions.find((o) => o.value === filters.sort)?.label || "დალაგება";
+    sortOptions.find((o) => o.value === filters.sort)?.label || (en ? "Sort" : "დალაგება");
 
   return (
     <div className={styles.controls} ref={dropdownRef}>

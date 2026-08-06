@@ -2,6 +2,7 @@
 
 import styles from "./ProductSection.module.scss";
 import DiscountSlider from "../discount/DiscountSlider";
+import { useStorefrontLocale } from "@/lib/i18n/useStorefrontLocale";
 
 interface Product {
   id: number;
@@ -27,6 +28,14 @@ export default function ProductSection({
   products,
   compact = false,
 }: ProductSectionProps) {
+  const locale = useStorefrontLocale();
+  const englishTitles: Record<string, string> = {
+    კომპიუტერები: "Computers",
+    მონიტორები: "Monitors",
+    პერიფერია: "Peripherals",
+    "მაგიდები და სავარძლები": "Desks and chairs",
+  };
+  const visibleTitle = locale === "en" ? englishTitles[title] ?? title : title;
   return (
     <div className={styles.section}>
       <div
@@ -34,8 +43,8 @@ export default function ProductSection({
           compact ? styles.compactHeader : ""
         }`}
       >
-        <img src={icon} alt={title} />
-        <span className={styles.sectionTitle}>{title}</span>
+        <img src={icon} alt={visibleTitle} />
+        <span className={styles.sectionTitle}>{visibleTitle}</span>
       </div>
 
       <DiscountSlider

@@ -9,6 +9,7 @@ import {
   StorefrontProductCard,
 } from "@/lib/storefront/products";
 import { usePageLoading } from "@/contexts/LoadingContext";
+import { useStorefrontLocale } from "@/lib/i18n/useStorefrontLocale";
 
 // tab label -> backend category slug (deal card carries the top-level slug)
 const FILTER_SLUGS: Record<string, string> = {
@@ -20,7 +21,15 @@ const FILTER_SLUGS: Record<string, string> = {
 };
 
 export default function Discount() {
+  const locale = useStorefrontLocale();
   const filters = Object.keys(FILTER_SLUGS);
+  const filterLabels: Record<string, string> = {
+    კომპიუტერები: "Computers",
+    მონიტორები: "Monitors",
+    "კომპიუტერის ნაწილები": "Computer parts",
+    პერიფერიულიები: "Peripherals",
+    ნოუთბუქები: "Laptops",
+  };
 
   const [activeFilter, setActiveFilter] = useState(filters[0]);
   const [products, setProducts] = useState<StorefrontProductCard[]>([]);
@@ -70,7 +79,7 @@ export default function Discount() {
       <div className={styles.filtersWrapper}>
         <div className={styles.left}>
           <img src="/icons/Percentage.svg" alt="Percentage" />
-          <span className={styles.discountText}>ფასდაკლება</span>
+          <span className={styles.discountText}>{locale === "en" ? "Discounts" : "ფასდაკლება"}</span>
         </div>
         <div className={styles.right}>
           {filters.map((filter) => (
@@ -81,7 +90,7 @@ export default function Discount() {
               }`}
               onClick={() => handleFilterClick(filter)}
             >
-              {filter}
+              {locale === "en" ? filterLabels[filter] : filter}
             </button>
           ))}
         </div>
@@ -92,7 +101,7 @@ export default function Discount() {
         <DiscountSlider products={filteredProducts} />
       ) : (
         <p className={styles.emptyDeals}>
-          ამ კატეგორიაში ფასდაკლება ჯერ არ არის
+          {locale === "en" ? "There are no discounts in this category yet" : "ამ კატეგორიაში ფასდაკლება ჯერ არ არის"}
         </p>
       )}
     </>
