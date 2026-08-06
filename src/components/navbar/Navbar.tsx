@@ -5,19 +5,30 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import styles from "./Navbar.module.scss";
 import NavbarCategory from "./NavbarCategory";
+import { useStorefrontLocale } from "@/lib/i18n/useStorefrontLocale";
 
 export default function Navbar() {
   const pathname = usePathname();
+  const locale = useStorefrontLocale();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  const menuItems = [
-    { title: "კონფიგურატორი", href: "/configurator" },
-    { title: "ფასდაკლებები", href: "/discounts" },
-    { title: "მიწოდება", href: "/delivery-info" },
-    { title: "სიახლეები", href: "/news" },
-    { title: "სერვისი", href: "/services" },
-    { title: "კონტაქტი", href: "/contact" },
-  ];
+  const menuItems = locale === "en"
+    ? [
+        { title: "Configurator", href: "/configurator" },
+        { title: "Discounts", href: "/discounts" },
+        { title: "Delivery", href: "/delivery-info" },
+        { title: "News", href: "/news" },
+        { title: "Service", href: "/services" },
+        { title: "Contact", href: "/contact" },
+      ]
+    : [
+        { title: "კონფიგურატორი", href: "/configurator" },
+        { title: "ფასდაკლებები", href: "/discounts" },
+        { title: "მიწოდება", href: "/delivery-info" },
+        { title: "სიახლეები", href: "/news" },
+        { title: "სერვისი", href: "/services" },
+        { title: "კონტაქტი", href: "/contact" },
+      ];
 
   return (
     <nav className={styles.navbar}>
@@ -30,7 +41,7 @@ export default function Navbar() {
             isMenuOpen ? styles.openButton : ""
           }`}
           onClick={() => setIsMenuOpen((prev) => !prev)}
-          aria-label="მენიუს გახსნა"
+          aria-label={locale === "en" ? "Open menu" : "მენიუს გახსნა"}
           aria-expanded={isMenuOpen}
         >
           <img src="/icons/Burger.svg" alt="" />

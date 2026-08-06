@@ -4,6 +4,7 @@ import React from "react";
 import styles from "./CommerceList.module.scss";
 import { useRouter } from "next/navigation";
 import { img } from "@/lib/media/img";
+import { useStorefrontLocale } from "@/lib/i18n/useStorefrontLocale";
 
 export interface ProductItem {
   id: string;
@@ -31,6 +32,7 @@ export default function CommerceList({
   onClearAll,
   onNavigate,
 }: CommerceListProps) {
+  const en = useStorefrontLocale() === "en";
   const getTotal = () => {
     return items.reduce(
       (acc, item) => acc + item.newPrice * (item.quantity || 1),
@@ -50,8 +52,8 @@ export default function CommerceList({
   return (
     <div className={styles.box}>
       <div className={styles.header}>
-        <h4>{type === "cart" ? "კალათა" : "სურვილების სია"}</h4>
-        <span>{items.length} პროდუქტი</span>
+        <h4>{type === "cart" ? (en ? "Cart" : "კალათა") : (en ? "Wishlist" : "სურვილების სია")}</h4>
+        <span>{items.length} {en ? (items.length === 1 ? "product" : "products") : "პროდუქტი"}</span>
       </div>
 
       <div className={styles.list}>
@@ -62,7 +64,7 @@ export default function CommerceList({
               type="button"
               onClick={() => onRemove?.(item.id)}
               className={styles.removeBtn}
-              aria-label="წაშლა"
+              aria-label={en ? "Remove" : "წაშლა"}
             >
               ×
             </button>
@@ -120,21 +122,21 @@ export default function CommerceList({
             onClick={onClearAll}
           >
             <img src="/icons/broom.svg" alt="broom" />
-            ყველა წაშლა
+            {en ? "Remove all" : "ყველა წაშლა"}
           </button>
         )}
         {type === "cart" ? (
           <>
             <p>
-              გადასახდელი თანხა: <b>{getTotal().toLocaleString()} ₾</b>
+              {en ? "Amount due" : "გადასახდელი თანხა"}: <b>{getTotal().toLocaleString()} ₾</b>
             </p>
             <button className={styles.actionBtn} onClick={handleGoToBasket}>
-              გადადი კალათაში
+              {en ? "Go to cart" : "გადადი კალათაში"}
             </button>
           </>
         ) : (
           <button className={styles.actionBtn} onClick={handleGoToWishlist}>
-            ნახე სურვილების სია
+            {en ? "View wishlist" : "ნახე სურვილების სია"}
           </button>
         )}
       </div>

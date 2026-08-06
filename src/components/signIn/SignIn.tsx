@@ -9,9 +9,11 @@ import {
   type ProfileGender,
 } from "@/lib/auth/profilePreferences";
 import styles from "./SignIn.module.scss";
+import { useStorefrontLocale } from "@/lib/i18n/useStorefrontLocale";
 
 export default function SignIn() {
   const router = useRouter();
+  const locale = useStorefrontLocale();
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [gender, setGender] = useState<ProfileGender>("male");
   const [avatar, setAvatar] = useState<string | null>(null);
@@ -58,14 +60,14 @@ export default function SignIn() {
         isAuthorized ? styles.authorized : ""
       }`}
       onClick={handleClick}
-      aria-label={isAuthorized ? "პროფილი" : "შესვლა"}
+      aria-label={isAuthorized ? (locale === "en" ? "Profile" : "პროფილი") : (locale === "en" ? "Sign in" : "შესვლა")}
     >
       {showAvatar ? (
         <img className={styles.avatar} src={avatar as string} alt="" />
       ) : (
         <img src={iconSrc} alt="" />
       )}
-      {!isAuthorized && <span>შესვლა</span>}
+      {!isAuthorized && <span>{locale === "en" ? "Sign in" : "შესვლა"}</span>}
     </button>
   );
 }

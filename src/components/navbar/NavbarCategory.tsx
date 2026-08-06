@@ -8,6 +8,7 @@ import {
   getStorefrontCategories,
   StorefrontCategory,
 } from "@/lib/api/storefront";
+import { useStorefrontLocale } from "@/lib/i18n/useStorefrontLocale";
 
 const CATEGORY_ICONS: Record<string, string> = {
   computers: "/icons/Computer-black.svg",
@@ -37,6 +38,7 @@ function categoryIcon(cat: StorefrontCategory) {
 }
 
 export default function NavbarCategory() {
+  const locale = useStorefrontLocale();
   const [isOpen, setIsOpen] = useState(false);
   const [categories, setCategories] = useState<StorefrontCategory[]>([]);
   const [activeSlug, setActiveSlug] = useState<string | null>(null);
@@ -93,7 +95,7 @@ export default function NavbarCategory() {
     <div className={styles.navbarCategory} ref={dropdownRef}>
       <div className={styles.header} onClick={toggleDropdown}>
         <img src="/icons/Burger.svg" alt="burger" />
-        <span>კატეგორიები</span>
+        <span>{locale === "en" ? "Categories" : "კატეგორიები"}</span>
       </div>
 
       {isOpen && loading && (

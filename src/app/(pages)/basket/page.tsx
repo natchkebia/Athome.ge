@@ -5,8 +5,10 @@ import CartTab from "@/components/profile/CartTab";
 import { useRouter } from "next/navigation";
 import CartSummary from "@/components/profile/CartSummary";
 import { useCommerce } from "@/contexts/CommerceContext";
+import { useStorefrontLocale } from "@/lib/i18n/useStorefrontLocale";
 
 export default function BasketFullPage() {
+  const en = useStorefrontLocale() === "en";
   const router = useRouter();
   const { cart } = useCommerce();
 
@@ -18,14 +20,14 @@ export default function BasketFullPage() {
     <div className={styles.basketPage}>
       {cart.items.length === 0 ? (
         <>
-          <h1 className={styles.title}>კალათა</h1>
+          <h1 className={styles.title}>{en ? "Cart" : "კალათა"}</h1>
 
           <div className={styles.contentBox}>
             <div>
-              <h2 className={styles.subtitle}>შენი კალათა ცარიელია</h2>
+              <h2 className={styles.subtitle}>{en ? "Your cart is empty" : "შენი კალათა ცარიელია"}</h2>
 
               <p className={styles.text}>
-                დაამატე პროდუქტები და შეამოწმე აქ შენი კალათის შიგთავსი
+                {en ? "Add products and view the contents of your cart here" : "დაამატე პროდუქტები და შეამოწმე აქ შენი კალათის შიგთავსი"}
               </p>
 
               <img
@@ -36,7 +38,7 @@ export default function BasketFullPage() {
             </div>
 
             <button className={styles.button} onClick={handleGoToProducts}>
-              გადადი პროდუქტებზე
+              {en ? "Browse products" : "გადადი პროდუქტებზე"}
             </button>
           </div>
         </>

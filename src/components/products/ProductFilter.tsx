@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import styles from "./ProductFilter.module.scss";
 import { ChevronDown, ChevronUp } from "react-bootstrap-icons";
+import { useStorefrontLocale } from "@/lib/i18n/useStorefrontLocale";
 
 interface ProductFilterProps {
   filters: {
@@ -22,6 +23,7 @@ export default function ProductFilter({
   filters,
   onChange,
 }: ProductFilterProps) {
+  const en = useStorefrontLocale() === "en";
   const allBrands = ["Asus", "Dell", "Lenovo", "Gigabyte", "Alienware"];
   const allCondition = ["New", "Second-hand"];
   const allProcessorTypes = ["Intel", "AMD", "Apple", "Silicon"];
@@ -154,16 +156,16 @@ export default function ProductFilter({
   return (
     <div className={styles.wrapper}>
       <div className={styles.header}>
-        <h4 className={styles.title}>ფილტრი</h4>
+        <h4 className={styles.title}>{en ? "Filter" : "ფილტრი"}</h4>
         <button className={styles.resetBtn} onClick={handleReset}>
           <img src="/icons/ArrowClockwise.svg" alt="reset" />
-          გასუფთავება
+          {en ? "Reset" : "გასუფთავება"}
         </button>
       </div>
 
       <div className={styles.filterBox}>
         <div className={styles.section}>
-          <label className={styles.label}>ფასი</label>
+          <label className={styles.label}>{en ? "Price" : "ფასი"}</label>
 
           <div className={styles.rangeWrapper}>
             <div ref={trackRef} className={styles.rangeTrack}></div>
@@ -199,27 +201,27 @@ export default function ProductFilter({
               type="text"
               value={minInput}
               onChange={handleMinChange}
-              placeholder="მინ"
+              placeholder={en ? "Min" : "მინ"}
               inputMode="numeric"
             />
             <input
               type="text"
               value={maxInput}
               onChange={handleMaxChange}
-              placeholder="მაქს"
+              placeholder={en ? "Max" : "მაქს"}
               inputMode="numeric"
             />
           </div>
         </div>
 
         <div className={styles.dropdownWraper}>
-          {renderDropdown("ბრენდი", "brands", allBrands)}
-          {renderDropdown("მდგომარეობა", "condition", allCondition)}
-          {renderDropdown("პროცესორის ტიპი", "processor", allProcessorTypes)}
-          {renderDropdown("ოპერატიული მეხსიერება", "ram", allRAM)}
-          {renderDropdown("ვიდეო ბარათი", "gpu", allVideoCard)}
-          {renderDropdown("ფერი", "color", allColor)}
-          {renderDropdown("ეკრანის ზომა", "screen", allScreenSize, true)}
+          {renderDropdown(en ? "Brand" : "ბრენდი", "brands", allBrands)}
+          {renderDropdown(en ? "Condition" : "მდგომარეობა", "condition", allCondition)}
+          {renderDropdown(en ? "Processor type" : "პროცესორის ტიპი", "processor", allProcessorTypes)}
+          {renderDropdown(en ? "Memory" : "ოპერატიული მეხსიერება", "ram", allRAM)}
+          {renderDropdown(en ? "Graphics card" : "ვიდეო ბარათი", "gpu", allVideoCard)}
+          {renderDropdown(en ? "Color" : "ფერი", "color", allColor)}
+          {renderDropdown(en ? "Screen size" : "ეკრანის ზომა", "screen", allScreenSize, true)}
         </div>
       </div>
     </div>

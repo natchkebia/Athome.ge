@@ -4,7 +4,9 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
+    "prebuild": "node scripts/verify-deploy-config.mjs",
     "build": "next build --turbopack",
+    "verify:deploy-config": "node scripts/verify-deploy-config.mjs",
     "start": "next start",
     "lint": "eslint"
   },

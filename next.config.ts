@@ -1,6 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // PM2 deploy runs the self-contained `.next/standalone/server.js` bundle.
+  output: "standalone",
   eslint: {
     // build-ს არ ვაჩერებთ lint შეცდომებზე (TypeScript ტიპების შემოწმება მაინც მუშაობს).
     // არსებული lint errors ცალკე უნდა გასწორდეს checkout/StockCheck კომპონენტებში.

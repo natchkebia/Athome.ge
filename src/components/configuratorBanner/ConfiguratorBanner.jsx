@@ -1,7 +1,11 @@
+"use client";
+
 import Link from "next/link";
 import styles from "./ConfiguratorBanner.module.css";
+import { useStorefrontLocale } from "@/lib/i18n/useStorefrontLocale";
 
 export default function ConfiguratorBanner() {
+  const locale = useStorefrontLocale();
   return (
     <section className={styles.configuratorSection}>
       <Link href="/configurator" className={styles.banner}>
@@ -17,14 +21,14 @@ export default function ConfiguratorBanner() {
         <div className={styles.imageSide}>
           <img
             src="/images/configurator-parts.png"
-            alt="კომპიუტერის კონფიგურატორი"
+            alt={locale === "en" ? "PC configurator" : "კომპიუტერის კონფიგურატორი"}
           />
         </div>
 
         <div className={styles.contentSide}>
-          <h2>ააწყვე შენი ოცნების კომპიუტერი ვირტუალურად კონფიგურატორის დახმარებით</h2>
-          <p>სისტემური ბლოკი იწყობა შეკვეთიდან 24 საათში.</p>
-          <span className={styles.button}>დაიწყე აწყობა</span>
+          <h2>{locale === "en" ? "Build your dream computer virtually with our configurator" : "ააწყვე შენი ოცნების კომპიუტერი ვირტუალურად კონფიგურატორის დახმარებით"}</h2>
+          <p>{locale === "en" ? "Your system unit will be assembled within 24 hours of ordering." : "სისტემური ბლოკი იწყობა შეკვეთიდან 24 საათში."}</p>
+          <span className={styles.button}>{locale === "en" ? "Start building" : "დაიწყე აწყობა"}</span>
         </div>
       </Link>
     </section>
