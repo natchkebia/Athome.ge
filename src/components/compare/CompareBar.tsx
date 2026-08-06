@@ -6,8 +6,10 @@ import { useCompare } from "@/contexts/CompareContext";
 import { normalizeMediaUrl } from "@/lib/storefront/products";
 import { img } from "@/lib/media/img";
 import styles from "./CompareBar.module.scss";
+import { useStorefrontLocale } from "@/lib/i18n/useStorefrontLocale";
 
 export default function CompareBar() {
+  const en = useStorefrontLocale() === "en";
   const { items, removeCompare, clearCompare } = useCompare();
   const pathname = usePathname();
 
@@ -23,7 +25,7 @@ export default function CompareBar() {
               <button
                 className={styles.remove}
                 onClick={() => removeCompare(item.id)}
-                aria-label="წაშლა"
+                aria-label={en ? "Remove" : "წაშლა"}
               >
                 ×
               </button>
@@ -47,10 +49,10 @@ export default function CompareBar() {
 
         <div className={styles.actions}>
           <Link href="/compare" className={styles.compareBtn}>
-            შედარება
+            {en ? "Compare" : "შედარება"}
           </Link>
           <button className={styles.clear} onClick={clearCompare}>
-            ყველა პროდუქტის წაშლა
+            {en ? "Remove all products" : "ყველა პროდუქტის წაშლა"}
           </button>
         </div>
       </div>

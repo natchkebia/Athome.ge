@@ -24,6 +24,7 @@ import { useCompare } from "@/contexts/CompareContext";
 import { useToast } from "@/contexts/ToastContext";
 import { cacheProductInfo } from "@/lib/commerce/guestStore";
 import { flyToTarget } from "@/lib/ui/flyToCart";
+import { useStorefrontLocale } from "@/lib/i18n/useStorefrontLocale";
 
 interface Spec {
   label: string;
@@ -46,6 +47,10 @@ const COMPONENT_TYPE_HEADINGS: Record<string, string> = {
   Case: "ქეისები",
   CpuAirCooler: "ჰაერის ქულერები",
   LiquidCooler: "თხევადი გაგრილება (AIO)",
+};
+const COMPONENT_TYPE_HEADINGS_EN: Record<string, string> = {
+  Cpu: "Processors", Motherboard: "Motherboards", Ram: "Memory", Gpu: "Graphics cards",
+  Psu: "Power supplies", Case: "Cases", CpuAirCooler: "Air coolers", LiquidCooler: "Liquid cooling (AIO)",
 };
 
 function sanitizeRichText(html: string) {
@@ -119,6 +124,7 @@ export default function ProductDetail({
   routeCategory,
   routeSlug,
 }: ProductDetailProps) {
+  const en = useStorefrontLocale() === "en";
   const [showAll, setShowAll] = useState(false);
   const [showFullShortDescription, setShowFullShortDescription] = useState(false);
   const [isShortDescriptionOverflowing, setIsShortDescriptionOverflowing] =
@@ -142,7 +148,7 @@ export default function ProductDetail({
   const specGroups: SpecGroup[] =
     product.specifications.length > 0
       ? product.specifications.map((group) => ({
-          name: group.name || "მახასიათებლები",
+          name: group.name || (en ? "Specifications" : "მახასიათებლები"),
           fields: (group.fields ?? []).map((field) => ({
             label: `${field.label}:`,
             value: field.value || "-",
@@ -150,17 +156,17 @@ export default function ProductDetail({
         }))
       : [
           {
-            name: "ძირითადი",
+            name: en ? "General" : "ძირითადი",
             fields: [
-              { label: "ბრენდი:", value: product.brand.name },
-              { label: "მოდელი:", value: product.model || product.sku },
-              { label: "კატეგორია:", value: product.category.name },
+              { label: en ? "Brand:" : "ბრენდი:", value: product.brand.name },
+              { label: en ? "Model:" : "მოდელი:", value: product.model || product.sku },
+              { label: en ? "Category:" : "კატეგორია:", value: product.category.name },
               ...(product.subCategory
-                ? [{ label: "ტიპი:", value: product.subCategory.name }]
+                ? [{ label: en ? "Type:" : "ტიპი:", value: product.subCategory.name }]
                 : []),
-              { label: "მარაგი:", value: product.stockStatus },
+              { label: en ? "Stock:" : "მარაგი:", value: product.stockStatus },
               {
-                label: "რაოდენობა:",
+                label: en ? "Quantity:" : "რაოდენობა:",
                 value: String(product.totalEffectiveQuantity),
               },
             ],
@@ -185,7 +191,7 @@ export default function ProductDetail({
   // ჯგუფებს ვხატავთ ჩამოსვლის რიგით; უცნობ componentType-ს ვტოვებთ.
   const compatibleGroups = (product.compatibleProducts ?? [])
     .map((group) => ({
-      heading: COMPONENT_TYPE_HEADINGS[group.componentType] ?? "",
+      heading: (en ? COMPONENT_TYPE_HEADINGS_EN : COMPONENT_TYPE_HEADINGS)[group.componentType] ?? "",
       products: (group.products ?? []).map(mapStorefrontProductToCard),
     }))
     .filter((group) => group.heading !== "" && group.products.length > 0);
@@ -271,7 +277,7 @@ export default function ProductDetail({
     cacheInfo();
     flyToTarget(sourceEl, images[0], "cart");
     await addToCart(product.id);
-    showToast("კალათაში დაემატა");
+    showToast(en ? "Added to cart" : "კალათაში დაემატა");
   };
 
   // "შედარება" — შედარების სიაში ამატებს/ხსნის.
@@ -287,9 +293,9 @@ export default function ProductDetail({
       oldPrice,
     });
 
-    if (result === "added") showToast("შედარების სიაში დაემატა");
-    else if (result === "removed") showToast("შედარების სიიდან ამოიშალა");
-    else showToast(`შედარებაში მაქსიმუმ ${maxItems} პროდუქტია`, "error");
+    if (result === "added") showToast(en ? "Added to comparison" : "შედარების სიაში დაემატა");
+    else if (result === "removed") showToast(en ? "Removed from comparison" : "შედარების სიიდან ამოიშალა");
+    else showToast(en ? `You can compare up to ${maxItems} products` : `შედარებაში მაქსიმუმ ${maxItems} პროდუქტია`, "error");
   };
 
   return (
@@ -327,27 +333,27 @@ export default function ProductDetail({
                       setShowFullShortDescription((current) => !current)
                     }
                   >
-                    {showFullShortDescription ? "ნაკლების ნახვა" : "მეტის ნახვა"}
+                    {showFullShortDescription ? (en ? "Show less" : "ნაკლების ნახვა") : (en ? "Show more" : "მეტის ნახვა")}
                   </button>
                 )}
               </div>
             )}
             <div className={styles.meta}>
               <div className={styles.stockWrapper}>
-                მარაგი ფილიალებში: <StockCheck productId={String(product.id)} />
+                {en ? "Stock in stores:" : "მარაგი ფილიალებში:"} <StockCheck productId={String(product.id)} />
               </div>
               <p>
-                პროდუქტის კოდი: <span>{product.id}</span>
+                {en ? "Product code:" : "პროდუქტის კოდი:"} <span>{product.id}</span>
               </p>
               <p>
-                მწარმოებლის კოდი:<span> {product.sku}</span>
+                {en ? "Manufacturer code:" : "მწარმოებლის კოდი:"}<span> {product.sku}</span>
               </p>
               <p>
-                ბრენდი: <span>{product.brand.name}</span>
+                {en ? "Brand:" : "ბრენდი:"} <span>{product.brand.name}</span>
               </p>
-              <p>მოდელი: {product.model && <span>{product.model}</span>}</p>
+              <p>{en ? "Model:" : "მოდელი:"} {product.model && <span>{product.model}</span>}</p>
               <p>
-                ტიპი: <span> {product.subCategory?.name || product.category.name}</span>
+                {en ? "Type:" : "ტიპი:"} <span> {product.subCategory?.name || product.category.name}</span>
               </p>
             </div>
           </div>
@@ -364,13 +370,13 @@ export default function ProductDetail({
                   </span>
                 )}
               </div>
-              <button onClick={handleBuyNow}>ყიდვა</button>
+              <button onClick={handleBuyNow}>{en ? "Buy now" : "ყიდვა"}</button>
             </div>
 
             <div className={styles.actions}>
               <button className={styles.buyBtn} onClick={handleAddToCart}>
                 <img src="/icons/Cart.svg" alt="Cart.svg" />
-                <span>დამატება</span>
+                <span>{en ? "Add to cart" : "დამატება"}</span>
               </button>
               <button
                 className={`${styles.cartBtn} ${
@@ -380,7 +386,7 @@ export default function ProductDetail({
                 aria-pressed={isCompared}
               >
                 <img src="/icons/Arrows.svg" alt="Arrows.svg" />
-                <span>{isCompared ? "შედარებაშია" : "შედარება"}</span>
+                <span>{isCompared ? (en ? "In comparison" : "შედარებაშია") : (en ? "Compare" : "შედარება")}</span>
               </button>
             </div>
 
@@ -395,7 +401,7 @@ export default function ProductDetail({
 
       {product.descriptionHtml && (
         <section className={styles.descriptionSection}>
-          <h4>პროდუქტის აღწერა</h4>
+          <h4>{en ? "Product description" : "პროდუქტის აღწერა"}</h4>
           <div
             className={styles.richText}
             dangerouslySetInnerHTML={{
@@ -406,7 +412,7 @@ export default function ProductDetail({
       )}
 
       <div className={styles.specsSectionWrapper}>
-        <h4>დამატებითი მახასიათებლები</h4>
+        <h4>{en ? "Additional specifications" : "დამატებითი მახასიათებლები"}</h4>
         <div className={styles.specsSection}>
           <table>
             <tbody>
@@ -455,7 +461,7 @@ export default function ProductDetail({
               className={styles.toggleBtn}
               onClick={() => setShowAll((prev) => !prev)}
             >
-              {showAll ? "ნაკლები დეტალი" : "მეტი დეტალი"}
+              {showAll ? (en ? "Fewer details" : "ნაკლები დეტალი") : (en ? "More details" : "მეტი დეტალი")}
             </button>
           )}
         </div>
@@ -465,7 +471,7 @@ export default function ProductDetail({
         <div className={styles.infoBlocks}>
           {keyFeatures.length > 0 && (
             <div className={styles.infoCard}>
-              <h4>ძირითადი მახასიათებლები</h4>
+              <h4>{en ? "Key features" : "ძირითადი მახასიათებლები"}</h4>
               <ul>
                 {keyFeatures.map((item, i) => (
                   <li key={`kf-${i}`}>{item}</li>
@@ -475,7 +481,7 @@ export default function ProductDetail({
           )}
           {boxContents.length > 0 && (
             <div className={styles.infoCard}>
-              <h4>შეფუთვის შემადგენლობა</h4>
+              <h4>{en ? "What's in the box" : "შეფუთვის შემადგენლობა"}</h4>
               <ul>
                 {boxContents.map((item, i) => (
                   <li key={`bc-${i}`}>{item}</li>
@@ -492,7 +498,7 @@ export default function ProductDetail({
 
       {compatibleGroups.length > 0 && (
         <div className={styles.compatWrapper}>
-          <h4 className={styles.compatTitle}>თავსებადი კომპონენტები</h4>
+          <h4 className={styles.compatTitle}>{en ? "Compatible components" : "თავსებადი კომპონენტები"}</h4>
           {compatibleGroups.map((group, gi) => (
             <ProductSection
               key={`compat-${gi}`}

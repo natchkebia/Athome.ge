@@ -3,12 +3,14 @@
 import { useState } from "react";
 import styles from "./StockCheck.module.scss";
 import AtHomeLoader from "../shared/AtHomeLoader";
+import { useStorefrontLocale } from "@/lib/i18n/useStorefrontLocale";
 
 interface StockCheckProps {
   productId: string; // როცა დააჭერ, ეს წამოიღება props-ად
 }
 
 export default function StockCheck({ productId }: StockCheckProps) {
+  const en = useStorefrontLocale() === "en";
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [stockData, setStockData] = useState<any[]>([]);
@@ -46,7 +48,7 @@ export default function StockCheck({ productId }: StockCheckProps) {
   return (
     <>
       <button className={styles.checkBtn} onClick={handleOpen}>
-        შემოწმება <span className={styles.arrow}>›</span>
+        {en ? "Check" : "შემოწმება"} <span className={styles.arrow}>›</span>
       </button>
 
       {isOpen && (
@@ -55,7 +57,7 @@ export default function StockCheck({ productId }: StockCheckProps) {
             <button className={styles.closeBtn} onClick={handleClose}>
               ×
             </button>
-            <h3 className={styles.title}>მარაგი ფილიალებში</h3>
+            <h3 className={styles.title}>{en ? "Stock in stores" : "მარაგი ფილიალებში"}</h3>
 
             {loading ? (
               <AtHomeLoader variant="inline" />
@@ -64,15 +66,15 @@ export default function StockCheck({ productId }: StockCheckProps) {
                 {stockData.map((store, index) => (
                   <div key={index} className={styles.card}>
                     <div className={styles.addressWrapper}>
-                      <p className={styles.city}>{store.city}</p>
-                      <p className={styles.address}>{store.address}</p>
+                      <p className={styles.city}>{en ? "Tbilisi" : store.city}</p>
+                      <p className={styles.address}>{en ? (index === 0 ? "115 Akaki Tsereteli Avenue" : "76 Merab Kostava Street") : store.address}</p>
                     </div>
                     <div className={styles.contact}>
                       <a href={`tel:${store.phone}`} className={styles.phone}>
                         {store.phone}
                       </a>
 
-                      <p className={styles.hours}>{store.workHours}</p>
+                      <p className={styles.hours}>{en ? "Mon–Sat: 11:00–19:00" : store.workHours}</p>
                     </div>
                   </div>
                 ))}

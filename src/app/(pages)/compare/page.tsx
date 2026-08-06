@@ -16,11 +16,12 @@ import {
 import { normalizeMediaUrl } from "@/lib/storefront/products";
 import { img } from "@/lib/media/img";
 import styles from "./compare.module.scss";
+import { useStorefrontLocale } from "@/lib/i18n/useStorefrontLocale";
 
 // თითო პროდუქტისთვის ვაშენებთ "მახასიათებელი → მნიშვნელობა" სიას.
 // საბაზისო ველები ყოველთვის გვაქვს, ამიტომ ცხრილი არასდროს რჩება ცარიელი —
 // ზემოდან ემატება specifications/attributes, თუ პროდუქტს აქვს.
-function buildSpecMap(detail: StorefrontProductDetail): Map<string, string> {
+function buildSpecMap(detail: StorefrontProductDetail, en: boolean): Map<string, string> {
   const map = new Map<string, string>();
 
   const setIf = (label: string, value?: string) => {
@@ -28,8 +29,8 @@ function buildSpecMap(detail: StorefrontProductDetail): Map<string, string> {
   };
 
   setIf("SKU", detail.sku);
-  setIf("ბრენდი", detail.brand?.name);
-  setIf("მოდელი", detail.model);
+  setIf(en ? "Brand" : "ბრენდი", detail.brand?.name);
+  setIf(en ? "Model" : "მოდელი", detail.model);
 
   // specifications ახლა ჯგუფებადაა: {name, fields:[{label,value}]}
   detail.specifications?.forEach((group) => {
@@ -46,6 +47,7 @@ function buildSpecMap(detail: StorefrontProductDetail): Map<string, string> {
 }
 
 export default function ComparePage() {
+  const en = useStorefrontLocale() === "en";
   const { items, removeCompare, clearCompare } = useCompare();
   const { addToCart } = useCommerce();
   const { showToast } = useToast();
@@ -93,15 +95,15 @@ export default function ComparePage() {
   }, [items]);
 
   const breadcrumbs = [
-    { label: "მთავარი გვერდი", href: "/" },
-    { label: "შედარება" },
+    { label: en ? "Home" : "მთავარი გვერდი", href: "/" },
+    { label: en ? "Compare" : "შედარება" },
   ];
 
   // თითო პროდუქტის მახასიათებლების map.
   const specMaps: Record<number, Map<string, string>> = {};
   items.forEach((item) => {
     const detail = details[item.id];
-    if (detail) specMaps[item.id] = buildSpecMap(detail);
+    if (detail) specMaps[item.id] = buildSpecMap(detail, en);
   });
 
   // ყველა პროდუქტის მახასიათებლების გაერთიანებული სია (თანმიმდევრობის შენარჩუნებით).
@@ -145,7 +147,7 @@ export default function ComparePage() {
 
     if (sourceEl && imageUrl) flyToTarget(sourceEl, imageUrl, "cart");
     await addToCart(productId);
-    showToast("კალათაში დაემატა");
+    showToast(en ? "Added to cart" : "კალათაში დაემატა");
   };
 
   if (items.length === 0) {
@@ -154,14 +156,14 @@ export default function ComparePage() {
         <Breadcrumb items={breadcrumbs} />
         <div className={styles.container}>
           <div className={styles.empty}>
-            <h2>შესადარებელი სია ცარიელია</h2>
+            <h2>{en ? "Your comparison list is empty" : "შესადარებელი სია ცარიელია"}</h2>
             <p>
-              დაამატე პროდუქტები შედარების ღილაკით{" "}
-              <img src="/icons/Arrows.svg" alt="compare" /> და ერთმანეთს
-              გვერდიგვერდ შეადარე.
+              {en ? "Add products using the compare button " : "დაამატე პროდუქტები შედარების ღილაკით "}
+              <img src="/icons/Arrows.svg" alt="compare" />
+              {en ? " and compare them side by side." : " და ერთმანეთს გვერდიგვერდ შეადარე."}
             </p>
             <Link href="/" className={styles.emptyBtn}>
-              მთავარ გვერდზე დაბრუნება
+              {en ? "Return to home" : "მთავარ გვერდზე დაბრუნება"}
             </Link>
           </div>
         </div>
@@ -174,9 +176,9 @@ export default function ComparePage() {
       <Breadcrumb items={breadcrumbs} />
       <div className={styles.container}>
         <div className={styles.head}>
-          <h1 className={styles.title}>პროდუქტების შედარება</h1>
+          <h1 className={styles.title}>{en ? "Product comparison" : "პროდუქტების შედარება"}</h1>
           <button className={styles.clearBtn} onClick={clearCompare}>
-            სიის გასუფთავება
+            {en ? "Clear list" : "სიის გასუფთავება"}
           </button>
         </div>
 
@@ -193,7 +195,7 @@ export default function ComparePage() {
                     <button
                       className={styles.removeBtn}
                       onClick={() => removeCompare(item.id)}
-                      aria-label="წაშლა"
+                      aria-label={en ? "Remove" : "წაშლა"}
                     >
                       ×
                     </button>
@@ -248,7 +250,7 @@ export default function ComparePage() {
                       }
                     >
                       <img src="/icons/CartWhite.svg" alt="cart" />
-                      დამატება
+                      {en ? "Add to cart" : "დამატება"}
                     </button>
                   </td>
                 ))}
@@ -284,7 +286,7 @@ export default function ComparePage() {
                     className={styles.noSpecs}
                     colSpan={items.length + 1}
                   >
-                    ამ პროდუქტებისთვის მახასიათებლები არ მოიძებნა.
+                    {en ? "No specifications were found for these products." : "ამ პროდუქტებისთვის მახასიათებლები არ მოიძებნა."}
                   </td>
                 </tr>
               )}

@@ -34,6 +34,10 @@ export default function ProductSection({
     მონიტორები: "Monitors",
     პერიფერია: "Peripherals",
     "მაგიდები და სავარძლები": "Desks and chairs",
+    ალტერნატივები: "Alternatives",
+    "მსგავსი პროდუქტები": "Similar products",
+    აქსესუარები: "Accessories",
+    "დაამატე შეკვეთას": "Frequently bought together",
   };
   const visibleTitle = locale === "en" ? englishTitles[title] ?? title : title;
   return (
