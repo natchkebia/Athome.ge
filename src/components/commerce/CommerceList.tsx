@@ -73,6 +73,12 @@ export default function CommerceList({
               src={img(item.image, 100)}
               alt={item.title}
               className={styles.image}
+              onError={(event) => {
+                const image = event.currentTarget;
+                if (image.dataset.fallback) return;
+                image.dataset.fallback = "true";
+                image.src = "/icons/Logo.svg";
+              }}
             />
 
             <div className={styles.wrapper}>

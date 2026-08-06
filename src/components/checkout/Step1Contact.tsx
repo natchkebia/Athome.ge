@@ -4,6 +4,7 @@ import React, { useState, useEffect, ChangeEvent } from "react";
 import styles from "./Step1Contact.module.scss";
 import { useRouter } from "next/navigation";
 import { getCurrentUser } from "@/lib/api/auth";
+import { useStorefrontLocale } from "@/lib/i18n/useStorefrontLocale";
 
 interface Step1Props {
   onNext?: (data: FormValues) => void;
@@ -33,6 +34,7 @@ interface FormErrors {
 }
 
 export default function Step1Contact({ onNext }: Step1Props) {
+  const en = useStorefrontLocale() === "en";
   const router = useRouter();
 
   const [form, setForm] = useState<FormValues>({
@@ -95,35 +97,35 @@ export default function Step1Contact({ onNext }: Step1Props) {
 
     const phoneRegex = /^\d{9}$/;
     if (!phoneRegex.test(form.phone))
-      validationErrors.phone = "ტელეფონი უნდა იყოს 9 ციფრი";
+      validationErrors.phone = en ? "Phone number must contain 9 digits" : "ტელეფონი უნდა იყოს 9 ციფრი";
 
     // დამატებითი ტელეფონი არასავალდებულოა — ვამოწმებთ მხოლოდ თუ შევსებულია.
     if (form.altPhone.trim() && !phoneRegex.test(form.altPhone)) {
-      validationErrors.altPhone = "დამატებითი ტელეფონი უნდა იყოს 9 ციფრი";
+      validationErrors.altPhone = en ? "Additional phone number must contain 9 digits" : "დამატებითი ტელეფონი უნდა იყოს 9 ციფრი";
     }
 
     if (!form.email.includes("@"))
-      validationErrors.email = "ელ. ფოსტა უნდა შეიცავდეს '@'";
+      validationErrors.email = en ? "Enter a valid email address" : "ელ. ფოსტა უნდა შეიცავდეს '@'";
 
     if (form.type === "individual") {
       if (!form.firstName.trim())
-        validationErrors.firstName = "შეავსეთ სახელი";
+        validationErrors.firstName = en ? "Enter your first name" : "შეავსეთ სახელი";
 
       if (!form.lastName.trim())
-        validationErrors.lastName = "შეავსეთ გვარი";
+        validationErrors.lastName = en ? "Enter your last name" : "შეავსეთ გვარი";
 
       const personalIdRegex = /^\d{11}$/;
       if (!personalIdRegex.test(form.personalId))
-        validationErrors.personalId = "პირადი ნომერი უნდა იყოს 11 ციფრი";
+        validationErrors.personalId = en ? "Personal ID must contain 11 digits" : "პირადი ნომერი უნდა იყოს 11 ციფრი";
     }
 
     if (form.type === "company") {
       if (!form.companyName.trim())
-        validationErrors.companyName = "შეავსეთ კომპანიის სახელი";
+        validationErrors.companyName = en ? "Enter the company name" : "შეავსეთ კომპანიის სახელი";
 
       const companyIdRegex = /^\d{9}$/;
       if (!companyIdRegex.test(form.companyId))
-        validationErrors.companyId = "საიდენტიფიკაციო კოდი უნდა იყოს 9 ციფრი";
+        validationErrors.companyId = en ? "Company ID must contain 9 digits" : "საიდენტიფიკაციო კოდი უნდა იყოს 9 ციფრი";
     }
 
     setErrors(validationErrors);
@@ -145,7 +147,7 @@ export default function Step1Contact({ onNext }: Step1Props) {
           className={styles.backArrow}
           onClick={() => router.push("/basket")}
         />
-        <h2 className={styles.title}>საკონტაქტო დეტალები</h2>
+        <h2 className={styles.title}>{en ? "Contact details" : "საკონტაქტო დეტალები"}</h2>
       </div>
 
       <div className={styles.row}>
@@ -156,8 +158,8 @@ export default function Step1Contact({ onNext }: Step1Props) {
             className={styles.select}
             onChange={handleChange}
           >
-            <option value="individual">ფიზიკური პირი</option>
-            <option value="company">იურიდიული პირი</option>
+            <option value="individual">{en ? "Individual" : "ფიზიკური პირი"}</option>
+            <option value="company">{en ? "Company" : "იურიდიული პირი"}</option>
           </select>
         </div>
       </div>
@@ -170,7 +172,7 @@ export default function Step1Contact({ onNext }: Step1Props) {
                 name="firstName"
                 value={form.firstName}
                 onChange={handleChange}
-                placeholder="სახელი"
+                placeholder={en ? "First name" : "სახელი"}
                 className={inputClass("firstName")}
               />
               {errors.firstName && <div className={styles.error}>{errors.firstName}</div>}
@@ -181,7 +183,7 @@ export default function Step1Contact({ onNext }: Step1Props) {
                 name="lastName"
                 value={form.lastName}
                 onChange={handleChange}
-                placeholder="გვარი"
+                placeholder={en ? "Last name" : "გვარი"}
                 className={inputClass("lastName")}
               />
               {errors.lastName && <div className={styles.error}>{errors.lastName}</div>}
@@ -198,7 +200,7 @@ export default function Step1Contact({ onNext }: Step1Props) {
                 name="companyName"
                 value={form.companyName}
                 onChange={handleChange}
-                placeholder="კომპანიის სახელი"
+                placeholder={en ? "Company name" : "კომპანიის სახელი"}
                 className={inputClass("companyName")}
               />
               {errors.companyName && <div className={styles.error}>{errors.companyName}</div>}
@@ -213,7 +215,7 @@ export default function Step1Contact({ onNext }: Step1Props) {
             name="phone"
             value={form.phone}
             onChange={handleChange}
-            placeholder="ტელეფონის ნომერი"
+            placeholder={en ? "Phone number" : "ტელეფონის ნომერი"}
             className={inputClass("phone")}
           />
           {errors.phone && <div className={styles.error}>{errors.phone}</div>}
@@ -224,7 +226,7 @@ export default function Step1Contact({ onNext }: Step1Props) {
             name="altPhone"
             value={form.altPhone}
             onChange={handleChange}
-            placeholder="დამატებითი საკონტაქტო ნომერი"
+            placeholder={en ? "Additional phone number" : "დამატებითი საკონტაქტო ნომერი"}
             className={inputClass("altPhone")}
           />
           {errors.altPhone && <div className={styles.error}>{errors.altPhone}</div>}
@@ -239,7 +241,7 @@ export default function Step1Contact({ onNext }: Step1Props) {
                 name="personalId"
                 value={form.personalId}
                 onChange={handleChange}
-                placeholder="პირადი ნომერი"
+                placeholder={en ? "Personal ID" : "პირადი ნომერი"}
                 className={inputClass("personalId")}
               />
               {errors.personalId && <div className={styles.error}>{errors.personalId}</div>}
@@ -252,7 +254,7 @@ export default function Step1Contact({ onNext }: Step1Props) {
                 name="companyId"
                 value={form.companyId}
                 onChange={handleChange}
-                placeholder="საიდენტიფიკაციო კოდი"
+                placeholder={en ? "Company ID" : "საიდენტიფიკაციო კოდი"}
                 className={inputClass("companyId")}
               />
               {errors.companyId && <div className={styles.error}>{errors.companyId}</div>}
@@ -265,7 +267,7 @@ export default function Step1Contact({ onNext }: Step1Props) {
             name="email"
             value={form.email}
             onChange={handleChange}
-            placeholder="ელ. ფოსტა"
+            placeholder={en ? "Email" : "ელ. ფოსტა"}
             className={inputClass("email")}
           />
           {errors.email && <div className={styles.error}>{errors.email}</div>}
@@ -274,7 +276,7 @@ export default function Step1Contact({ onNext }: Step1Props) {
 
       <div className={styles.footer}>
         <button className={styles.submit} onClick={handleNext}>
-          გაგრძელება
+          {en ? "Continue" : "გაგრძელება"}
         </button>
       </div>
     </div>

@@ -37,9 +37,7 @@ export default function StockCheck({ productId }: StockCheckProps) {
         },
       ];
       setStockData(data);
-    } catch (err) {
-      console.error(err);
-    }
+    } catch {}
     setLoading(false);
   };
 

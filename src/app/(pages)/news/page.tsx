@@ -1,9 +1,11 @@
 import Link from "next/link";
+import { headers } from "next/headers";
 import styles from "./page.module.scss";
 import Breadcrumb from "@/components/ breadcrumb/Breadcrumb";
 import {
   formatBlogDate,
   getStorefrontBlogPosts,
+  stripBlogHtml,
 } from "@/lib/storefront/blog";
 
 type Props = {
@@ -15,6 +17,8 @@ type Props = {
 };
 
 export default async function NewsPage({ searchParams }: Props) {
+  const locale = (await headers()).get("x-lang") === "en" ? "en" : "ka";
+  const en = locale === "en";
   const params = await searchParams;
   const page = Math.max(Number(params?.page ?? 1) || 1, 1);
   const blogResponse = await getStorefrontBlogPosts({
@@ -26,8 +30,8 @@ export default async function NewsPage({ searchParams }: Props) {
   const blogs = blogResponse?.items ?? [];
   const totalPages = blogResponse?.totalPages ?? 0;
   const breadcrumbs = [
-    { label: "მთავარი გვერდი", href: "/" },
-    { label: "სიახლეები" },
+    { label: en ? "Home" : "მთავარი გვერდი", href: "/" },
+    { label: en ? "News" : "სიახლეები" },
   ];
 
   return (
@@ -52,15 +56,15 @@ export default async function NewsPage({ searchParams }: Props) {
 
                 <div className={styles.cardBody}>
                   <h2>{blog.title}</h2>
-                  <p>{blog.summary}</p>
+                  <p>{stripBlogHtml(blog.summary)}</p>
 
                   <div className={styles.cardBottom}>
-                    <span>{formatBlogDate(blog.publishedAt)}</span>
+                    <span>{formatBlogDate(blog.publishedAt, locale)}</span>
                     <Link
                       href={`/news/${blog.slug}`}
                       className={styles.readMore}
                     >
-                      ნახე მეტი
+                      {en ? "Read more" : "ნახე მეტი"}
                     </Link>
                   </div>
                 </div>
@@ -68,7 +72,7 @@ export default async function NewsPage({ searchParams }: Props) {
             ))}
           </section>
         ) : (
-          <p className={styles.empty}>სიახლეები ჯერ არ არის დამატებული</p>
+          <p className={styles.empty}>{en ? "No news has been added yet" : "სიახლეები ჯერ არ არის დამატებული"}</p>
         )}
 
         {totalPages > 1 && (

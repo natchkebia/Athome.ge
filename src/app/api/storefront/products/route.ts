@@ -17,8 +17,6 @@ export async function GET(request: NextRequest) {
   });
 
   // eslint-disable-next-line no-console
-  console.log("[PROXY → backend]", url.toString());
-
   const response = await fetch(url, {
     headers: {
       Accept: "application/json",

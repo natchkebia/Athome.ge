@@ -1,5 +1,6 @@
 "use client";
 import styles from "../Step4Payment.module.scss";
+import { useStorefrontLocale } from "@/lib/i18n/useStorefrontLocale";
 
 interface TermsModalProps {
   onClose: () => void;
@@ -7,6 +8,39 @@ interface TermsModalProps {
 }
 
 export default function TermsModal({ onClose, onAccept }: TermsModalProps) {
+  const en = useStorefrontLocale() === "en";
+
+  if (en) {
+    return (
+      <div className={styles.modalOverlay}>
+        <div className={styles.modal}>
+          <div className={styles.modalScroll}>
+            <div className={styles.modalContent}>
+              <h4>This website is owned and operated by LLC athome.ge.</h4>
+              <p>By accessing this website and placing an order, you agree to these terms. If you do not agree, please stop using the website.</p>
+              <p>For questions about these terms or your order, contact us at <a href="mailto:info@athome.ge">info@athome.ge</a> or <a href="tel:+995599093209">+995 599 09 32 09</a>.</p>
+              <h5>1. General terms</h5>
+              <p>You confirm that you are legally eligible to use the service, will provide accurate information, respect intellectual-property rights, and will not compromise the website’s security or operation.</p>
+              <h5>2. Registration</h5>
+              <p>You may purchase products with or without registration. Registered users must keep their account information accurate and secure and are responsible for activity performed through their account.</p>
+              <h5>3. Service and website use</h5>
+              <p>Delivery is available throughout Georgia, subject to service-area and product restrictions. Website information may change without prior notice. Unauthorized access, misuse of passwords or data, and illegal activity are prohibited.</p>
+              <h5>4. Personal information and privacy</h5>
+              <p>We process personal information required to handle orders, operate the website, compile statistics, and provide relevant offers. Payment-card details are not stored on this website; payments are processed on a partner bank’s secure page.</p>
+              <h5>5. Online purchasing</h5>
+              <p>Orders may be placed online at any time. Add the desired products to your cart and complete the checkout steps.</p>
+              <h5>6. Delivery and cancellation</h5>
+              <p>Delivery times depend on when the order is received, the destination, business days, and the selected delivery service. Regional delivery normally takes 1–3 business days. An order may be cancelled within three days after it is placed, subject to applicable law and order status.</p>
+              <h5>7. Contact information</h5>
+              <ul><li><a href="mailto:info@athome.ge">info@athome.ge</a></li><li><a href="tel:+995599093209">+995 599 09 32 09</a></li><li>LLC athome.ge</li><li>16 Vepkhistqaosani Street, 0180 Tbilisi</li></ul>
+            </div>
+          </div>
+          <button className={styles.modalConfirm} onClick={() => { onAccept(); onClose(); }}>I have read and agree</button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className={styles.modalOverlay}>
       <div className={styles.modal}>

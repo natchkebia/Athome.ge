@@ -6,6 +6,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import {
@@ -142,8 +143,14 @@ function cartItemFromWishlistItem(item: ProfileWishlist["items"][number]) {
 
 export function CommerceProvider({ children }: { children: React.ReactNode }) {
   const [cart, setCart] = useState<ProfileCart>(emptyCart);
+  const cartRef = useRef<ProfileCart>(emptyCart);
+  const cartMutationQueueRef = useRef(new Map<number, Promise<void>>());
   const [wishlist, setWishlist] = useState<ProfileWishlist>(emptyWishlist);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    cartRef.current = cart;
+  }, [cart]);
 
   const refreshCommerce = useCallback(async () => {
     const tokens = getStoredAuthTokens();
@@ -240,36 +247,67 @@ export function CommerceProvider({ children }: { children: React.ReactNode }) {
     async (productId: number, quantity = 1) => {
       // სტუმარი — localStorage კალათა (დარეგისტრირება არ სჭირდება).
       if (!hasAccessToken()) {
-        setCart(addGuestCartItem(productId, quantity));
+        const nextCart = addGuestCartItem(productId, quantity);
+        cartRef.current = nextCart;
+        setCart(nextCart);
         return;
       }
 
-      setCart((currentCart) => {
-        const existingItem = currentCart.items.find(
-          (item) => item.productId === productId
-        );
+      const currentCart = cartRef.current;
+      const existingItem = currentCart.items.find(
+        (item) => item.productId === productId
+      );
+      const targetQuantity = (existingItem?.quantity ?? 0) + quantity;
 
-        const items = existingItem
-          ? currentCart.items.map((item) =>
-              item.productId === productId
-                ? { ...item, quantity: item.quantity + quantity }
-                : item
-            )
-          : [optimisticCartItem(productId, quantity), ...currentCart.items];
+      const items = existingItem
+        ? currentCart.items.map((item) =>
+            item.productId === productId
+              ? {
+                  ...item,
+                  quantity: targetQuantity,
+                  lineTotal: item.sellingPrice * targetQuantity,
+                }
+              : item
+          )
+        : [optimisticCartItem(productId, quantity), ...currentCart.items];
 
-        return {
-          ...currentCart,
-          items,
-          totalItems: currentCart.totalItems + quantity,
-        };
-      });
+      const optimisticCart = {
+        ...currentCart,
+        items,
+        totalItems: items.reduce((sum, item) => sum + item.quantity, 0),
+        totalPrice: items.reduce((sum, item) => sum + item.lineTotal, 0),
+      };
+      cartRef.current = optimisticCart;
+      setCart(optimisticCart);
 
+      const previousMutation =
+        cartMutationQueueRef.current.get(productId) ?? Promise.resolve();
+      const mutation = previousMutation
+        .catch(() => undefined)
+        .then(async () => {
+          // POST creates a row; PUT changes the absolute quantity of an
+          // existing row. Serializing per product also prevents rapid clicks
+          // from letting an older response overwrite a newer quantity.
+          const updatedCart = existingItem
+            ? await updateProfileCartItem(productId, targetQuantity)
+            : await addProfileCartItem(productId, quantity);
+          if (isProfileCart(updatedCart)) {
+            cartRef.current = updatedCart;
+            setCart(updatedCart);
+          } else {
+            await refreshCart();
+          }
+        });
+
+      cartMutationQueueRef.current.set(productId, mutation);
       try {
-        const updatedCart = await addProfileCartItem(productId, quantity);
-        if (isProfileCart(updatedCart)) setCart(updatedCart);
-        else await refreshCart();
+        await mutation;
       } catch {
         await refreshCart();
+      } finally {
+        if (cartMutationQueueRef.current.get(productId) === mutation) {
+          cartMutationQueueRef.current.delete(productId);
+        }
       }
     },
     [refreshCart]

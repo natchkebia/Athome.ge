@@ -9,16 +9,17 @@ import {
   StorefrontService,
 } from "@/lib/api/storefront";
 import { normalizeMediaUrl } from "@/lib/storefront/products";
+import { useStorefrontLocale } from "@/lib/i18n/useStorefrontLocale";
 import styles from "./services.module.scss";
 
-const breadcrumbs = [
-  { label: "მთავარი გვერდი", href: "/" },
-  { label: "სერვისი" },
-];
-
 export default function ServicesPage() {
+  const en = useStorefrontLocale() === "en";
   const [services, setServices] = useState<StorefrontService[]>([]);
   const [loading, setLoading] = useState(true);
+  const breadcrumbs = [
+    { label: en ? "Home" : "მთავარი გვერდი", href: "/" },
+    { label: en ? "Service" : "სერვისი" },
+  ];
 
   useEffect(() => {
     let active = true;
@@ -49,7 +50,9 @@ export default function ServicesPage() {
         <Breadcrumb items={breadcrumbs} />
       </div>
       <main className={styles.servicesPage}>
-        <h1 className={styles.title}>ძველი კომპიუტერის ახალი სიცოცხლე</h1>
+        <h1 className={styles.title}>
+          {en ? "Give your old computer a new life" : "ძველი კომპიუტერის ახალი სიცოცხლე"}
+        </h1>
 
         {loading ? (
           <AtHomeLoader variant="section" />

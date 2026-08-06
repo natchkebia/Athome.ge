@@ -27,18 +27,20 @@
 .content {
   display: flex;
   align-items: center;
+  gap: 8px;
   font-size: 12px;
+  line-height: 1;
   margin: 0 auto;
-  padding: 4px 0;
+  padding: 0;
 }
 
 .arrow {
-  width: 24px;
-  height: 24px;
-  margin-left: 6px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  display: block;
+  flex: 0 0 16px;
+  transform: translateY(-1px);
 }
 
 .menu {

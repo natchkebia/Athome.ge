@@ -10,13 +10,37 @@ export function normalizeMediaUrl(
   // ფოტოს გარეშე პროდუქტზე — საიტის ლოგო (ნაგულისხმევი placeholder)
   fallback = "/icons/Logo.svg"
 ) {
-  if (!url) return fallback;
+  const value = url?.trim();
+  if (!value) return fallback;
 
-  if (url.startsWith("/media/http")) {
-    return url.replace("/media/", "");
+  const apiOrigin = (() => {
+    try {
+      return new URL(process.env.NEXT_PUBLIC_API_URL ?? "https://api.ithome.ge").origin;
+    } catch {
+      return "https://api.ithome.ge";
+    }
+  })();
+
+  // Legacy records sometimes wrapped an absolute source in `/media/`.
+  if (value.startsWith("/media/http")) {
+    return value.slice("/media/".length).replace(/^http:\/\//, "https://");
   }
 
-  return url;
+  // Older cart/wishlist records contain API-relative upload paths. On the
+  // storefront those otherwise resolve against localhost/ithome.ge and 404.
+  const uploadPath = value
+    .replace(/^\/media(?=\/uploads\/)/, "")
+    .replace(/^uploads\//, "/uploads/");
+  if (uploadPath.startsWith("/uploads/")) {
+    return `${apiOrigin}${uploadPath}`;
+  }
+
+  // Avoid mixed-content failures for old API URLs saved before HTTPS.
+  if (/^http:\/\/api\.ithome\.ge\//i.test(value)) {
+    return value.replace(/^http:\/\//i, "https://");
+  }
+
+  return value;
 }
 
 export function mapStorefrontProductToCard(

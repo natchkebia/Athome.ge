@@ -87,18 +87,32 @@ export async function getStorefrontBlogPost(slug: string) {
   return fetchStorefront<StorefrontBlogPostDetail>(url);
 }
 
-export function formatBlogDate(date?: string) {
+export function formatBlogDate(date?: string, locale: "ka" | "en" = "ka") {
   if (!date) return "";
 
   const parsedDate = new Date(date);
 
   if (Number.isNaN(parsedDate.getTime())) return "";
 
-  return new Intl.DateTimeFormat("ka-GE", {
+  return new Intl.DateTimeFormat(locale === "en" ? "en-GB" : "ka-GE", {
     day: "2-digit",
     month: "long",
     year: "numeric",
   }).format(parsedDate);
+}
+
+export function stripBlogHtml(value?: string) {
+  return (value ?? "")
+    .replace(/&lt;/gi, "<")
+    .replace(/&gt;/gi, ">")
+    .replace(/<\s*br\s*\/?>/gi, " ")
+    .replace(/<[^>]*>/g, " ")
+    .replace(/&nbsp;|&#160;/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;|&apos;/gi, "'")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 export function getBlogParagraphs(body?: string) {

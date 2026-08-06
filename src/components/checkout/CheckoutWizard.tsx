@@ -14,6 +14,7 @@ import { useCommerce } from "@/contexts/CommerceContext";
 import { useToast } from "@/contexts/ToastContext";
 import { getCurrentUser } from "@/lib/api/auth";
 import { ApiError } from "@/lib/api/client";
+import { useStorefrontLocale } from "@/lib/i18n/useStorefrontLocale";
 import {
   submitCheckout,
   initiateFlittPayment,
@@ -52,6 +53,7 @@ function mapBank(bank: string): SelectedBank {
 }
 
 export default function CheckoutWizard({ onStepChange }: CheckoutWizardProps) {
+  const en = useStorefrontLocale() === "en";
   const { cart, clearCart } = useCommerce();
   const { showToast } = useToast();
   const router = useRouter();
@@ -69,8 +71,8 @@ export default function CheckoutWizard({ onStepChange }: CheckoutWizardProps) {
   const [submitError, setSubmitError] = useState<string | null>(null);
 
   const breadcrumbs = [
-    { label: "მთავარი გვერდი", href: "/" },
-    { label: "მიწოდების დეტალები" },
+    { label: en ? "Home" : "მთავარი გვერდი", href: "/" },
+    { label: en ? "Checkout" : "მიწოდების დეტალები" },
   ];
 
   const handleStep2Next = () => {

@@ -4,6 +4,7 @@ import React, { useState, useRef } from "react";
 import styles from "./AddressSelector.module.scss";
 import { IoChevronDown } from "react-icons/io5";
 import dynamic from "next/dynamic";
+import { useStorefrontLocale } from "@/lib/i18n/useStorefrontLocale";
 
 const MapBox = dynamic(() => import("./MapBox"), { ssr: false });
 
@@ -28,6 +29,8 @@ const cityCoords: Record<string, { lat: number; lng: number }> = {
 };
 
 export default function AddressSelector({ onSelect }: any) {
+  const en = useStorefrontLocale() === "en";
+  const cityLabels: Record<string, string> = { თბილისი: "Tbilisi", ქუთაისი: "Kutaisi", ბათუმი: "Batumi", რუსთავი: "Rustavi", ზუგდიდი: "Zugdidi", ფოთი: "Poti", გორი: "Gori" };
   const [cityOpen, setCityOpen] = useState(false);
   const [addressOpen, setAddressOpen] = useState(false);
 
@@ -132,9 +135,9 @@ export default function AddressSelector({ onSelect }: any) {
   return (
     <div className={styles.container}>
       <div className={styles.dropdown}>
-        <label className={styles.label}>მისამართი</label>
+        <label className={styles.label}>{en ? "Address" : "მისამართი"}</label>
         <div className={styles.inputRow} onClick={() => setCityOpen(!cityOpen)}>
-          <span>{selectedCity || "ქალაქი"}</span>
+          <span>{selectedCity ? (en ? cityLabels[selectedCity] : selectedCity) : (en ? "City" : "ქალაქი")}</span>
           <IoChevronDown />
         </div>
 
@@ -150,7 +153,7 @@ export default function AddressSelector({ onSelect }: any) {
                   setCityOpen(false);
                 }}
               >
-                {city}
+                {en ? cityLabels[city] : city}
               </div>
             ))}
           </div>
@@ -164,7 +167,7 @@ export default function AddressSelector({ onSelect }: any) {
           <span>
             {selectedAddress
               ? `${selectedAddress.street} ${selectedAddress.house}`
-              : "მისამართი"}
+              : en ? "Address" : "მისამართი"}
           </span>
           <IoChevronDown />
         </div>
@@ -202,7 +205,7 @@ export default function AddressSelector({ onSelect }: any) {
 
             <div className={styles.addNew} onClick={openAddModal}>
               <img src="/icons/plus.svg" alt="plus" />
-              <span>მისამართი</span>
+              <span>{en ? "Add address" : "მისამართი"}</span>
             </div>
           </div>
         )}
@@ -213,8 +216,8 @@ export default function AddressSelector({ onSelect }: any) {
             <div className={styles.modalHeader}>
               <h3>
                 {editingId
-                  ? "მისამართის ჩასწორება"
-                  : "ახალი მისამართის დამატება"}
+                  ? en ? "Edit address" : "მისამართის ჩასწორება"
+                  : en ? "Add a new address" : "ახალი მისამართის დამატება"}
               </h3>
               <button
                 className={styles.closeBtn}
@@ -226,7 +229,7 @@ export default function AddressSelector({ onSelect }: any) {
 
             <input
               className={styles.input}
-              placeholder="მისამართის დასახელება"
+              placeholder={en ? "Street or address name" : "მისამართის დასახელება"}
               value={addressName}
               onChange={(e) => {
                 setAddressName(e.target.value);
@@ -241,7 +244,7 @@ export default function AddressSelector({ onSelect }: any) {
 
             <input
               className={styles.input}
-              placeholder="კორპუსი, ბინა, სადარბაზო, სართული და ა.შ"
+              placeholder={en ? "Building, apartment, entrance, floor, etc." : "კორპუსი, ბინა, სადარბაზო, სართული და ა.შ"}
               value={fullAddress}
               onChange={(e) => {
                 setFullAddress(e.target.value);
@@ -265,7 +268,7 @@ export default function AddressSelector({ onSelect }: any) {
             </div>
 
             <button className={styles.saveBtn} onClick={handleSave}>
-              შენახვა
+              {en ? "Save" : "შენახვა"}
             </button>
           </div>
         </div>

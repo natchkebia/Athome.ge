@@ -103,7 +103,6 @@ export async function apiRequest<T>(
     useProxy
   );
   // eslint-disable-next-line no-console
-  console.log("[API REQUEST →]", options.method ?? "GET", requestUrl);
   const response = await fetch(requestUrl, {
     ...options,
     body,

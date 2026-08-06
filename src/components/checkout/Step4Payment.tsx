@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import styles from "./Step4Payment.module.scss";
 import TermsModal from "./components/TermsModal";
+import { useStorefrontLocale } from "@/lib/i18n/useStorefrontLocale";
 
 export type PaymentSelection = {
   method: "card" | "invoice" | "installment";
@@ -25,6 +26,7 @@ export default function Step4Payment({
   submitting = false,
   error = null,
 }: Props) {
+  const en = useStorefrontLocale() === "en";
   const [method, setMethod] = useState<"card" | "invoice" | "installment">(
     "card"
   );
@@ -46,7 +48,7 @@ export default function Step4Payment({
             style={{ cursor: "pointer" }}
           />
         )}
-        <h2 className={styles.title}>გადახდის მეთოდი</h2>
+        <h2 className={styles.title}>{en ? "Payment method" : "გადახდის მეთოდი"}</h2>
       </div>
       <div className={styles.methods}>
         <div
@@ -59,7 +61,7 @@ export default function Step4Payment({
           }}
         >
           <img src="/icons/card.svg" alt="card" />
-          <p>ბარათით გადახდა</p>
+          <p>{en ? "Pay by card" : "ბარათით გადახდა"}</p>
           {method === "card" && (
             <div className={styles.checkCircle}>
               <div className={styles.checkdiv} />
@@ -76,7 +78,7 @@ export default function Step4Payment({
           }}
         >
           <img src="/icons/Installment.svg" alt="invoice" />
-          <p>განვადება და განაწილება</p>
+          <p>{en ? "Installment plan" : "განვადება და განაწილება"}</p>
           {method === "invoice" && (
             <div className={styles.checkCircle}>
               <div className={styles.checkdiv} />
@@ -94,7 +96,7 @@ export default function Step4Payment({
           }}
         >
           <img src="/icons/Payment.svg" alt="Payment" />
-          <p>გადარიცხვა</p>
+          <p>{en ? "Bank transfer" : "გადარიცხვა"}</p>
           {method === "installment" && (
             <div className={styles.checkCircle}>
               <div className={styles.checkdiv} />
@@ -187,7 +189,7 @@ export default function Step4Payment({
             }}
           >
             <label style={{ fontSize: 14, color: "#3b3f42" }}>
-              განვადების ვადა (თვე)
+              {en ? "Installment term (months)" : "განვადების ვადა (თვე)"}
             </label>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
               {INSTALLMENT_MONTHS.map((m) => (
@@ -218,7 +220,7 @@ export default function Step4Payment({
       {method === "installment" && (
         <>
           <div className={styles.emailBox}>
-            <label>ელ.ფოსტის მისამართი</label>
+            <label>{en ? "Email address" : "ელ.ფოსტის მისამართი"}</label>
             <input
               type="email"
               placeholder="example@gmail.com"
@@ -235,19 +237,19 @@ export default function Step4Payment({
           onChange={(e) => setAcceptedTerms(e.target.checked)}
         />
         <span>
-          გთხოვთ, დააჭიროთ აქ, რომ გაეცნოთ და დაეთანხმოთ
+          {en ? "Please confirm that you have read and agree to the " : "გთხოვთ, დააჭიროთ აქ, რომ გაეცნოთ და დაეთანხმოთ"}
           <button
             type="button"
             className={styles.termsLink}
             onClick={() => setIsModalOpen(true)}
           >
-            მომხმარებელთა წესებსა და პოლიტიკას
+            {en ? "terms and conditions" : "მომხმარებელთა წესებსა და პოლიტიკას"}
           </button>
         </span>
       </div>
       {method === "installment" && (
         <p className={styles.invoice}>
-          გადარიცხვის ინვოისი გამოიგზავნება თქვენ მიერ მითითებულ ელ.ფოსტაზე
+          {en ? "The bank-transfer invoice will be sent to the email address you provided." : "გადარიცხვის ინვოისი გამოიგზავნება თქვენ მიერ მითითებულ ელ.ფოსტაზე"}
         </p>
       )}
       {error && <p className={styles.invoice} style={{ color: "rgba(235, 78, 57, 1)" }}>{error}</p>}
@@ -256,7 +258,7 @@ export default function Step4Payment({
         onClick={() => onNext?.({ method, bank, email, installmentMonths })}
         disabled={!acceptedTerms || submitting}
       >
-        {submitting ? "მუშავდება..." : "შეკვეთის გაფორმება"}
+        {submitting ? (en ? "Processing..." : "მუშავდება...") : (en ? "Place order" : "შეკვეთის გაფორმება")}
       </button>
       {isModalOpen && (
         <TermsModal

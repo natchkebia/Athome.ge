@@ -90,7 +90,16 @@ export default function CartTab({ showSummary = true }: CartTabProps) {
             {cartItems.map((item) => (
               <div className={styles.cartCard} key={item.id}>
                 <div className={styles.left}>
-                  <img src={item.image} alt={item.title} />
+                  <img
+                    src={item.image}
+                    alt={item.title}
+                    onError={(event) => {
+                      const image = event.currentTarget;
+                      if (image.dataset.fallback) return;
+                      image.dataset.fallback = "true";
+                      image.src = "/icons/Logo.svg";
+                    }}
+                  />
 
                   <div className={styles.info}>
                     <p>{en ? "Code" : "კოდი"}: {item.id}</p>
