@@ -60,6 +60,49 @@
   padding-left: 20px;
 }
 
+.branches {
+  display: grid;
+  gap: 10px;
+  margin: 12px 0 18px;
+}
+
+.branch {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 14px 16px;
+  border: 1px solid rgba(236, 242, 246, 1);
+  border-radius: 12px;
+  cursor: pointer;
+
+  input {
+    margin-top: 4px;
+    accent-color: rgba(16, 181, 192, 1);
+  }
+
+  span {
+    display: grid;
+    gap: 3px;
+  }
+
+  strong {
+    color: rgba(59, 63, 66, 1);
+  }
+
+  small {
+    color: #66717a;
+  }
+}
+
+.branchSelected {
+  border-color: rgba(16, 181, 192, 1);
+  background: rgba(16, 181, 192, 0.05);
+}
+
+.error {
+  color: #eb4e39;
+}
+
 .footer {
   margin-top: auto;
   display: flex;
@@ -80,6 +123,11 @@
 
 .button:hover {
   background: #27b0a4;
+}
+
+.button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
 }
 
 @media (max-width: 768px) {

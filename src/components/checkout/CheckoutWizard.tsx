@@ -59,6 +59,7 @@ export default function CheckoutWizard({ onStepChange }: CheckoutWizardProps) {
   const router = useRouter();
   const [step, setStep] = useState(1);
   const [orderType, setOrderType] = useState<"store" | "delivery" | null>(null);
+  const [pickupBranchCode, setPickupBranchCode] = useState<string | null>(null);
   const [contactData, setContactData] = useState<FormValues | null>(null);
   const [deliveryData, setDeliveryData] = useState<DeliverySelection | null>(
     null
@@ -108,6 +109,7 @@ export default function CheckoutWizard({ onStepChange }: CheckoutWizardProps) {
       additionalPhone: contactData?.altPhone || null,
       personalId: (isCompany ? contactData?.companyId : contactData?.personalId) || null,
       deliveryType: isCourier ? "courier" : "pickup",
+      pickupBranchCode: isCourier ? null : pickupBranchCode,
       shippingMethodId: null,
       shippingFullName: isCourier ? fullName : null,
       shippingLine1: isCourier
@@ -226,7 +228,8 @@ export default function CheckoutWizard({ onStepChange }: CheckoutWizardProps) {
 
         {step === 2 && (
           <Step2Delivery
-            onOptionChange={(v) => setOrderType(v)}
+            onOptionChange={setOrderType}
+            onPickupBranchChange={setPickupBranchCode}
             onNext={handleStep2Next}
             onPrev={() => goToStep(1)}
           />

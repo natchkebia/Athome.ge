@@ -21,6 +21,7 @@ export type CheckoutPayload = {
   additionalPhone?: string | null;
   personalId?: string | null;
   deliveryType: DeliveryType;
+  pickupBranchCode?: string | null;
   shippingMethodId?: number | null;
   shippingFullName?: string | null;
   shippingLine1?: string | null;
@@ -40,6 +41,12 @@ export type CheckoutPayload = {
   customerNote?: string | null;
   termsAccepted: boolean;
   guestItems?: CheckoutGuestItem[];
+};
+
+export type PickupBranch = {
+  code: string;
+  name: string;
+  address: string;
 };
 
 export type BankTransferDetails = {
@@ -91,6 +98,12 @@ export type PaymentPollResponse = {
 
 export function getShippingMethods() {
   return apiRequest<ShippingMethod[]>("/api/storefront/shipping-methods", {
+    useProxy: true,
+  });
+}
+
+export function getPickupBranches() {
+  return apiRequest<PickupBranch[]>("/api/storefront/pickup-branches", {
     useProxy: true,
   });
 }

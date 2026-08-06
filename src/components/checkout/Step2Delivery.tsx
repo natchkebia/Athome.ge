@@ -3,30 +3,55 @@
 import React, { useEffect, useState } from "react";
 import styles from "./Step2Delivery.module.scss";
 import { useStorefrontLocale } from "@/lib/i18n/useStorefrontLocale";
+import {
+  getPickupBranches,
+  type PickupBranch,
+} from "@/lib/api/checkout";
 
 interface Step2DeliveryProps {
   onNext?: () => void;
   onPrev?: () => void;
   onOptionChange?: (value: "store" | "delivery") => void;
+  onPickupBranchChange?: (code: string | null) => void;
 }
 
 export default function Step2Delivery({
   onNext,
   onPrev,
   onOptionChange,
+  onPickupBranchChange,
 }: Step2DeliveryProps) {
   const en = useStorefrontLocale() === "en";
   const [selectedOption, setSelectedOption] = useState<"store" | "delivery">(
     "store"
   );
+  const [branches, setBranches] = useState<PickupBranch[]>([]);
+  const [selectedBranch, setSelectedBranch] = useState<string | null>(null);
+  const [branchesError, setBranchesError] = useState<string | null>(null);
 
   useEffect(() => {
     onOptionChange?.("store");
-  }, []);
+    getPickupBranches()
+      .then(setBranches)
+      .catch((error) =>
+        setBranchesError(
+          error instanceof Error
+            ? error.message
+            : "ფილიალების ჩატვირთვა ვერ მოხერხდა",
+        ),
+      );
+  }, [onOptionChange]);
 
   const select = (value: "store" | "delivery") => {
     setSelectedOption(value);
     onOptionChange?.(value);
+    if (value === "delivery") onPickupBranchChange?.(null);
+    if (value === "store") onPickupBranchChange?.(selectedBranch);
+  };
+
+  const selectBranch = (code: string) => {
+    setSelectedBranch(code);
+    onPickupBranchChange?.(code);
   };
 
   return (
@@ -69,11 +94,33 @@ export default function Step2Delivery({
       <div className={styles.textBlock}>
         {selectedOption === "store" && (
           <>
-            <p>{en ? "Store pickup is free. Collect your order from one of these addresses:" : "ადგილიდან გატანა უფასოა, ამ შემთხვევაში შეკვეთა უნდა წაიღოთ მაღაზიიდან. მისამართი :"}</p>
-            <ul>
-              <li>{en ? "115 Tsereteli Ave, Tbilisi" : "ქ. თბილისი, წერეთლის N 115"}</li>
-              <li>{en ? "73 Merab Kostava St, Tbilisi" : "ქ. თბილისი, აღმაშენებლის მესხის N 73"}</li>
-            </ul>
+            <p>{en ? "Store pickup is free. Choose a pickup branch:" : "მაღაზიიდან გატანა უფასოა. აირჩიეთ ფილიალი:"}</p>
+            {branchesError ? (
+              <p className={styles.error}>{branchesError}</p>
+            ) : (
+              <div className={styles.branches}>
+                {branches.map((branch) => (
+                  <label
+                    key={branch.code}
+                    className={`${styles.branch} ${
+                      selectedBranch === branch.code ? styles.branchSelected : ""
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="pickupBranch"
+                      value={branch.code}
+                      checked={selectedBranch === branch.code}
+                      onChange={() => selectBranch(branch.code)}
+                    />
+                    <span>
+                      <strong>{branch.name}</strong>
+                      <small>{branch.address}</small>
+                    </span>
+                  </label>
+                ))}
+              </div>
+            )}
             <p>{en ? "Your order will be ready for collection the following day between 17:00 and 20:00." : "აღნიშნული პირობის გამოყენებისას მომხმარებელი შეძენილი ნივთი უნდა გაიტანოს მეორე დღეს 17:00 - 20:00-მდე..."}</p>
           </>
         )}
@@ -84,7 +131,14 @@ export default function Step2Delivery({
       </div>
 
       <div className={styles.footer}>
-        <button className={styles.button} onClick={onNext}>
+        <button
+          className={styles.button}
+          onClick={onNext}
+          disabled={
+            selectedOption === "store" &&
+            (!selectedBranch || branches.length === 0)
+          }
+        >
           {en ? "Continue" : "გაგრძელება"}
         </button>
       </div>

@@ -1,9 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import styles from "./StockCheck.module.scss";
 import { useStorefrontLocale } from "@/lib/i18n/useStorefrontLocale";
 import type { StorefrontStockLocation } from "@/lib/api/storefront";
+import {
+  getPickupBranches,
+  type PickupBranch,
+} from "@/lib/api/checkout";
 
 interface StockCheckProps {
   stockLocations: StorefrontStockLocation[];
@@ -18,9 +22,17 @@ const LOCATION_ORDER: StorefrontStockLocation["code"][] = [
 export default function StockCheck({ stockLocations }: StockCheckProps) {
   const en = useStorefrontLocale() === "en";
   const [isOpen, setIsOpen] = useState(false);
+  const [branches, setBranches] = useState<PickupBranch[]>([]);
   const locations = [...stockLocations].sort(
     (a, b) => LOCATION_ORDER.indexOf(a.code) - LOCATION_ORDER.indexOf(b.code),
   );
+
+  useEffect(() => {
+    if (!isOpen || branches.length > 0) return;
+    getPickupBranches().then(setBranches).catch(() => setBranches([]));
+  }, [branches.length, isOpen]);
+
+  const branchByCode = new Map(branches.map((branch) => [branch.code, branch]));
 
   return (
     <>
@@ -48,6 +60,11 @@ export default function StockCheck({ stockLocations }: StockCheckProps) {
                           ? en ? "Available to order" : "შეკვეთით"
                           : location.name}
                       </p>
+                      {location.code !== "online" && branchByCode.get(location.code)?.address && (
+                        <p className={styles.note}>
+                          {branchByCode.get(location.code)?.address}
+                        </p>
+                      )}
                       {location.code === "online" && (
                         <p className={styles.note}>
                           {en
