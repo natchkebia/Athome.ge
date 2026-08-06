@@ -4,6 +4,16 @@ import {
   ConfiguratorCategory,
   SelectedConfiguratorProduct,
 } from "./configuratorTypes";
+import { useStorefrontLocale } from "@/lib/i18n/useStorefrontLocale";
+
+const EN_TITLES: Record<string, string> = {
+  პროცესორი: "Processor", "დედა დაფა": "Motherboard", "ოპერატიული მეხსიერება": "Memory",
+  ვიდეოკარტა: "Graphics card", ვიდეობარათი: "Graphics card", "კვების ბლოკი": "Power supply",
+  "პროცესორის გამაგრილებელი": "CPU cooler", ქეისი: "Case", "მყარი დისკი": "Hard drive",
+  "SSD მეხსიერება": "SSD storage", "ქეისის ქულერი": "Case fan", "სისტემის ლიცენზია": "System license",
+  მონიტორი: "Monitor", ყურსასმენი: "Headset", კლავიატურა: "Keyboard", მაუსი: "Mouse",
+  მიკროფონი: "Microphone", დინამიკი: "Speakers",
+};
 
 type Props = {
   category: ConfiguratorCategory;
@@ -18,6 +28,8 @@ export default function ConfiguratorCategoryCard({
   onClick,
   onRemove,
 }: Props) {
+  const en = useStorefrontLocale() === "en";
+  const title = en ? EN_TITLES[category.title] ?? category.title : category.title;
   const totalQuantity = selectedProducts.reduce(
     (sum, product) => sum + product.quantity,
     0
@@ -41,7 +53,7 @@ export default function ConfiguratorCategoryCard({
             event.stopPropagation();
             onRemove();
           }}
-          aria-label="პროდუქტის წაშლა"
+          aria-label={en ? "Remove product" : "პროდუქტის წაშლა"}
         >
           ×
         </button>
@@ -55,23 +67,23 @@ export default function ConfiguratorCategoryCard({
             alt={firstSelectedProduct.title}
           />
         ) : (
-          <img src={category.icon} alt={category.title} />
+          <img src={category.icon} alt={title} />
         )}
 
-        <h3>{category.title}</h3>
+        <h3>{title}</h3>
 
         {hasSelectedProducts ? (
           <>
             <p className={styles.selectedTitle}>
-              არჩეულია {selectedProducts.length} პროდუქტი
+              {en ? `${selectedProducts.length} selected` : `არჩეულია ${selectedProducts.length} პროდუქტი`}
               <br />
-              სულ {totalQuantity} ერთეული
+              {en ? `${totalQuantity} units total` : `სულ ${totalQuantity} ერთეული`}
             </p>
 
             <span className={styles.price}>{totalPrice} ₾</span>
           </>
         ) : (
-          <span className={styles.addText}>დამატება</span>
+          <span className={styles.addText}>{en ? "Add" : "დამატება"}</span>
         )}
       </button>
     </div>

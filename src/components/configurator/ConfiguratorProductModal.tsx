@@ -8,6 +8,7 @@ import {
   ConfiguratorProduct,
   SelectedConfiguratorProduct,
 } from "./configuratorTypes";
+import { useStorefrontLocale } from "@/lib/i18n/useStorefrontLocale";
 
 type Props = {
   title: string;
@@ -28,6 +29,15 @@ export type ProductSelectionResult = {
 };
 
 const brands = ["ყველა", "AsRock", "Asus", "Gigabyte", "Msi"];
+const EN_SPEC_LABELS: Record<string, string> = {
+  ჩიპსეტი: "Chipset", სოკეტი: "Socket", მეხსიერება: "Memory", ფორმფაქტორი: "Form factor",
+  ბირთვი: "Cores", ნაკადი: "Threads", მოცულობა: "Capacity", ტიპი: "Type", სიხშირე: "Frequency",
+  ზომა: "Size", განახლება: "Refresh rate", პანელი: "Panel", მიკროფონი: "Microphone",
+  განათება: "Lighting", სენსორი: "Sensor", კავშირი: "Connection", სიმძლავრე: "Power",
+  სერტიფიკატი: "Certification", მოდულარული: "Modular", ვენტილატორი: "Fan", ფერი: "Color",
+  ქულერები: "Fans", გვერდი: "Side panel", ინტერფეისი: "Interface", სიჩქარე: "Speed",
+  ვერსია: "Version", ლიცენზია: "License", არქიტექტურა: "Architecture",
+};
 
 export default function ConfiguratorProductModal({
   title,
@@ -38,6 +48,7 @@ export default function ConfiguratorProductModal({
   onSelect,
   onUpdateQuantity,
 }: Props) {
+  const en = useStorefrontLocale() === "en";
   const [searchValue, setSearchValue] = useState("");
   const [activeBrand, setActiveBrand] = useState("ყველა");
   const [checkingProductId, setCheckingProductId] = useState<number | null>(null);
@@ -137,7 +148,7 @@ export default function ConfiguratorProductModal({
         setCompatibilityErrors((prev) => ({
           ...prev,
           [product.id]:
-            result.message || "ეს პროდუქტი არჩეულ კომპონენტებთან თავსებადი არ არის.",
+            result.message || (en ? "This product is not compatible with the selected components." : "ეს პროდუქტი არჩეულ კომპონენტებთან თავსებადი არ არის."),
         }));
       }
     } finally {
@@ -152,7 +163,7 @@ export default function ConfiguratorProductModal({
           type="button"
           className={styles.modalClose}
           onClick={onClose}
-          aria-label="დახურვა"
+          aria-label={en ? "Close" : "დახურვა"}
         >
           ×
         </button>
@@ -165,7 +176,7 @@ export default function ConfiguratorProductModal({
               <input
                 value={searchValue}
                 onChange={(event) => setSearchValue(event.target.value)}
-                placeholder="ვეძებოთ რას ეძებ?..."
+                placeholder={en ? "Search products..." : "ვეძებოთ რას ეძებ?..."}
               />
               <span>⌕</span>
             </div>
@@ -177,7 +188,7 @@ export default function ConfiguratorProductModal({
                   className={activeBrand === brand ? styles.activeFilter : ""}
                   onClick={() => setActiveBrand(brand)}
                 >
-                  <span>{brand}</span>
+                  <span>{en && brand === "ყველა" ? "All" : brand}</span>
                   <strong>{getBrandCount(brand)}</strong>
                 </li>
               ))}
@@ -189,7 +200,7 @@ export default function ConfiguratorProductModal({
               <AtHomeLoader variant="section" />
             ) : filteredProducts.length === 0 ? (
               <div className={styles.emptyProducts}>
-                შესაბამისი პროდუქტი ვერ მოიძებნა
+                {en ? "No matching products found" : "შესაბამისი პროდუქტი ვერ მოიძებნა"}
               </div>
             ) : (
               filteredProducts.map((product) => {
@@ -214,7 +225,7 @@ export default function ConfiguratorProductModal({
                       <ul>
                         {product.specs.map((spec) => (
                           <li key={`${product.id}-${spec.label}`}>
-                            <span>{spec.label}</span>
+                            <span>{en ? EN_SPEC_LABELS[spec.label] ?? spec.label : spec.label}</span>
                             <strong>{spec.value}</strong>
                           </li>
                         ))}
@@ -222,7 +233,7 @@ export default function ConfiguratorProductModal({
 
                       {compatibilityError && (
                         <div className={styles.productCompatibilityError}>
-                          <strong>✕ არ არის თავსებადი</strong>
+                          <strong>{en ? "✕ Not compatible" : "✕ არ არის თავსებადი"}</strong>
                           <span>{compatibilityError}</span>
                         </div>
                       )}
@@ -232,7 +243,7 @@ export default function ConfiguratorProductModal({
                       <strong>{rowTotal} ₾</strong>
 
                       <label>
-                        რაოდენობა
+                        {en ? "Quantity" : "რაოდენობა"}
                         <input
                           type="number"
                           min="1"
@@ -244,7 +255,7 @@ export default function ConfiguratorProductModal({
                         />
                       </label>
 
-                      <small>მარაგშია: {product.stock} ერთეული</small>
+                      <small>{en ? `In stock: ${product.stock} units` : `მარაგშია: ${product.stock} ერთეული`}</small>
 
                       <button
                         type="button"
@@ -253,10 +264,10 @@ export default function ConfiguratorProductModal({
                         onClick={() => handleSelect(product, quantity)}
                       >
                         {isChecking
-                          ? "მოწმდება..."
+                          ? en ? "Checking..." : "მოწმდება..."
                           : isSelected
-                            ? "წაშლა"
-                            : "დამატება"}
+                            ? en ? "Remove" : "წაშლა"
+                            : en ? "Add" : "დამატება"}
                       </button>
                     </div>
                   </div>
