@@ -2,80 +2,63 @@
 
 import { useState } from "react";
 import styles from "./StockCheck.module.scss";
-import AtHomeLoader from "../shared/AtHomeLoader";
 import { useStorefrontLocale } from "@/lib/i18n/useStorefrontLocale";
+import type { StorefrontStockLocation } from "@/lib/api/storefront";
 
 interface StockCheckProps {
-  productId: string; // როცა დააჭერ, ეს წამოიღება props-ად
+  stockLocations: StorefrontStockLocation[];
 }
 
-export default function StockCheck({ productId }: StockCheckProps) {
+const LOCATION_ORDER: StorefrontStockLocation["code"][] = [
+  "tsereteli",
+  "saburtalo",
+  "online",
+];
+
+export default function StockCheck({ stockLocations }: StockCheckProps) {
   const en = useStorefrontLocale() === "en";
   const [isOpen, setIsOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [stockData, setStockData] = useState<any[]>([]);
-
-  const handleOpen = async () => {
-    setIsOpen(true);
-    setLoading(true);
-    try {
-      // აქ შეგიძლია ჩასვა შენი API:
-      // const res = await fetch(`/api/stock/${productId}`);
-      // const data = await res.json();
-      const data = [
-        {
-          city: "თბილისი",
-          address: "აკაკი წერეთლის გამზირი N115",
-          phone: "+995 599 09 32 09",
-          workHours: "ორშ - შაბ: 11:00:00 - 19:00:00 ",
-          inStock: true,
-        },
-        {
-          city: "თბილისი",
-          address: "მერაბ კოსტავას ქუჩა N76",
-          phone: "+995 599 09 32 09",
-          workHours: "ორშ - შაბ: 11:00:00 - 19:00:00 ",
-          inStock: false,
-        },
-      ];
-      setStockData(data);
-    } catch {}
-    setLoading(false);
-  };
-
-  const handleClose = () => setIsOpen(false);
+  const locations = [...stockLocations].sort(
+    (a, b) => LOCATION_ORDER.indexOf(a.code) - LOCATION_ORDER.indexOf(b.code),
+  );
 
   return (
     <>
-      <button className={styles.checkBtn} onClick={handleOpen}>
+      <button className={styles.checkBtn} onClick={() => setIsOpen(true)}>
         {en ? "Check" : "შემოწმება"} <span className={styles.arrow}>›</span>
       </button>
 
       {isOpen && (
         <div className={styles.overlay}>
           <div className={styles.modal}>
-            <button className={styles.closeBtn} onClick={handleClose}>
+            <button className={styles.closeBtn} onClick={() => setIsOpen(false)} aria-label={en ? "Close" : "დახურვა"}>
               ×
             </button>
-            <h3 className={styles.title}>{en ? "Stock in stores" : "მარაგი ფილიალებში"}</h3>
+            <h3 className={styles.title}>{en ? "Stock by location" : "მარაგი ლოკაციების მიხედვით"}</h3>
 
-            {loading ? (
-              <AtHomeLoader variant="inline" />
+            {locations.length === 0 ? (
+              <p className={styles.empty}>{en ? "Currently unavailable" : "ამჟამად მარაგში არ არის"}</p>
             ) : (
               <div className={styles.locations}>
-                {stockData.map((store, index) => (
-                  <div key={index} className={styles.card}>
-                    <div className={styles.addressWrapper}>
-                      <p className={styles.city}>{en ? "Tbilisi" : store.city}</p>
-                      <p className={styles.address}>{en ? (index === 0 ? "115 Akaki Tsereteli Avenue" : "76 Merab Kostava Street") : store.address}</p>
+                {locations.map((location) => (
+                  <div key={location.code} className={styles.card}>
+                    <div>
+                      <p className={styles.locationName}>
+                        {location.code === "online"
+                          ? en ? "Available to order" : "შეკვეთით"
+                          : location.name}
+                      </p>
+                      {location.code === "online" && (
+                        <p className={styles.note}>
+                          {en
+                            ? "Supplier stock; availability may be delayed by up to 24 hours."
+                            : "მომწოდებლის მარაგი; მონაცემი შეიძლება 24 საათამდე დაგვიანებული იყოს."}
+                        </p>
+                      )}
                     </div>
-                    <div className={styles.contact}>
-                      <a href={`tel:${store.phone}`} className={styles.phone}>
-                        {store.phone}
-                      </a>
-
-                      <p className={styles.hours}>{en ? "Mon–Sat: 11:00–19:00" : store.workHours}</p>
-                    </div>
+                    <p className={styles.quantity}>
+                      <strong>{location.quantity}</strong> {en ? "in stock" : "ცალი"}
+                    </p>
                   </div>
                 ))}
               </div>

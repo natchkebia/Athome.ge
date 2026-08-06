@@ -65,11 +65,28 @@
     font-weight: 800;
   }
 
-  p {
+.summary {
     margin: 0 0 22px;
     font-size: 12px;
     line-height: 1.6;
     color: #66717a;
+
+    p {
+      margin: 0 0 0.65em;
+    }
+
+    p:last-child {
+      margin-bottom: 0;
+    }
+
+    a {
+      color: rgba(16, 181, 192, 1);
+    }
+
+    img {
+      max-width: 100%;
+      height: auto;
+    }
   }
 }
 

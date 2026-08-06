@@ -127,6 +127,12 @@ export type StorefrontCompatibleGroup = {
   products: StorefrontProduct[];
 };
 
+export type StorefrontStockLocation = {
+  code: "tsereteli" | "saburtalo" | "online";
+  name: string;
+  quantity: number;
+};
+
 export type StorefrontProductDetail = Omit<
   StorefrontProduct,
   "sellingPrice" | "effectivePrice" | "thumbnailUrl"
@@ -159,6 +165,7 @@ export type StorefrontProductDetail = Omit<
   warehouseQuantity: number;
   supplierQuantity: number;
   totalEffectiveQuantity: number;
+  stockLocations: StorefrontStockLocation[];
   relatedProducts: StorefrontProduct[];
   alternativeProducts: StorefrontProduct[];
   accessoryProducts: StorefrontProduct[];

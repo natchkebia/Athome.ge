@@ -131,6 +131,48 @@
     color: #3f474d;
     overflow-wrap: anywhere;
   }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    margin: 1.4em 0 0.65em;
+    color: #30363a;
+    line-height: 1.4;
+  }
+
+  ul,
+  ol {
+    margin: 0 0 22px;
+    padding-inline-start: 1.5em;
+    color: #3f474d;
+  }
+
+  a {
+    color: rgba(16, 181, 192, 1);
+  }
+
+  img {
+    max-width: 100%;
+    height: auto;
+  }
+
+  table {
+    display: block;
+    max-width: 100%;
+    margin-bottom: 22px;
+    overflow-x: auto;
+    border-collapse: collapse;
+  }
+
+  th,
+  td {
+    padding: 8px 12px;
+    border: 1px solid #edf0f3;
+    text-align: start;
+  }
 }
 
 .commentsSection {

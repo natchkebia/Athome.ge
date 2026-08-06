@@ -1,13 +1,14 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { headers } from "next/headers";
+import DOMPurify from "isomorphic-dompurify";
 import styles from "./page.module.scss";
 import Breadcrumb from "@/components/ breadcrumb/Breadcrumb";
 import BlogComments from "@/components/blogComments/BlogComments";
 import {
   formatBlogDate,
-  getBlogParagraphs,
   getStorefrontBlogPost,
+  stripBlogHtml,
 } from "@/lib/storefront/blog";
 
 type Props = {
@@ -27,7 +28,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   return {
     title: blog?.metaTitle || blog?.title || "Athome.ge",
-    description: blog?.metaDescription || blog?.summary,
+    description: blog?.metaDescription || stripBlogHtml(blog?.summary),
     alternates: {
       canonical: `${site}${currentPath}`,
       languages: { ka: `${site}${kaPath}`, en: `${site}/en${kaPath}`, "x-default": `${site}${kaPath}` },
@@ -42,7 +43,7 @@ export default async function NewsDetailPage({ params }: Props) {
   if (!blog) {
     notFound();
   }
-  const paragraphs = getBlogParagraphs(blog.body || blog.summary);
+  const bodyHtml = DOMPurify.sanitize(blog.body || blog.summary || "");
   const breadcrumbs = [
     { label: "მთავარი გვერდი", href: "/" },
     { label: "სიახლეები", href: "/news" },
@@ -81,11 +82,10 @@ export default async function NewsDetailPage({ params }: Props) {
           </div>
         </section>
 
-        <article className={styles.article}>
-          {paragraphs.map((paragraph, index) => (
-            <p key={index}>{paragraph}</p>
-          ))}
-        </article>
+        <article
+          className={styles.article}
+          dangerouslySetInnerHTML={{ __html: bodyHtml }}
+        />
 
         <BlogComments />
       </main>

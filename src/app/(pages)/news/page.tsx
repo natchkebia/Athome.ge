@@ -1,11 +1,11 @@
 import Link from "next/link";
 import { headers } from "next/headers";
+import DOMPurify from "isomorphic-dompurify";
 import styles from "./page.module.scss";
 import Breadcrumb from "@/components/ breadcrumb/Breadcrumb";
 import {
   formatBlogDate,
   getStorefrontBlogPosts,
-  stripBlogHtml,
 } from "@/lib/storefront/blog";
 
 type Props = {
@@ -56,7 +56,12 @@ export default async function NewsPage({ searchParams }: Props) {
 
                 <div className={styles.cardBody}>
                   <h2>{blog.title}</h2>
-                  <p>{stripBlogHtml(blog.summary)}</p>
+                  <div
+                    className={styles.summary}
+                    dangerouslySetInnerHTML={{
+                      __html: DOMPurify.sanitize(blog.summary || ""),
+                    }}
+                  />
 
                   <div className={styles.cardBottom}>
                     <span>{formatBlogDate(blog.publishedAt, locale)}</span>

@@ -167,7 +167,12 @@ export default function ProductDetail({
               { label: en ? "Stock:" : "მარაგი:", value: product.stockStatus },
               {
                 label: en ? "Quantity:" : "რაოდენობა:",
-                value: String(product.totalEffectiveQuantity),
+                value: String(
+                  (product.stockLocations ?? []).reduce(
+                    (total, location) => total + location.quantity,
+                    0,
+                  ),
+                ),
               },
             ],
           },
@@ -340,7 +345,8 @@ export default function ProductDetail({
             )}
             <div className={styles.meta}>
               <div className={styles.stockWrapper}>
-                {en ? "Stock in stores:" : "მარაგი ფილიალებში:"} <StockCheck productId={String(product.id)} />
+                {en ? "Stock by location:" : "მარაგი ლოკაციების მიხედვით:"}{" "}
+                <StockCheck stockLocations={product.stockLocations ?? []} />
               </div>
               <p>
                 {en ? "Product code:" : "პროდუქტის კოდი:"} <span>{product.id}</span>
