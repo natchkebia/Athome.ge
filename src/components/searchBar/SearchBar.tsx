@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   getStorefrontCategories,
   getStorefrontSearchSuggestions,
@@ -13,6 +13,7 @@ import { useStorefrontLocale } from "@/lib/i18n/useStorefrontLocale";
 
 export default function SearchBar() {
   const router = useRouter();
+  const pathname = usePathname();
   const locale = useStorefrontLocale();
   const searchRef = useRef<HTMLDivElement>(null);
   const [categories, setCategories] = useState<StorefrontCategory[]>([]);
@@ -24,6 +25,7 @@ export default function SearchBar() {
     []
   );
   const [suggestionsOpen, setSuggestionsOpen] = useState(false);
+  const [suggestionsSuppressed, setSuggestionsSuppressed] = useState(false);
   const trimmedQuery = query.trim();
   const categoryLabel = selectedCategory?.name || (locale === "en" ? "Category" : "კატეგორია");
 
@@ -41,6 +43,7 @@ export default function SearchBar() {
   const executeSearch = () => {
     if (!trimmedQuery && !selectedCategory) return;
 
+    setSuggestionsSuppressed(true);
     setSuggestionsOpen(false);
     router.push(searchUrl);
   };
@@ -51,6 +54,7 @@ export default function SearchBar() {
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSuggestionsSuppressed(false);
     setQuery(e.target.value);
   };
 
@@ -61,7 +65,9 @@ export default function SearchBar() {
   };
 
   const handleSuggestionClick = (suggestion: StorefrontSearchSuggestion) => {
+    setSuggestionsSuppressed(true);
     setSuggestionsOpen(false);
+    setSuggestions([]);
     setQuery(suggestion.label);
 
     if (suggestion.type === "brand") {
@@ -84,25 +90,43 @@ export default function SearchBar() {
   }, []);
 
   useEffect(() => {
-    if (trimmedQuery.length < 2) {
+    if (pathname !== "/") return;
+
+    setQuery("");
+    setSelectedCategory(null);
+    setSuggestions([]);
+    setSuggestionsOpen(false);
+    setSuggestionsSuppressed(false);
+    setIsDropdownOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    if (suggestionsSuppressed || trimmedQuery.length < 2) {
       setSuggestions([]);
+      setSuggestionsOpen(false);
       return;
     }
 
+    let active = true;
     const timeout = window.setTimeout(() => {
       getStorefrontSearchSuggestions(trimmedQuery)
         .then((items) => {
+          if (!active) return;
           setSuggestions(items);
           setSuggestionsOpen(items.length > 0);
         })
         .catch(() => {
+          if (!active) return;
           setSuggestions([]);
           setSuggestionsOpen(false);
         });
     }, 250);
 
-    return () => window.clearTimeout(timeout);
-  }, [trimmedQuery]);
+    return () => {
+      active = false;
+      window.clearTimeout(timeout);
+    };
+  }, [suggestionsSuppressed, trimmedQuery]);
 
   useEffect(() => {
     const handlePointerDown = (event: PointerEvent) => {
@@ -156,7 +180,9 @@ export default function SearchBar() {
         value={query}
         onChange={handleInputChange}
         onKeyDown={handleKeyPress}
-        onFocus={() => setSuggestionsOpen(suggestions.length > 0)}
+        onFocus={() =>
+          setSuggestionsOpen(!suggestionsSuppressed && suggestions.length > 0)
+        }
       />
 
       <button className={styles.searchBtn} onClick={executeSearch}>
