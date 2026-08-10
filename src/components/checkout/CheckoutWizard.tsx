@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
 import Step1Contact from "./Step1Contact";
 import Step2Delivery from "./Step2Delivery";
@@ -26,10 +26,15 @@ import {
 
 type CheckoutWizardProps = {
   onStepChange?: (step: number) => void;
+  onDeliverySummaryChange?: (summary: {
+    mode: "unknown" | "pickup" | "courier";
+    amount: number | null;
+  }) => void;
 };
 
 type DeliverySelection = {
   method: string;
+  expressDelivery?: boolean;
   address: {
     id?: string | number;
     savedAddressId?: number;
@@ -55,7 +60,7 @@ function mapBank(bank: string): SelectedBank {
   return "bog";
 }
 
-export default function CheckoutWizard({ onStepChange }: CheckoutWizardProps) {
+export default function CheckoutWizard({ onStepChange, onDeliverySummaryChange }: CheckoutWizardProps) {
   const en = useStorefrontLocale() === "en";
   const { cart, clearCart } = useCommerce();
   const { showToast } = useToast();
@@ -88,6 +93,18 @@ export default function CheckoutWizard({ onStepChange }: CheckoutWizardProps) {
     }
   };
 
+  const handleOrderTypeChange = useCallback((value: "store" | "delivery") => {
+    setOrderType(value);
+    onDeliverySummaryChange?.({
+      mode: value === "store" ? "pickup" : "courier",
+      amount: null,
+    });
+  }, [onDeliverySummaryChange]);
+
+  const handleDeliveryAmountChange = useCallback((amount: number | null) => {
+    onDeliverySummaryChange?.({ mode: "courier", amount });
+  }, [onDeliverySummaryChange]);
+
   const goToStep = (nextStep: number) => {
     setStep(nextStep);
     onStepChange?.(nextStep);
@@ -113,6 +130,7 @@ export default function CheckoutWizard({ onStepChange }: CheckoutWizardProps) {
       additionalPhone: contactData?.altPhone || null,
       personalId: (isCompany ? contactData?.companyId : contactData?.personalId) || null,
       deliveryType: isCourier ? "Courier" : "Pickup",
+      expressDelivery: isCourier ? deliveryData?.expressDelivery ?? false : false,
       pickupBranchCode: isCourier ? null : pickupBranchCode,
       shippingMethodId: isCourier ? shippingMethodId : null,
       shippingFullName: isCourier ? fullName : null,
@@ -199,13 +217,23 @@ export default function CheckoutWizard({ onStepChange }: CheckoutWizardProps) {
           ? error.message
           : "შეკვეთის გაფორმება ვერ მოხერხდა";
 
-      // მარაგის დეფიციტი (409 OUT_OF_STOCK) — ბექი აბრუნებს მზა ქართულ ტექსტს
-      // ყველა დეფიციტური პროდუქტით. ვაჩვენებთ და ვაბრუნებთ კალათაზე, სადაც
-      // მომხმარებელი რაოდენობას შეასწორებს (შეკვეთა საერთოდ არ იქმნება).
+      // სწრაფი მიწოდების ფანჯარა შეიძლება გადახდამდე დაიხუროს. არჩევანს ვხსნით,
+      // მაგრამ ჩვეულებრივ მიწოდებაზე ჩუმად არ ვაგზავნით — მომხმარებელი თავიდან ადასტურებს.
       const code =
         error instanceof ApiError
           ? (error.details as { code?: string } | null)?.code
           : undefined;
+      if (code === "EXPRESS_NOT_AVAILABLE") {
+        setDeliveryData((current) => current ? { ...current, expressDelivery: false } : current);
+        setSubmitError(
+          `${message} ${en ? "Express delivery was removed. Please review and confirm the order again." : "სწრაფი მიწოდების მონიშვნა მოიხსნა. გთხოვთ, გადაამოწმოთ და ხელახლა დაადასტუროთ შეკვეთა."}`,
+        );
+        return;
+      }
+
+      // მარაგის დეფიციტი (409 OUT_OF_STOCK) — ბექი აბრუნებს მზა ქართულ ტექსტს
+      // ყველა დეფიციტური პროდუქტით. ვაჩვენებთ და ვაბრუნებთ კალათაზე, სადაც
+      // მომხმარებელი რაოდენობას შეასწორებს (შეკვეთა საერთოდ არ იქმნება).
       if (code === "OUT_OF_STOCK") {
         showToast(message, "error");
         router.push("/basket");
@@ -238,7 +266,7 @@ export default function CheckoutWizard({ onStepChange }: CheckoutWizardProps) {
 
         {step === 2 && (
           <Step2Delivery
-            onOptionChange={setOrderType}
+            onOptionChange={handleOrderTypeChange}
             onPickupBranchChange={setPickupBranchCode}
             onShippingMethodChange={setShippingMethodId}
             onNext={handleStep2Next}
@@ -254,6 +282,7 @@ export default function CheckoutWizard({ onStepChange }: CheckoutWizardProps) {
                 : [contactData?.firstName, contactData?.lastName].filter(Boolean).join(" ")
             }
             customerPhone={contactData?.phone}
+            onDeliveryAmountChange={handleDeliveryAmountChange}
             onNext={(data: DeliverySelection) => {
               setDeliveryData(data);
               goToStep(4);

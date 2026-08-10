@@ -74,7 +74,7 @@ export default function Step5Complete({
   // დასრულების ეკრანზე მხოლოდ checkout-ის საბოლოო თანხას ვენდობით;
   // quote წინასწარი შეფასებაა და payload-ში არ იგზავნება.
   const deliveryFee = orderType === "delivery"
-    ? Math.max(total - subtotal, 0)
+    ? result?.shippingAmount ?? Math.max(total - subtotal, 0)
     : 0;
 
   const customerName =

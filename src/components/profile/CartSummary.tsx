@@ -10,9 +10,15 @@ import { useStorefrontLocale } from "@/lib/i18n/useStorefrontLocale";
 
 interface CartSummaryProps {
   showItems?: boolean;
+  deliveryMode?: "unknown" | "pickup" | "courier";
+  deliveryAmount?: number | null;
 }
 
-export default function CartSummary({ showItems = true }: CartSummaryProps) {
+export default function CartSummary({
+  showItems = true,
+  deliveryMode = "unknown",
+  deliveryAmount = null,
+}: CartSummaryProps) {
   const en = useStorefrontLocale() === "en";
   const router = useRouter();
   const [isContinuing, setIsContinuing] = useState(false);
@@ -40,6 +46,8 @@ export default function CartSummary({ showItems = true }: CartSummaryProps) {
     0
   );
   const totalDiscount = Math.max(totalOldPrice - totalPrice, 0);
+  const payableTotal = totalPrice +
+    (deliveryMode === "courier" ? deliveryAmount ?? 0 : 0);
 
   const handleContinue = () => {
     setIsContinuing(true);
@@ -80,9 +88,22 @@ export default function CartSummary({ showItems = true }: CartSummaryProps) {
             </div>
           )}
 
+          {deliveryMode !== "pickup" && (
+            <div className={styles.row}>
+              <p>{en ? "Delivery fee" : "მიწოდების საფასური"}</p>
+              {deliveryMode === "courier" && deliveryAmount != null ? (
+                <span>{deliveryAmount.toLocaleString()} ₾</span>
+              ) : (
+                <span className={styles.deliveryByAddress}>
+                  {en ? "Based on address" : "მისამართის მიხედვით"}
+                </span>
+              )}
+            </div>
+          )}
+
           <div className={styles.totalRow}>
             <p>{en ? "Total" : "ჯამი"}</p>
-            <span>{totalPrice.toLocaleString()} ₾</span>
+            <span>{payableTotal.toLocaleString()} ₾</span>
           </div>
         </div>
         {!showItems && (

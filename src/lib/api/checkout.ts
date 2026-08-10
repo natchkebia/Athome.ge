@@ -21,6 +21,7 @@ export type CheckoutPayload = {
   additionalPhone?: string | null;
   personalId?: string | null;
   deliveryType: DeliveryType;
+  expressDelivery?: boolean;
   pickupBranchCode?: string | null;
   shippingMethodId?: number | null;
   shippingFullName?: string | null;
@@ -65,6 +66,9 @@ export type CheckoutResponse = {
   bankTransferDetails?: BankTransferDetails | null;
   paymentMethod: PaymentMethod;
   selectedBank: SelectedBank;
+  shippingAmount?: number;
+  shippingTierCode?: string | null;
+  shippingZoneName?: string | null;
 };
 
 export type ShippingMethod = {
@@ -99,6 +103,16 @@ export type ShippingQuote = {
   zoneMatched: boolean;
   requiresManualPricing: boolean;
   productsWithoutTier: number[];
+  expressAvailable: boolean;
+  expressAmount?: number;
+  expressClosesAtUtc?: string;
+  expressUnavailableReason?:
+    | "after_cutoff"
+    | "non_working_day"
+    | "zone_not_eligible"
+    | "not_available_same_day"
+    | "disabled"
+    | string;
 };
 
 export type PaymentInitiateResponse = {
