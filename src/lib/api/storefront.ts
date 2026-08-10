@@ -239,6 +239,11 @@ export type StorefrontSearchSuggestion = {
   type: "product" | "brand" | "category" | string;
   label: string;
   slug: string;
+  sku?: string;
+  thumbnailUrl?: string;
+  effectivePrice?: number;
+  oldPrice?: number;
+  currencyCode?: string;
 };
 
 export type StorefrontSearchResponse = {
@@ -625,12 +630,48 @@ export async function getStorefrontVisibleCategorySlugs(): Promise<Set<string>> 
   );
 }
 
-export function getStorefrontSearchSuggestions(query: string) {
-  return apiRequest<StorefrontSearchSuggestion[]>(
-    "/api/storefront/search/suggest",
-    {
+export async function getStorefrontSearchSuggestions(query: string) {
+  const [suggestionsResult, productsResult] = await Promise.allSettled([
+    apiRequest<StorefrontSearchSuggestion[]>("/api/storefront/search/suggest", {
       query: { query },
       useProxy: true,
-    }
+    }),
+    searchStorefrontProducts({ query, page: 1, pageSize: 8 }),
+  ]);
+
+  const suggestions =
+    suggestionsResult.status === "fulfilled" ? suggestionsResult.value : [];
+  const products =
+    productsResult.status === "fulfilled" ? productsResult.value.products : [];
+  const normalizedQuery = query.trim().toLocaleLowerCase();
+
+  const productSuggestions: StorefrontSearchSuggestion[] = products.map(
+    (product) => ({
+      type: "product",
+      label: product.name,
+      slug: product.slug,
+      sku: product.sku,
+      thumbnailUrl: product.thumbnailUrl,
+      effectivePrice: product.effectivePrice,
+      oldPrice: product.oldPrice,
+      currencyCode: product.currencyCode,
+    }),
   );
+
+  // კოდის ზუსტი დამთხვევა ყოველთვის პირველ პოზიციაზე გამოჩნდეს.
+  productSuggestions.sort((a, b) => {
+    const aExact = a.sku?.toLocaleLowerCase() === normalizedQuery ? 1 : 0;
+    const bExact = b.sku?.toLocaleLowerCase() === normalizedQuery ? 1 : 0;
+    return bExact - aExact;
+  });
+
+  const merged = [...productSuggestions, ...suggestions];
+  return merged
+    .filter(
+      (suggestion, index, items) =>
+        items.findIndex(
+          (item) => item.type === suggestion.type && item.slug === suggestion.slug,
+        ) === index,
+    )
+    .slice(0, 8);
 }

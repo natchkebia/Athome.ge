@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import DOMPurify from "isomorphic-dompurify";
 import styles from "./ProductDetail.module.scss";
@@ -119,13 +119,16 @@ export interface ProductDetailProps {
   routeSlug?: string;
 }
 
+type ProductInfoTab = "additional" | "details" | "reviews";
+
 export default function ProductDetail({
   product,
   routeCategory,
   routeSlug,
 }: ProductDetailProps) {
   const en = useStorefrontLocale() === "en";
-  const [showAll, setShowAll] = useState(false);
+  const [activeInfoTab, setActiveInfoTab] =
+    useState<ProductInfoTab>("additional");
   const [showFullShortDescription, setShowFullShortDescription] = useState(false);
   const [isShortDescriptionOverflowing, setIsShortDescriptionOverflowing] =
     useState(false);
@@ -138,49 +141,24 @@ export default function ProductDetail({
   const [fallbackRelatedProducts, setFallbackRelatedProducts] = useState<
     StorefrontProductCard[]
   >([]);
+  const productImages = product.images ?? [];
   const images =
-    product.images.length > 0
-      ? [...product.images]
+    productImages.length > 0
+      ? [...productImages]
           .sort((a, b) => a.sortOrder - b.sortOrder)
           .map((image) => normalizeMediaUrl(image.url))
       : ["/images/discountPc.png"];
   // Backend აბრუნებს ჯგუფებსა და ველებს ჩვენების რიგით — არ ვახარისხებთ.
-  const specGroups: SpecGroup[] =
-    product.specifications.length > 0
-      ? product.specifications.map((group) => ({
-          name: group.name || (en ? "Specifications" : "მახასიათებლები"),
+  const specGroups: SpecGroup[] = (product.specifications ?? [])
+    .map((group) => ({
+          name: group.name,
           fields: (group.fields ?? []).map((field) => ({
             label: `${field.label}:`,
             value: field.value || "-",
           })),
         }))
-      : [
-          {
-            name: en ? "General" : "ძირითადი",
-            fields: [
-              { label: en ? "Brand:" : "ბრენდი:", value: product.brand.name },
-              { label: en ? "Model:" : "მოდელი:", value: product.model || product.sku },
-              { label: en ? "Category:" : "კატეგორია:", value: product.category.name },
-              ...(product.subCategory
-                ? [{ label: en ? "Type:" : "ტიპი:", value: product.subCategory.name }]
-                : []),
-              { label: en ? "Stock:" : "მარაგი:", value: product.stockStatus },
-              {
-                label: en ? "Quantity:" : "რაოდენობა:",
-                value: String(
-                  (product.stockLocations ?? []).reduce(
-                    (total, location) => total + location.quantity,
-                    0,
-                  ),
-                ),
-              },
-            ],
-          },
-        ];
-
-  // პირველი ჯგუფი ყოველთვის ჩანს; დანარჩენი — "მეტი დეტალი"-ს უკან.
-  const primaryGroups = specGroups.slice(0, 1);
-  const collapsibleGroups = specGroups.slice(1);
+    .filter((group) => Boolean(group.name) && group.fields.length > 0);
+  const specifications = specGroups.flatMap((group) => group.fields);
 
   const keyFeatures = product.keyFeatures ?? [];
   const boxContents = product.boxContents ?? [];
@@ -200,9 +178,10 @@ export default function ProductDetail({
       products: (group.products ?? []).map(mapStorefrontProductToCard),
     }))
     .filter((group) => group.heading !== "" && group.products.length > 0);
+  const backendRelatedProducts = product.relatedProducts ?? [];
   const relatedProducts =
-    product.relatedProducts.length > 0
-      ? product.relatedProducts.map(mapStorefrontProductToCard)
+    backendRelatedProducts.length > 0
+      ? backendRelatedProducts.map(mapStorefrontProductToCard)
       : fallbackRelatedProducts;
   const oldPrice =
     product.pricing.sellingPrice > product.pricing.effectivePrice
@@ -212,7 +191,7 @@ export default function ProductDetail({
   useEffect(() => {
     let isMounted = true;
 
-    if (product.relatedProducts.length > 0) {
+    if (backendRelatedProducts.length > 0) {
       setFallbackRelatedProducts([]);
       return;
     }
@@ -234,11 +213,12 @@ export default function ProductDetail({
     return () => {
       isMounted = false;
     };
-  }, [product.category.slug, product.relatedProducts.length, product.slug]);
+  }, [product.category.slug, backendRelatedProducts.length, product.slug]);
 
   useEffect(() => {
     setShowFullShortDescription(false);
     setIsShortDescriptionOverflowing(false);
+    setActiveInfoTab("additional");
   }, [product.id]);
 
   useEffect(() => {
@@ -405,98 +385,71 @@ export default function ProductDetail({
         </div>
       </div>
 
-      {product.descriptionHtml && (
-        <section className={styles.descriptionSection}>
-          <h4>{en ? "Product description" : "პროდუქტის აღწერა"}</h4>
-          <div
-            className={styles.richText}
-            dangerouslySetInnerHTML={{
-              __html: sanitizeRichText(product.descriptionHtml),
-            }}
-          />
-        </section>
-      )}
-
-      <div className={styles.specsSectionWrapper}>
-        <h4>{en ? "Additional specifications" : "დამატებითი მახასიათებლები"}</h4>
-        <div className={styles.specsSection}>
-          <table>
-            <tbody>
-              {primaryGroups.map((group, gi) => (
-                <Fragment key={`pg-${gi}`}>
-                  <tr>
-                    <th
-                      colSpan={2}
-                      className={`${styles.sectionTitle} ${styles.first}`}
-                    >
-                      {group.name}
-                    </th>
-                  </tr>
-                  {group.fields.map((spec, i) => (
-                    <tr key={`pg-${gi}-${i}`}>
-                      <th>{spec.label}</th>
-                      <td>{spec.value}</td>
-                    </tr>
-                  ))}
-                </Fragment>
-              ))}
-
-              {/* დანარჩენი ჯგუფები — მხოლოდ showAll=true-ზე */}
-              {showAll &&
-                collapsibleGroups.map((group, gi) => (
-                  <Fragment key={`cg-${gi}`}>
-                    <tr>
-                      <th colSpan={2} className={styles.sectionTitle}>
-                        {group.name}
-                      </th>
-                    </tr>
-                    {group.fields.map((spec, i) => (
-                      <tr key={`cg-${gi}-${i}`}>
-                        <th>{spec.label}</th>
-                        <td>{spec.value}</td>
-                      </tr>
-                    ))}
-                  </Fragment>
-                ))}
-            </tbody>
-          </table>
-
-          {/* ღილაკი მეტის/ნაკლების ჩვენებისთვის */}
-          {collapsibleGroups.length > 0 && (
+      <section className={styles.productInfoTabs}>
+        <div className={styles.tabList} role="tablist" aria-label={en ? "Product information" : "პროდუქტის ინფორმაცია"}>
+          {([
+            ["additional", en ? "Additional information" : "დამატებითი ინფორმაცია"],
+            ["details", en ? "Product details" : "პროდუქტის დეტალები"],
+            ["reviews", `${en ? "Reviews" : "მიმოხილვა"} (${product.ratingCount ?? 0})`],
+          ] as const).map(([tab, label]) => (
             <button
-              className={styles.toggleBtn}
-              onClick={() => setShowAll((prev) => !prev)}
+              key={tab}
+              type="button"
+              role="tab"
+              aria-selected={activeInfoTab === tab}
+              aria-controls={`product-info-panel-${tab}`}
+              id={`product-info-tab-${tab}`}
+              className={`${styles.tabButton} ${activeInfoTab === tab ? styles.activeTab : ""}`}
+              onClick={() => setActiveInfoTab(tab)}
             >
-              {showAll ? (en ? "Fewer details" : "ნაკლები დეტალი") : (en ? "More details" : "მეტი დეტალი")}
+              {label}
             </button>
-          )}
+          ))}
         </div>
-      </div>
 
-      {(keyFeatures.length > 0 || boxContents.length > 0) && (
-        <div className={styles.infoBlocks}>
-          {keyFeatures.length > 0 && (
-            <div className={styles.infoCard}>
-              <h4>{en ? "Key features" : "ძირითადი მახასიათებლები"}</h4>
-              <ul>
-                {keyFeatures.map((item, i) => (
-                  <li key={`kf-${i}`}>{item}</li>
-                ))}
-              </ul>
+        <div
+          className={styles.tabPanel}
+          role="tabpanel"
+          id={`product-info-panel-${activeInfoTab}`}
+          aria-labelledby={`product-info-tab-${activeInfoTab}`}
+        >
+          {activeInfoTab === "additional" && specifications.length > 0 && (
+            <div className={styles.specsSection}>
+              <table>
+                <tbody>
+                  {specifications.map((spec, index) => (
+                    <tr key={`${spec.label}-${index}`}><th>{spec.label}</th><td>{spec.value}</td></tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           )}
-          {boxContents.length > 0 && (
-            <div className={styles.infoCard}>
-              <h4>{en ? "What's in the box" : "შეფუთვის შემადგენლობა"}</h4>
-              <ul>
-                {boxContents.map((item, i) => (
-                  <li key={`bc-${i}`}>{item}</li>
-                ))}
-              </ul>
+          {activeInfoTab === "additional" && specifications.length === 0 && (
+            <p className={styles.emptyTab}>{en ? "Additional information is not available." : "დამატებითი ინფორმაცია არ არის დამატებული."}</p>
+          )}
+
+          {activeInfoTab === "details" && (
+            <div className={styles.detailsPanel}>
+              {product.descriptionHtml && (
+                <div className={styles.richText} dangerouslySetInnerHTML={{ __html: sanitizeRichText(product.descriptionHtml) }} />
+              )}
+              {(keyFeatures.length > 0 || boxContents.length > 0) && (
+                <div className={styles.infoBlocks}>
+                  {keyFeatures.length > 0 && <div className={styles.infoCard}><h4>{en ? "Key features" : "ძირითადი მახასიათებლები"}</h4><ul>{keyFeatures.map((item, i) => <li key={`kf-${i}`}>{item}</li>)}</ul></div>}
+                  {boxContents.length > 0 && <div className={styles.infoCard}><h4>{en ? "What's in the box" : "შეფუთვის შემადგენლობა"}</h4><ul>{boxContents.map((item, i) => <li key={`bc-${i}`}>{item}</li>)}</ul></div>}
+                </div>
+              )}
+              {!product.descriptionHtml && keyFeatures.length === 0 && boxContents.length === 0 && (
+                <p className={styles.emptyTab}>{en ? "Product details are not available." : "პროდუქტის დეტალები არ არის დამატებული."}</p>
+              )}
             </div>
+          )}
+
+          {activeInfoTab === "reviews" && (
+            <p className={styles.emptyTab}>{en ? "There are no reviews yet." : "მიმოხილვები ჯერ არ არის."}</p>
           )}
         </div>
-      )}
+      </section>
 
       {/* დროებით გამორთულია დამკვეთის მოთხოვნით.
       <ProductReviews productId={product.id} />

@@ -291,29 +291,6 @@
   }
 }
 
-.descriptionSection {
-  max-width: 1392px;
-  width: 100%;
-  margin: 0 auto 48px;
-  padding: 24px;
-  box-sizing: border-box;
-  background-color: #fff;
-  border: 1px solid rgba(233, 235, 248, 1);
-  border-radius: 18px;
-
-  @media (max-width: 768px) {
-    margin-bottom: 32px;
-    padding: 16px;
-  }
-
-  h4 {
-    margin: 0 0 16px;
-    color: rgba(59, 63, 66, 1);
-    font-size: 16px;
-    font-weight: 590;
-  }
-}
-
 .richText {
   color: rgba(59, 63, 66, 1);
   line-height: 1.7;
@@ -368,119 +345,205 @@
   }
 }
 
-.specsSectionWrapper {
+.descriptionSection {
   max-width: 1392px;
   width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-  margin: 0 auto;
+  margin: 0 auto 48px;
+  padding: 24px;
   box-sizing: border-box;
+  background-color: #fff;
+  border: 1px solid rgba(233, 235, 248, 1);
+  border-radius: 18px;
 
   @media (max-width: 768px) {
-    gap: 16px;
+    margin-bottom: 32px;
+    padding: 16px;
   }
 
   h4 {
+    margin: 0 0 16px;
     color: rgba(59, 63, 66, 1);
     font-size: 16px;
-    font-weight: 510;
-    margin: 0 auto;
-
-    @media (max-width: 480px) {
-      font-size: 15px;
-      text-align: center;
-    }
-  }
-
-  .specsSection {
-    width: 100%;
-    background-color: rgba(255, 255, 255, 1);
-    border: 1px solid rgba(233, 235, 248, 1);
-    border-radius: 18px;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    align-items: center;
-    overflow: hidden;
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      table-layout: fixed;
-
-      th,
-      td {
-        padding: 12px 24px;
-        border-top: 1px solid #f2f4f6;
-        text-align: left;
-        font-size: 14px;
-        color: rgba(59, 63, 66, 1);
-        overflow-wrap: anywhere;
-
-        @media (max-width: 480px) {
-          padding: 10px 12px;
-          font-size: 12px;
-        }
-      }
-
-      th {
-        color: rgba(59, 63, 66, 1);
-        width: 353px;
-        font-weight: 510;
-        background-color: rgba(246, 248, 251, 1);
-        border-bottom: 1px solid rgba(233, 235, 248, 1);
-        border-right: 1px solid rgba(233, 235, 248, 1);
-        font-size: 14px;
-
-        @media (max-width: 768px) {
-          width: 42%;
-        }
-
-        @media (max-width: 480px) {
-          font-size: 12px;
-        }
-      }
-
-      td {
-        color: #101828;
-        font-weight: 500;
-        border-bottom: 1px solid rgba(233, 235, 248, 1);
-      }
-
-      .first {
-        border: none;
-        border-top-left-radius: 18px;
-        border-top-right-radius: 18px;
-      }
-
-      .sectionTitle {
-        background: rgba(255, 255, 255, 1);
-        font-weight: 590;
-        font-size: 16px;
-        color: rgba(59, 63, 66, 1);
-        border-top: none;
-        padding: 24px 0 16px 24px;
-
-        @media (max-width: 480px) {
-          font-size: 14px;
-          padding: 18px 12px 12px;
-        }
-      }
-    }
+    font-weight: 590;
   }
 }
-.toggleBtn {
-  background-color: rgba(255, 255, 255, 1);
-  border: 1px solid rgba(16, 181, 192, 1);
-  width: 228px;
-  height: 40px;
-  border-radius: 8px;
-  cursor: pointer;
-  margin-bottom: 16px;
-  color: rgba(16, 181, 192, 1);
+
+.productInfoTabs {
+  max-width: 1392px;
+  width: 100%;
+  margin: 0 auto;
+  box-sizing: border-box;
+  background: #fff;
+  border: 1px solid rgba(233, 235, 248, 1);
+  border-radius: 18px;
+  overflow: hidden;
+
+  @media (max-width: 768px) {
+    border-radius: 14px;
+  }
+}
+
+.tabList {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(180px, 1fr));
+  gap: 28px;
+  width: min(100%, 980px);
+  margin: 0 auto;
+  padding: 28px 24px;
+  box-sizing: border-box;
+  border-bottom: 1px solid rgba(233, 235, 248, 1);
+  background: #fff;
+
+  @media (max-width: 768px) {
+    display: flex;
+    gap: 10px;
+    padding: 14px;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    scrollbar-width: thin;
+  }
+}
+
+.tabButton {
+  width: 100%;
+  min-width: 0;
+  min-height: 52px;
+  padding: 10px 16px;
+  border: 1px solid rgba(233, 235, 248, 1);
+  border-radius: 999px;
+  background: #fff;
+  color: rgba(59, 63, 66, 1);
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 590;
+  line-height: 1.45;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+  transition: color 0.2s ease, background-color 0.2s ease,
+    border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+
+  &:hover {
+    border-color: #10b5c0;
+    color: #10b5c0;
+    transform: translateY(-1px);
+  }
+
+  &:focus-visible {
+    outline: 3px solid rgba(16, 181, 192, 0.2);
+    outline-offset: 2px;
+  }
+
+  @media (max-width: 768px) {
+    flex: 0 0 auto;
+    width: auto;
+    min-width: 156px;
+    max-width: 220px;
+    min-height: 46px;
+    padding: 8px 14px;
+    font-size: 13px;
+    scroll-snap-align: start;
+  }
+}
+
+.activeTab {
+  border-color: #10b5c0;
+  background: #10b5c0;
+  color: #fff;
+  box-shadow: 0 8px 20px rgba(16, 181, 192, 0.2);
+
+  &:hover {
+    color: #fff;
+  }
+}
+
+.tabPanel {
+  min-height: 160px;
+}
+
+.detailsPanel {
+  padding: 24px;
+
+  @media (max-width: 768px) {
+    padding: 16px;
+  }
+
+  .infoBlocks {
+    margin-top: 24px;
+  }
+}
+
+.emptyTab {
+  margin: 0;
+  padding: 56px 24px;
+  color: rgba(105, 108, 110, 1);
+  text-align: center;
+  font-size: 14px;
+}
+
+.specsSection {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: center;
+  overflow: hidden;
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+
+    th,
+    td {
+      padding: 12px 24px;
+      border-top: 1px solid #f2f4f6;
+      text-align: left;
+      font-size: 14px;
+      color: rgba(59, 63, 66, 1);
+      overflow-wrap: anywhere;
+
+      @media (max-width: 480px) {
+        padding: 10px 12px;
+        font-size: 12px;
+      }
+    }
+
+    th {
+      width: 353px;
+      font-weight: 510;
+      background-color: rgba(246, 248, 251, 1);
+      border-bottom: 1px solid rgba(233, 235, 248, 1);
+      border-right: 1px solid rgba(233, 235, 248, 1);
+
+      @media (max-width: 768px) {
+        width: 42%;
+      }
+    }
+
+    td {
+      color: #101828;
+      font-weight: 500;
+      border-bottom: 1px solid rgba(233, 235, 248, 1);
+    }
+
+    .first {
+      border-top: none;
+    }
+
+    .sectionTitle {
+      width: auto;
+      background: #fff;
+      font-weight: 590;
+      font-size: 16px;
+      border-right: 0;
+      padding: 24px 24px 16px;
+
+      @media (max-width: 480px) {
+        font-size: 14px;
+        padding: 18px 12px 12px;
+      }
+    }
+  }
 }
 
 .stockWrapper {

@@ -19,6 +19,7 @@ export async function GET(request: NextRequest) {
   const response = await fetch(url, {
     headers: {
       Accept: "application/json",
+      "X-Lang": request.headers.get("x-lang") ?? "ka",
     },
     cache: "no-store",
   });

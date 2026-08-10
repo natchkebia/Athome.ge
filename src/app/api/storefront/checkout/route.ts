@@ -19,6 +19,7 @@ export async function POST(request: NextRequest) {
     headers: {
       Accept: "application/json",
       "Content-Type": request.headers.get("content-type") ?? "application/json",
+      "X-Lang": request.headers.get("x-lang") ?? "ka",
       // Authorization is optional — guest checkout works without it.
       ...(request.headers.get("authorization")
         ? { Authorization: request.headers.get("authorization") as string }

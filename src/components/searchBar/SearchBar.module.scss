@@ -128,8 +128,8 @@
   button {
     width: 100%;
     min-width: 0;
-    min-height: 42px;
-    padding: 8px 10px;
+    min-height: 58px;
+    padding: 8px 12px;
     border: none;
     border-radius: 8px;
     background: transparent;
@@ -145,7 +145,7 @@
       background: #f6f8fb;
     }
 
-    span {
+    > span {
       min-width: 0;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -161,6 +161,68 @@
       font-weight: 700;
     }
   }
+}
+
+.suggestionContent {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+
+  span {
+    display: block;
+    width: 100%;
+    overflow: hidden;
+    color: #3b3f42;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 13px;
+    font-weight: 500;
+  }
+
+  em {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 5px;
+    color: #8b9297;
+    font-size: 11px;
+    font-style: normal;
+    font-weight: 500;
+
+    span {
+      width: auto;
+      color: inherit;
+      font-size: inherit;
+      font-weight: inherit;
+    }
+
+    i {
+      font-style: normal;
+    }
+
+    del {
+      color: #9aa0a4;
+    }
+
+    strong {
+      color: #10b5c0;
+      font-weight: 700;
+    }
+  }
+}
+
+.suggestionImage {
+  width: 48px;
+  height: 48px;
+  flex: 0 0 48px;
+  padding: 3px;
+  box-sizing: border-box;
+  border: 1px solid #eef2f4;
+  border-radius: 8px;
+  background: #fff;
+  object-fit: contain;
 }
 
 @media (max-width: 900px) {

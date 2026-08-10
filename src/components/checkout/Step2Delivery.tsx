@@ -5,7 +5,9 @@ import styles from "./Step2Delivery.module.scss";
 import { useStorefrontLocale } from "@/lib/i18n/useStorefrontLocale";
 import {
   getPickupBranches,
+  getShippingMethods,
   type PickupBranch,
+  type ShippingMethod,
 } from "@/lib/api/checkout";
 
 interface Step2DeliveryProps {
@@ -13,33 +15,26 @@ interface Step2DeliveryProps {
   onPrev?: () => void;
   onOptionChange?: (value: "store" | "delivery") => void;
   onPickupBranchChange?: (code: string | null) => void;
-  stockLocationCodes?: string[] | null;
+  onShippingMethodChange?: (id: number | null) => void;
 }
-
-const DEFAULT_BRANCH_PRIORITY = ["saburtalo", "tsereteli", "warehouse", "online"];
 
 export default function Step2Delivery({
   onNext,
   onPrev,
   onOptionChange,
   onPickupBranchChange,
-  stockLocationCodes,
+  onShippingMethodChange,
 }: Step2DeliveryProps) {
   const en = useStorefrontLocale() === "en";
   const [selectedOption, setSelectedOption] = useState<"store" | "delivery">(
     "store"
   );
   const [branches, setBranches] = useState<PickupBranch[]>([]);
+  const [shippingMethods, setShippingMethods] = useState<ShippingMethod[]>([]);
   const [selectedBranch, setSelectedBranch] = useState<string | null>(null);
   const [branchesError, setBranchesError] = useState<string | null>(null);
-  const visibleBranches = branches
-    .filter((branch) => stockLocationCodes?.includes(branch.code))
-    .sort((left, right) => {
-      const leftPriority = DEFAULT_BRANCH_PRIORITY.indexOf(left.code);
-      const rightPriority = DEFAULT_BRANCH_PRIORITY.indexOf(right.code);
-      return (leftPriority < 0 ? Number.MAX_SAFE_INTEGER : leftPriority) -
-        (rightPriority < 0 ? Number.MAX_SAFE_INTEGER : rightPriority);
-    });
+  const pickupMethod = shippingMethods.find((method) => method.isPickup);
+  const courierMethod = shippingMethods.find((method) => !method.isPickup);
 
   useEffect(() => {
     onOptionChange?.("store");
@@ -52,31 +47,16 @@ export default function Step2Delivery({
             : "ფილიალების ჩატვირთვა ვერ მოხერხდა",
         ),
       );
+    getShippingMethods()
+      .then(setShippingMethods)
+      .catch(() => setShippingMethods([]));
   }, [onOptionChange]);
 
   useEffect(() => {
-    if (branches.length === 0 || stockLocationCodes === null || stockLocationCodes === undefined) {
-      return;
-    }
-
-    const availableStock = new Set(stockLocationCodes);
-    const branchCodes = new Set(branches.map((branch) => branch.code));
-    if (selectedBranch && availableStock.has(selectedBranch) && branchCodes.has(selectedBranch)) {
-      return;
-    }
-    const preferredBranch = DEFAULT_BRANCH_PRIORITY.find(
-      (code) => availableStock.has(code) && branchCodes.has(code),
+    onShippingMethodChange?.(
+      selectedOption === "delivery" ? courierMethod?.id ?? null : null,
     );
-    const nextBranch = preferredBranch ?? branches.find((branch) => availableStock.has(branch.code))?.code;
-
-    if (nextBranch) {
-      setSelectedBranch(nextBranch);
-      onPickupBranchChange?.(nextBranch);
-    } else {
-      setSelectedBranch(null);
-      onPickupBranchChange?.(null);
-    }
-  }, [branches, onPickupBranchChange, selectedBranch, stockLocationCodes]);
+  }, [courierMethod?.id, onShippingMethodChange, selectedOption]);
 
   const select = (value: "store" | "delivery") => {
     setSelectedOption(value);
@@ -113,7 +93,7 @@ export default function Step2Delivery({
           onClick={() => select("store")}
         >
           <img src="/icons/gift.svg" alt="gift" className={styles.icon} />
-          <p className={styles.optionLabel}>{en ? "Store pickup" : "მაღაზიაში აღება"}</p>
+          <p className={styles.optionLabel}>{pickupMethod?.name || (en ? "Store pickup" : "მაღაზიაში აღება")}</p>
         </div>
 
         <div
@@ -123,19 +103,22 @@ export default function Step2Delivery({
           onClick={() => select("delivery")}
         >
           <img src="/icons/scooter.svg" alt="scooter" className={styles.icon} />
-          <p className={styles.optionLabel}>{en ? "Delivery" : "ადგილზე მიტანა"}</p>
+          <p className={styles.optionLabel}>{courierMethod?.name || (en ? "Delivery" : "ადგილზე მიტანა")}</p>
         </div>
       </div>
 
       <div className={styles.textBlock}>
         {selectedOption === "store" && (
           <>
-            <p>{en ? "Store pickup is free. Choose a pickup branch:" : "მაღაზიიდან გატანა უფასოა. აირჩიეთ ფილიალი:"}</p>
+            {pickupMethod?.description && (
+              <p className={styles.methodDescription}>{pickupMethod.description}</p>
+            )}
+            <p>{en ? "Choose a pickup branch:" : "აირჩიეთ ფილიალი:"}</p>
             {branchesError ? (
               <p className={styles.error}>{branchesError}</p>
             ) : (
               <div className={styles.branches}>
-                {visibleBranches.map((branch) => (
+                {branches.map((branch) => (
                   <label
                     key={branch.code}
                     className={`${styles.branch} ${
@@ -155,21 +138,14 @@ export default function Step2Delivery({
                     </span>
                   </label>
                 ))}
-                {stockLocationCodes !== null && visibleBranches.length === 0 && (
-                  <p className={styles.error}>
-                    {en
-                      ? "The complete order is not currently available at a pickup branch. Please choose delivery."
-                      : "სრული შეკვეთა ამჟამად არცერთ ფილიალში არ არის. გთხოვთ, აირჩიოთ ადგილზე მიტანა."}
-                  </p>
-                )}
               </div>
             )}
-            <p>{en ? "Your order will be ready for collection the following day between 17:00 and 20:00." : "აღნიშნული პირობის გამოყენებისას მომხმარებელი შეძენილი ნივთი უნდა გაიტანოს მეორე დღეს 17:00 - 20:00-მდე..."}</p>
+            <p className={styles.pickupNotice}>{en ? "We will notify you by SMS when your order is ready for pickup." : "შეკვეთის მზადყოფნის შესახებ შეგატყობინებთ SMS-ით."}</p>
           </>
         )}
 
         {selectedOption === "delivery" && (
-          <p>{en ? "Orders over GEL 100 are delivered free of charge within Tbilisi. We aim to deliver on the same day, but traffic may cause delays; delivery by the next business day is guaranteed. Delivery is made to the building entrance and is unavailable on weekends and public holidays. Oversized and heavy items are excluded. The fee is calculated after selecting the location. Regional delivery takes 3–4 business days." : "100 ლარზე მეტი შეკეთის უფასო მოწოდება მოხდება, მხოლოდ თბილისის მაშტაბით. ჩვენი მიზანია მოწოდება მოხდეს იმავე დღეს, ამისთვის ყველაფერს ვაკეთებთ. თუმცა ქალაქში საცობების გამო ვერაფრის გარანტირებულად ვერ გპირდებით. მომდევნო სამუშაო დღეს რომ მოგივათ ეს ცალსახაა. მიწოდე მოხდება \"სადარბაზომდე\". მიწოდების ეს მეთოდი არ ვრცელდება შაბათი, კვირა და უქმე დღეებზე. მიწოდების ეს მეთოდი არ მოქმედებს გაბარიტულ და მასიურ ნივთებზე. თანხა დაანგარიშდება მდებარეობის არჩევისას. რეგიონებში მიწოდება მოხდება 3-4 სამუშაო დღეში."}</p>
+          <p>{courierMethod?.description || (en ? "Enter the delivery address in the next step." : "შემდეგ ეტაპზე მიუთითეთ მიწოდების მისამართი.")}</p>
         )}
       </div>
 
@@ -179,7 +155,7 @@ export default function Step2Delivery({
           onClick={onNext}
           disabled={
             selectedOption === "store" &&
-            (!selectedBranch || visibleBranches.length === 0)
+            !selectedBranch
           }
         >
           {en ? "Continue" : "გაგრძელება"}

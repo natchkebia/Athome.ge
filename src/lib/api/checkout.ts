@@ -4,7 +4,7 @@ import { getStoredAuthTokens } from "@/lib/auth/tokens";
 // ---- Types (Swagger: /api/storefront/checkout, /api/storefront/shipping-methods, /api/payments/*) ----
 
 export type CustomerType = "physical" | "legal";
-export type DeliveryType = "pickup" | "courier";
+export type DeliveryType = "Pickup" | "Courier";
 export type PaymentMethod = "card" | "installment" | "bankTransfer";
 export type SelectedBank = "bog" | "tbc" | "credo";
 

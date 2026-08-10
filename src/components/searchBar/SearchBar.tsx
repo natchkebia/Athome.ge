@@ -171,7 +171,32 @@ export default function SearchBar() {
               type="button"
               onClick={() => handleSuggestionClick(suggestion)}
             >
-              <span>{suggestion.label}</span>
+              {suggestion.type === "product" && suggestion.thumbnailUrl && (
+                <img
+                  className={styles.suggestionImage}
+                  src={suggestion.thumbnailUrl}
+                  alt=""
+                />
+              )}
+              <span className={styles.suggestionContent}>
+                <span>{suggestion.label}</span>
+                {(suggestion.sku || suggestion.effectivePrice != null) && (
+                  <em>
+                    {suggestion.sku && <span>SKU: {suggestion.sku}</span>}
+                    {suggestion.sku && suggestion.effectivePrice != null && (
+                      <i aria-hidden="true">•</i>
+                    )}
+                    {suggestion.oldPrice != null &&
+                      suggestion.effectivePrice != null &&
+                      suggestion.oldPrice > suggestion.effectivePrice && (
+                        <del>{suggestion.oldPrice.toFixed(2)} ₾</del>
+                      )}
+                    {suggestion.effectivePrice != null && (
+                      <strong>{suggestion.effectivePrice.toFixed(2)} ₾</strong>
+                    )}
+                  </em>
+                )}
+              </span>
               <small>
                 {suggestion.type === "brand"
                   ? locale === "en" ? "Brand" : "ბრენდი"
