@@ -34,6 +34,7 @@ type DeliverySelection = {
     id?: string | number;
     savedAddressId?: number;
     city?: string;
+    region?: string;
     line1?: string;
     line2?: string;
     postalCode?: string;
@@ -120,6 +121,7 @@ export default function CheckoutWizard({ onStepChange }: CheckoutWizardProps) {
         : null,
       shippingLine2: isCourier ? address?.line2 || null : null,
       shippingCity: isCourier ? address?.city ?? null : null,
+      shippingRegion: isCourier ? address?.region ?? null : null,
       shippingPostalCode: isCourier ? address?.postalCode || null : null,
       shippingCountry: isCourier ? "GE" : null,
       shippingPhone: isCourier ? contactData?.phone ?? null : null,

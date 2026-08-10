@@ -78,6 +78,29 @@ export type ShippingMethod = {
   isPickup: boolean;
 };
 
+export type ShippingQuoteItem = {
+  productId: number;
+  quantity: number;
+};
+
+export type ShippingQuotePayload = {
+  items: ShippingQuoteItem[];
+  city?: string | null;
+  region?: string | null;
+};
+
+export type ShippingQuote = {
+  amount: number;
+  tierCode?: string | null;
+  tierName?: string | null;
+  tierPrice: number;
+  zoneName?: string | null;
+  zoneSurcharge: number;
+  zoneMatched: boolean;
+  requiresManualPricing: boolean;
+  productsWithoutTier: number[];
+};
+
 export type PaymentInitiateResponse = {
   paymentId: number;
   sessionId?: string | null;
@@ -104,6 +127,14 @@ export function getShippingMethods() {
 
 export function getPickupBranches() {
   return apiRequest<PickupBranch[]>("/api/storefront/pickup-branches", {
+    useProxy: true,
+  });
+}
+
+export function getShippingQuote(payload: ShippingQuotePayload) {
+  return apiRequest<ShippingQuote>("/api/storefront/shipping-quote", {
+    method: "POST",
+    body: JSON.stringify(payload),
     useProxy: true,
   });
 }

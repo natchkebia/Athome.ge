@@ -28,6 +28,54 @@
     cursor: not-allowed;
   }
 }
+
+.quoteStatus,
+.quoteError {
+  margin: 4px 0 0;
+  color: #697074;
+  font-size: 13px;
+}
+
+.quoteError {
+  color: #b54736;
+}
+
+.quoteCard {
+  display: grid;
+  gap: 12px;
+  padding: 18px;
+  border: 1px solid rgba(16, 181, 192, 0.22);
+  border-radius: 14px;
+  background: rgba(16, 181, 192, 0.05);
+
+  div {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+
+  span {
+    color: #596166;
+    font-size: 14px;
+  }
+
+  strong {
+    flex: 0 0 auto;
+    color: #3b3f42;
+    font-size: 14px;
+  }
+}
+
+.quoteTotal {
+  padding-top: 12px;
+  border-top: 1px solid rgba(16, 181, 192, 0.2);
+
+  strong {
+    color: #10b5c0;
+    font-size: 16px;
+  }
+}
 .header {
   display: flex;
   img {

@@ -15,8 +15,6 @@ type Step5CompleteProps = {
   items?: ProfileCartItem[];
 };
 
-const deliveryFee = 0;
-
 function formatPrice(value: number) {
   return `${value.toLocaleString()} ₾`;
 }
@@ -72,7 +70,12 @@ export default function Step5Complete({
   );
   const discount = Math.max(oldTotal - subtotal, 0);
   const totalQuantity = items.reduce((sum, item) => sum + item.quantity, 0);
-  const total = result?.totalAmount ?? subtotal + deliveryFee;
+  const total = result?.totalAmount ?? subtotal;
+  // დასრულების ეკრანზე მხოლოდ checkout-ის საბოლოო თანხას ვენდობით;
+  // quote წინასწარი შეფასებაა და payload-ში არ იგზავნება.
+  const deliveryFee = orderType === "delivery"
+    ? Math.max(total - subtotal, 0)
+    : 0;
 
   const customerName =
     contactData?.type === "company"
@@ -175,6 +178,13 @@ export default function Step5Complete({
               discount > 0
                 ? `<div class="summary-row"><span>დანაზოგი</span><strong>${formatPrice(
                     discount
+                  )}</strong></div>`
+                : ""
+            }
+            ${
+              deliveryFee > 0
+                ? `<div class="summary-row"><span>მიწოდება</span><strong>${formatPrice(
+                    deliveryFee
                   )}</strong></div>`
                 : ""
             }
@@ -299,6 +309,12 @@ export default function Step5Complete({
               <div>
                 <span>დანაზოგი</span>
                 <strong>{formatPrice(discount)}</strong>
+              </div>
+            )}
+            {deliveryFee > 0 && (
+              <div>
+                <span>მიწოდება</span>
+                <strong>{formatPrice(deliveryFee)}</strong>
               </div>
             )}
             <div className={styles.grandTotal}>

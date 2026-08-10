@@ -34,6 +34,7 @@ export type CheckoutAddress = {
   id?: string | number;
   savedAddressId?: number;
   city: string;
+  region?: string;
   line1: string;
   line2?: string;
   postalCode?: string;
@@ -41,7 +42,8 @@ export type CheckoutAddress = {
 };
 
 type AddressSelectorProps = {
-  onSelect: (address: CheckoutAddress) => void;
+  onSelect: (address: CheckoutAddress | null) => void;
+  onCityChange?: (city: string) => void;
   customerName?: string;
   customerPhone?: string;
 };
@@ -52,6 +54,7 @@ function toCheckoutAddress(address: CustomerAddress): CheckoutAddress {
     id: address.id,
     savedAddressId: address.id,
     city: address.city ?? "",
+    region: address.region ?? undefined,
     line1: address.line1 ?? "",
     line2: address.line2 ?? "",
     postalCode: address.postalCode ?? "",
@@ -59,7 +62,7 @@ function toCheckoutAddress(address: CustomerAddress): CheckoutAddress {
   };
 }
 
-export default function AddressSelector({ onSelect, customerName, customerPhone }: AddressSelectorProps) {
+export default function AddressSelector({ onSelect, onCityChange, customerName, customerPhone }: AddressSelectorProps) {
   const en = useStorefrontLocale() === "en";
   const cityLabels: Record<string, string> = { თბილისი: "Tbilisi", ქუთაისი: "Kutaisi", ბათუმი: "Batumi", რუსთავი: "Rustavi", ზუგდიდი: "Zugdidi", ფოთი: "Poti", გორი: "Gori" };
   const [cityOpen, setCityOpen] = useState(false);
@@ -141,6 +144,9 @@ export default function AddressSelector({ onSelect, customerName, customerPhone 
 
   async function selectSettlement(settlement: Settlement) {
     setSelectedCity(settlement.nameKa);
+    setSelectedAddress(null);
+    onSelect(null);
+    onCityChange?.(settlement.nameKa);
     setSettlementQuery(en ? settlement.nameEn : settlement.nameKa);
     setSettlementResults([]);
     setPostalCode("");
@@ -179,7 +185,7 @@ export default function AddressSelector({ onSelect, customerName, customerPhone 
         entry = { id: typeof editingId === "string" ? editingId : crypto.randomUUID(), city: selectedCity, line1: line1.trim(), line2: line2.trim(), postalCode, coords: coords ?? undefined };
       }
       setAddresses((current) => editingId ? current.map((item) => item.id === editingId ? entry : item) : [...current, entry]);
-      setSelectedAddress(entry); onSelect(entry); setModalOpen(false); setAddressOpen(false);
+      setSelectedAddress(entry); onSelect(entry); onCityChange?.(entry.city); setModalOpen(false); setAddressOpen(false);
     } catch (saveError) {
       setError(saveError instanceof Error ? saveError.message : (en ? "Address could not be saved." : "მისამართი ვერ შეინახა."));
     } finally { setSaving(false); }
@@ -193,7 +199,7 @@ export default function AddressSelector({ onSelect, customerName, customerPhone 
           <span>{selectedCity ? (en ? cityLabels[selectedCity] ?? selectedCity : selectedCity) : (en ? "City" : "ქალაქი")}</span><IoChevronDown />
         </div>
         {cityOpen && <div className={styles.dropdownList}>{cities.map((city) => (
-          <div key={city} className={styles.option} onClick={() => { setSelectedCity(city); setCoords(null); setCityOpen(false); }}>
+          <div key={city} className={styles.option} onClick={() => { setSelectedCity(city); setSelectedAddress(null); onSelect(null); onCityChange?.(city); setCoords(null); setCityOpen(false); }}>
             {en ? cityLabels[city] : city}
           </div>
         ))}</div>}
@@ -206,7 +212,7 @@ export default function AddressSelector({ onSelect, customerName, customerPhone 
         {addressOpen && <div className={styles.dropdownList}>
           {addresses.filter((address) => !selectedCity || address.city === selectedCity).map((address) => (
             <div key={address.id} className={`${styles.addressRow} ${selectedAddress?.id === address.id ? styles.active : ""}`}>
-              <div className={styles.addressText} onClick={() => { setSelectedAddress(address); setSelectedCity(address.city); onSelect(address); setAddressOpen(false); }}>
+              <div className={styles.addressText} onClick={() => { setSelectedAddress(address); setSelectedCity(address.city); onSelect(address); onCityChange?.(address.city); setAddressOpen(false); }}>
                 {[address.line1, address.line2].filter(Boolean).join(", ")}
               </div>
               <div className={styles.editIcon} onClick={(event) => { event.stopPropagation(); openEditModal(address); }}><img src="/icons/edit.svg" alt="edit" /></div>
