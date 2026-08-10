@@ -249,3 +249,16 @@
   color: rgba(105, 108, 110, 0.8);
   font-size: 12px;
 }
+
+.showMoreOptions {
+  align-self: flex-start;
+  padding: 4px 0;
+  border: 0;
+  background: transparent;
+  color: #10b5c0;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+}

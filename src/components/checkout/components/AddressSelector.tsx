@@ -13,6 +13,12 @@ import {
   type CustomerAddress,
   type CustomerAddressInput,
 } from "@/lib/api/addresses";
+import {
+  getSettlementPostalCodes,
+  searchSettlements,
+  type PostalCode,
+  type Settlement,
+} from "@/lib/api/locations";
 
 const MapBox = dynamic(() => import("./MapBox"), { ssr: false });
 
@@ -30,6 +36,7 @@ export type CheckoutAddress = {
   city: string;
   line1: string;
   line2?: string;
+  postalCode?: string;
   coords?: { lat: number; lng: number };
 };
 
@@ -47,6 +54,7 @@ function toCheckoutAddress(address: CustomerAddress): CheckoutAddress {
     city: address.city ?? "",
     line1: address.line1 ?? "",
     line2: address.line2 ?? "",
+    postalCode: address.postalCode ?? "",
     coords: hasPin ? { lat: address.latitude as number, lng: address.longitude as number } : undefined,
   };
 }
@@ -63,6 +71,10 @@ export default function AddressSelector({ onSelect, customerName, customerPhone 
   const [editingId, setEditingId] = useState<string | number | null>(null);
   const [line1, setLine1] = useState("");
   const [line2, setLine2] = useState("");
+  const [postalCode, setPostalCode] = useState("");
+  const [settlementQuery, setSettlementQuery] = useState("");
+  const [settlementResults, setSettlementResults] = useState<Settlement[]>([]);
+  const [postalOptions, setPostalOptions] = useState<PostalCode[]>([]);
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -102,19 +114,50 @@ export default function AddressSelector({ onSelect, customerName, customerPhone 
 
   function openAddModal() {
     // The city center is only the map viewport, never an implicit delivery pin.
-    setLine1(""); setLine2(""); setEditingId(null); setCoords(null);
+    setLine1(""); setLine2(""); setPostalCode(""); setPostalOptions([]);
+    setSettlementQuery(selectedCity); setSettlementResults([]); setEditingId(null); setCoords(null);
     setError(null); setModalOpen(true);
   }
 
   function openEditModal(address: CheckoutAddress) {
     setEditingId(address.id ?? null); setSelectedCity(address.city); setLine1(address.line1);
-    setLine2(address.line2 ?? ""); setCoords(address.coords ?? null); setError(null); setModalOpen(true);
+    setLine2(address.line2 ?? ""); setPostalCode(address.postalCode ?? "");
+    setSettlementQuery(address.city); setSettlementResults([]); setPostalOptions([]);
+    setCoords(address.coords ?? null); setError(null); setModalOpen(true);
+  }
+
+  async function findSettlements(query: string) {
+    setSettlementQuery(query);
+    if (query.trim().length < 2) {
+      setSettlementResults([]);
+      return;
+    }
+    try {
+      setSettlementResults(await searchSettlements(query.trim()));
+    } catch {
+      setSettlementResults([]);
+    }
+  }
+
+  async function selectSettlement(settlement: Settlement) {
+    setSelectedCity(settlement.nameKa);
+    setSettlementQuery(en ? settlement.nameEn : settlement.nameKa);
+    setSettlementResults([]);
+    setPostalCode("");
+    try {
+      const response = await getSettlementPostalCodes(settlement.id);
+      const options = response.postalCodes ?? [];
+      setPostalOptions(options);
+      if (options.length === 1) setPostalCode(options[0].code);
+    } catch {
+      setPostalOptions([]);
+    }
   }
 
   function addressInput(): CustomerAddressInput {
     return {
       fullName: customerName || "Athome customer", line1: line1.trim(), line2: line2.trim() || null,
-      city: selectedCity, region: null, postalCode: "", country: "GE", phone: customerPhone || null,
+      city: selectedCity, region: null, postalCode: postalCode || null, country: "GE", phone: customerPhone || null,
       latitude: coords?.lat ?? null, longitude: coords?.lng ?? null, type: "shipping", isDefault: false,
     };
   }
@@ -133,7 +176,7 @@ export default function AddressSelector({ onSelect, customerName, customerPhone 
           : await createProfileAddress(addressInput());
         entry = toCheckoutAddress(saved);
       } else {
-        entry = { id: typeof editingId === "string" ? editingId : crypto.randomUUID(), city: selectedCity, line1: line1.trim(), line2: line2.trim(), coords: coords ?? undefined };
+        entry = { id: typeof editingId === "string" ? editingId : crypto.randomUUID(), city: selectedCity, line1: line1.trim(), line2: line2.trim(), postalCode, coords: coords ?? undefined };
       }
       setAddresses((current) => editingId ? current.map((item) => item.id === editingId ? entry : item) : [...current, entry]);
       setSelectedAddress(entry); onSelect(entry); setModalOpen(false); setAddressOpen(false);
@@ -157,7 +200,7 @@ export default function AddressSelector({ onSelect, customerName, customerPhone 
       </div>
 
       <div className={styles.dropdown}>
-        <div className={styles.inputRow} onClick={() => (selectedCity || addresses.length > 0) && setAddressOpen(!addressOpen)}>
+        <div className={styles.inputRow} onClick={() => setAddressOpen(!addressOpen)}>
           <span>{selectedAddress ? [selectedAddress.line1, selectedAddress.line2].filter(Boolean).join(", ") : (en ? "Address" : "მისამართი")}</span><IoChevronDown />
         </div>
         {addressOpen && <div className={styles.dropdownList}>
@@ -175,8 +218,26 @@ export default function AddressSelector({ onSelect, customerName, customerPhone 
 
       {modalOpen && <div className={styles.modalOverlay}><div className={styles.modal}>
         <div className={styles.modalHeader}><h3>{editingId ? (en ? "Edit address" : "მისამართის ჩასწორება") : (en ? "Add a new address" : "ახალი მისამართის დამატება")}</h3><button className={styles.closeBtn} onClick={() => setModalOpen(false)}>×</button></div>
+        <div className={styles.lookupWrap}>
+          <input className={styles.input} placeholder={en ? "City or settlement" : "ქალაქი ან დასახლება"} value={settlementQuery} onChange={(event) => findSettlements(event.target.value)} />
+          {settlementResults.length > 0 && <div className={styles.lookupResults}>
+            {settlementResults.map((settlement) => <button key={settlement.id} onClick={() => selectSettlement(settlement)}>
+              {en ? settlement.nameEn : settlement.nameKa}
+            </button>)}
+          </div>}
+        </div>
         <input className={styles.input} placeholder={en ? "Street address" : "ქუჩა და მისამართი"} value={line1} onChange={(event) => { setLine1(event.target.value); if (timeoutRef.current) clearTimeout(timeoutRef.current); timeoutRef.current = setTimeout(() => geocode(event.target.value, selectedCity), 600); }} />
         <input className={styles.input} placeholder={en ? "Entrance, floor, apartment, door code" : "სადარბაზო, სართული, ბინა, დომოფონის კოდი"} value={line2} onChange={(event) => setLine2(event.target.value)} />
+        {postalOptions.length > 1 ? (
+          <select className={styles.input} value={postalCode} onChange={(event) => setPostalCode(event.target.value)}>
+            <option value="">{en ? "I don't know the postal code" : "საფოსტო ინდექსი არ ვიცი"}</option>
+            {postalOptions.map((option) => <option key={option.id} value={option.code}>
+              {option.code}{option.streetNameKa ? ` — ${option.streetNameKa}` : ""}
+            </option>)}
+          </select>
+        ) : (
+          <input className={styles.input} placeholder={en ? "Postal code (optional)" : "საფოსტო ინდექსი (არასავალდებულო)"} value={postalCode} onChange={(event) => setPostalCode(event.target.value)} />
+        )}
         <p className={styles.mapHint}>{en ? "Place the pin on the building. You can still correct the street address above." : "დასვით პინი შენობაზე. ქუჩის მისამართის შესწორება ზემოთ კვლავ შეგიძლიათ."}</p>
         <div className={styles.mapBox}><MapBox coords={coords ?? cityCoords[selectedCity] ?? cityCoords.თბილისი} onMapClick={(position) => { setCoords(position); reverseGeocode(position.lat, position.lng); }} /></div>
         {error && <p className={styles.formError}>{error}</p>}

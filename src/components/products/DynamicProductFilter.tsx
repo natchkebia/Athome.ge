@@ -4,9 +4,11 @@ import { useEffect, useRef, useState } from "react";
 import { ChevronDown, ChevronUp } from "react-bootstrap-icons";
 import { StorefrontCategoryFilterSet } from "@/lib/api/storefront";
 import styles from "./ProductFilter.module.scss";
+import { useStorefrontLocale } from "@/lib/i18n/useStorefrontLocale";
 
 export type DynamicFilterValues = {
   price: [number, number];
+  brandSlug?: string;
   attributes: Record<string, string[]>;
   ranges: Record<string, number[]>;
 };
@@ -24,10 +26,12 @@ export default function DynamicProductFilter({
   priceBounds,
   onChange,
 }: Props) {
+  const en = useStorefrontLocale() === "en";
   const [open, setOpen] = useState<Record<string, boolean>>({});
   const trackRef = useRef<HTMLDivElement>(null);
   const [minInput, setMinInput] = useState(String(values.price[0]));
   const [maxInput, setMaxInput] = useState(String(values.price[1]));
+  const [showAllBrands, setShowAllBrands] = useState(false);
 
   useEffect(() => {
     setMinInput(String(values.price[0]));
@@ -69,15 +73,21 @@ export default function DynamicProductFilter({
   };
 
   const reset = () =>
-    onChange({ price: priceBounds, attributes: {}, ranges: {} });
+    onChange({ price: priceBounds, brandSlug: undefined, attributes: {}, ranges: {} });
+
+  const sortedFilters = [...schema.filters].sort(
+    (left, right) => left.sortOrder - right.sortOrder,
+  );
+  const brands = schema.brands ?? [];
+  const visibleBrands = showAllBrands ? brands : brands.slice(0, 8);
 
   return (
     <div className={styles.wrapper}>
       <div className={styles.header}>
-        <h4 className={styles.title}>ფილტრი</h4>
+        <h4 className={styles.title}>{en ? "Filter" : "ფილტრი"}</h4>
         <button className={styles.resetBtn} onClick={reset}>
           <img src="/icons/ArrowClockwise.svg" alt="" />
-          გასუფთავება
+          {en ? "Reset" : "გასუფთავება"}
         </button>
       </div>
 
@@ -134,13 +144,49 @@ export default function DynamicProductFilter({
         </div>
 
         <div className={styles.dropdownWraper}>
-          {schema.filters.map((filter, index) => {
+          {brands.length > 0 && (
+            <div>
+              <button
+                className={`${styles.dropdownHeader} ${open.brand ? styles.open : ""}`}
+                onClick={() => setOpen((current) => ({ ...current, brand: !current.brand }))}
+              >
+                <span>{en ? "Brand" : "ბრენდი"}</span>
+                {open.brand ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+              </button>
+              {open.brand && (
+                <div className={styles.brandList}>
+                  {visibleBrands.map((brand) => (
+                    <label key={brand.brandId} className={styles.brandItem}>
+                      <input
+                        type="checkbox"
+                        checked={values.brandSlug === brand.slug}
+                        onChange={() => onChange({
+                          ...values,
+                          brandSlug: values.brandSlug === brand.slug ? undefined : brand.slug,
+                        })}
+                      />
+                      <span>{brand.name}</span>
+                      <span className={styles.optionCount}>{brand.productCount}</span>
+                    </label>
+                  ))}
+                  {brands.length > 8 && (
+                    <button className={styles.showMoreOptions} onClick={() => setShowAllBrands((current) => !current)}>
+                      {showAllBrands
+                        ? (en ? "Show less" : "ნაკლების ჩვენება")
+                        : (en ? "Show more" : "მეტის ჩვენება")}
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+          {sortedFilters.map((filter, index) => {
             const isOpen = !!open[filter.fieldKey];
             return (
               <div key={filter.fieldId}>
                 <button
                   className={`${styles.dropdownHeader} ${
-                    index === schema.filters.length - 1 ? styles.last : ""
+                    index === sortedFilters.length - 1 ? styles.last : ""
                   } ${isOpen ? styles.open : ""}`}
                   onClick={() =>
                     setOpen((current) => ({

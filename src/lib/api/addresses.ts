@@ -23,7 +23,7 @@ export type CustomerAddressInput = {
   line2?: string | null;
   city: string;
   region?: string | null;
-  postalCode: string;
+  postalCode?: string | null;
   country: string;
   phone?: string | null;
   latitude?: number | null;

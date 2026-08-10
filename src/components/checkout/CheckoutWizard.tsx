@@ -37,6 +37,7 @@ type DeliverySelection = {
     city?: string;
     line1?: string;
     line2?: string;
+    postalCode?: string;
     coords?: { lat: number; lng: number };
   } | null;
 };
@@ -173,6 +174,7 @@ export default function CheckoutWizard({ onStepChange }: CheckoutWizardProps) {
         : null,
       shippingLine2: isCourier ? address?.line2 || null : null,
       shippingCity: isCourier ? address?.city ?? null : null,
+      shippingPostalCode: isCourier ? address?.postalCode || null : null,
       shippingCountry: isCourier ? "GE" : null,
       shippingPhone: isCourier ? contactData?.phone ?? null : null,
       deliveryLatitude: isCourier ? address?.coords?.lat ?? null : null,

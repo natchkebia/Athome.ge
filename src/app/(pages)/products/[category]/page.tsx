@@ -217,6 +217,7 @@ function ProductsPageInner() {
         setPriceBounds(nextBounds);
         setDynamicFilters({
           price: nextBounds,
+          brandSlug: undefined,
           attributes: {},
           ranges: {},
         });
@@ -252,6 +253,7 @@ function ProductsPageInner() {
 
     const baseQuery = {
       pageSize: PRODUCT_LIMIT,
+      brandSlug: dynamicFilters.brandSlug,
       categorySlug:
         !filterSubCategoryId && !filterMiniCategoryId
           ? category
@@ -285,6 +287,7 @@ function ProductsPageInner() {
           {
             attr,
             range,
+            brandSlug: dynamicFilters.brandSlug,
             minPrice: baseQuery.minPrice,
             maxPrice: baseQuery.maxPrice,
           }

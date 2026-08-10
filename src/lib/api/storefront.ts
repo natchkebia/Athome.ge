@@ -336,7 +336,15 @@ export type StorefrontCategoryFilterSet = {
   miniCategoryId?: number | null;
   filterCount: number;
   totalProductCount: number;
+  brands: StorefrontBrandFacet[];
   filters: StorefrontCategoryFilter[];
+};
+
+export type StorefrontBrandFacet = {
+  brandId: number;
+  slug: string;
+  name: string;
+  productCount: number;
 };
 
 export function getStorefrontBanners(type?: string) {
@@ -423,6 +431,7 @@ export function getStorefrontCategoryFilters(
   params: {
     attr?: string[];
     range?: string[];
+    brandSlug?: string;
     minPrice?: number;
     maxPrice?: number;
   } = {}
@@ -435,6 +444,7 @@ export function getStorefrontCategoryFilters(
         IncludeProductCounts: true,
         Attr: params.attr,
         Range: params.range,
+        BrandSlug: params.brandSlug,
         MinPrice: params.minPrice,
         MaxPrice: params.maxPrice,
       },
