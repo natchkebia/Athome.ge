@@ -22,7 +22,6 @@ import {
 
 const MapBox = dynamic(() => import("./MapBox"), { ssr: false });
 
-const cities = ["თბილისი", "ქუთაისი", "ბათუმი", "რუსთავი", "ზუგდიდი", "ფოთი", "გორი"];
 const cityCoords: Record<string, { lat: number; lng: number }> = {
   თბილისი: { lat: 41.7151, lng: 44.8271 }, ქუთაისი: { lat: 42.2662, lng: 42.718 },
   ბათუმი: { lat: 41.639, lng: 41.637 }, რუსთავი: { lat: 41.5495, lng: 45.0192 },
@@ -64,8 +63,11 @@ function toCheckoutAddress(address: CustomerAddress): CheckoutAddress {
 
 export default function AddressSelector({ onSelect, onCityChange, customerName, customerPhone }: AddressSelectorProps) {
   const en = useStorefrontLocale() === "en";
-  const cityLabels: Record<string, string> = { თბილისი: "Tbilisi", ქუთაისი: "Kutaisi", ბათუმი: "Batumi", რუსთავი: "Rustavi", ზუგდიდი: "Zugdidi", ფოთი: "Poti", გორი: "Gori" };
   const [cityOpen, setCityOpen] = useState(false);
+  const [cityQuery, setCityQuery] = useState("");
+  const [cityResults, setCityResults] = useState<Settlement[]>([]);
+  const [citySearching, setCitySearching] = useState(false);
+  const [citySearchFailed, setCitySearchFailed] = useState(false);
   const [addressOpen, setAddressOpen] = useState(false);
   const [selectedCity, setSelectedCity] = useState("");
   const [addresses, setAddresses] = useState<CheckoutAddress[]>([]);
@@ -82,6 +84,8 @@ export default function AddressSelector({ onSelect, onCityChange, customerName, 
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const citySearchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const citySearchIdRef = useRef(0);
   const authenticated = Boolean(getStoredAuthTokens()?.accessToken);
 
   useEffect(() => {
@@ -93,7 +97,51 @@ export default function AddressSelector({ onSelect, onCityChange, customerName, 
 
   useEffect(() => () => {
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    if (citySearchTimeoutRef.current) clearTimeout(citySearchTimeoutRef.current);
   }, []);
+
+  function findCities(query: string) {
+    setCityQuery(query);
+    setCityOpen(true);
+    setCitySearchFailed(false);
+    if (citySearchTimeoutRef.current) clearTimeout(citySearchTimeoutRef.current);
+
+    const normalizedQuery = query.trim();
+    if (normalizedQuery.length < 2) {
+      citySearchIdRef.current += 1;
+      setCityResults([]);
+      setCitySearching(false);
+      return;
+    }
+
+    setCitySearching(true);
+    const searchId = ++citySearchIdRef.current;
+    citySearchTimeoutRef.current = setTimeout(async () => {
+      try {
+        const results = await searchSettlements(normalizedQuery);
+        if (searchId === citySearchIdRef.current) setCityResults(results);
+      } catch {
+        if (searchId === citySearchIdRef.current) {
+          setCityResults([]);
+          setCitySearchFailed(true);
+        }
+      } finally {
+        if (searchId === citySearchIdRef.current) setCitySearching(false);
+      }
+    }, 250);
+  }
+
+  function chooseCity(settlement: Settlement) {
+    const city = settlement.nameKa;
+    setSelectedCity(city);
+    setCityQuery(en ? settlement.nameEn : city);
+    setCityResults([]);
+    setCityOpen(false);
+    setSelectedAddress(null);
+    setCoords(null);
+    onSelect(null);
+    onCityChange?.(city);
+  }
 
   async function geocode(search: string, city: string) {
     if (!search || !city) return;
@@ -195,14 +243,37 @@ export default function AddressSelector({ onSelect, onCityChange, customerName, 
     <div className={styles.container}>
       <div className={styles.dropdown}>
         <label className={styles.label}>{en ? "Address" : "მისამართი"}</label>
-        <div className={styles.inputRow} onClick={() => setCityOpen(!cityOpen)}>
-          <span>{selectedCity ? (en ? cityLabels[selectedCity] ?? selectedCity : selectedCity) : (en ? "City" : "ქალაქი")}</span><IoChevronDown />
+        <div className={`${styles.inputRow} ${styles.cityCombobox}`}>
+          <input
+            value={cityQuery}
+            placeholder={en ? "City or settlement" : "ქალაქი ან დასახლება"}
+            aria-label={en ? "Search city or settlement" : "ქალაქის ან დასახლების ძებნა"}
+            role="combobox"
+            aria-controls="settlement-options"
+            aria-autocomplete="list"
+            aria-expanded={cityOpen}
+            onFocus={() => setCityOpen(true)}
+            onChange={(event) => {
+              setSelectedCity("");
+              setSelectedAddress(null);
+              onSelect(null);
+              findCities(event.target.value);
+            }}
+          />
+          <button type="button" aria-label={en ? "Toggle settlements" : "ჩამონათვალის გახსნა"} onClick={() => setCityOpen((open) => !open)}><IoChevronDown /></button>
         </div>
-        {cityOpen && <div className={styles.dropdownList}>{cities.map((city) => (
-          <div key={city} className={styles.option} onClick={() => { setSelectedCity(city); setSelectedAddress(null); onSelect(null); onCityChange?.(city); setCoords(null); setCityOpen(false); }}>
-            {en ? cityLabels[city] : city}
-          </div>
-        ))}</div>}
+        {cityOpen && <div id="settlement-options" className={styles.dropdownList} role="listbox">
+          {cityQuery.trim().length < 2 && <div className={styles.lookupStatus}>{en ? "Enter at least 2 characters" : "ჩაწერეთ მინიმუმ 2 სიმბოლო"}</div>}
+          {citySearching && <div className={styles.lookupStatus}>{en ? "Searching..." : "იძებნება..."}</div>}
+          {!citySearching && citySearchFailed && <div className={styles.lookupStatus}>{en ? "Search is temporarily unavailable" : "ძებნა დროებით მიუწვდომელია"}</div>}
+          {!citySearching && !citySearchFailed && cityQuery.trim().length >= 2 && cityResults.length === 0 && <div className={styles.lookupStatus}>{en ? "No settlement found" : "დასახლება ვერ მოიძებნა"}</div>}
+          {!citySearching && cityResults.map((settlement) => (
+            <button type="button" role="option" aria-selected={selectedCity === settlement.nameKa} key={settlement.id} className={styles.option} onClick={() => chooseCity(settlement)}>
+              <span>{en ? settlement.nameEn || settlement.nameKa : settlement.nameKa}</span>
+              <small>{en ? settlement.type : settlement.type === "City" ? "ქალაქი" : settlement.type === "Village" ? "სოფელი" : settlement.type}</small>
+            </button>
+          ))}
+        </div>}
       </div>
 
       <div className={styles.dropdown}>
