@@ -248,7 +248,7 @@ export default function InfoTab({
         </div>
       </div>
 
-      <div className={styles.passwordSection}>
+      <div className={styles.passwordSection} id="change-password">
         <h4>პაროლის შეცვლა</h4>
         <div className={styles.passwordGrid}>
           {["old", "new", "repeat"].map((field, i) => (

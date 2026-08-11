@@ -15,9 +15,7 @@ import Breadcrumb from "@/components/ breadcrumb/Breadcrumb";
 import AtHomeLoader from "@/components/shared/AtHomeLoader";
 import {
   getStorefrontCategories,
-  getStorefrontCategoryProducts,
   getStorefrontProducts,
-  getStorefrontProductsByCategory,
   getStorefrontCategoryFilters,
   StorefrontCategory,
   StorefrontCategoryFilterSet,
@@ -193,13 +191,15 @@ function ProductsPageInner() {
 
     setLoading(true);
     setVisibleCount(9);
-
-    // slug-ის წინასწარ განსაზღვრული დონის მიხედვით პირდაპირ სწორ endpoint-ს
-    // ვიყენებთ, რათა მოსალოდნელი 404 მოთხოვნები ბრაუზერში საერთოდ არ გაიგზავნოს.
-    const productsRequest =
-      categoryLevel === "categories"
-        ? getStorefrontCategoryProducts(category, PRODUCT_LIMIT)
-        : getStorefrontProductsByCategory(category, PRODUCT_LIMIT);
+    // Legacy by-category endpoint backend-ზე შედეგებს ჭრის (მაგ. 92-დან 28).
+    // Paged products endpoint სრულ totalCount-ს აბრუნებს ყველა დონეზე.
+    const productsRequest = getStorefrontProducts({
+      page: 1,
+      pageSize: PRODUCT_LIMIT,
+      categorySlug: categoryLevel === "categories" ? category : undefined,
+      subCategorySlug: categoryLevel === "subcategories" ? category : undefined,
+      miniCategorySlug: categoryLevel === "minicategories" ? category : undefined,
+    }).then((response) => response.items);
 
     productsRequest
       .then((list) => {
@@ -479,7 +479,9 @@ function ProductsPageInner() {
   };
 
   const handleShowMore = () => {
-    setVisibleCount((prev) => prev + 9);
+    setVisibleCount((current) =>
+      Math.min(current + 9, filteredProducts.length)
+    );
   };
 
   const visibleProducts = filteredProducts.slice(0, visibleCount);
@@ -623,9 +625,12 @@ function ProductsPageInner() {
 
           {hasMore && (
             <div className={styles.ShowMore}>
-              <button onClick={handleShowMore}>მეტის ნახვა</button>
+              <button type="button" onClick={handleShowMore}>
+                მეტის ნახვა
+              </button>
             </div>
           )}
+
         </div>
       </div>
     </>

@@ -10,7 +10,7 @@ import ProductSortBar from "@/components/products/ProductSortBar";
 import EmptyState from "@/components/products/EmptyState";
 import Breadcrumb from "@/components/ breadcrumb/Breadcrumb";
 import AtHomeLoader from "@/components/shared/AtHomeLoader";
-import { getStorefrontProductsByBrand } from "@/lib/api/storefront";
+import { getStorefrontProducts } from "@/lib/api/storefront";
 import {
   mapStorefrontProductToCard,
   StorefrontProductCard,
@@ -48,12 +48,15 @@ export default function BrandProductsPage() {
 
     setLoading(true);
     setVisibleCount(9);
-
-    getStorefrontProductsByBrand(brandSlug, PRODUCT_LIMIT)
-      .then((items) => {
+    getStorefrontProducts({
+      page: 1,
+      pageSize: PRODUCT_LIMIT,
+      brandSlug,
+    })
+      .then((response) => {
         if (!isMounted) return;
 
-        setProducts(items.map(mapStorefrontProductToCard));
+        setProducts(response.items.map(mapStorefrontProductToCard));
       })
       .catch(() => {
         if (isMounted) setProducts([]);
@@ -174,11 +177,19 @@ export default function BrandProductsPage() {
 
           {hasMore && (
             <div className={styles.ShowMore}>
-              <button onClick={() => setVisibleCount((prev) => prev + 9)}>
+              <button
+                type="button"
+                onClick={() =>
+                  setVisibleCount((current) =>
+                    Math.min(current + 9, filteredProducts.length)
+                  )
+                }
+              >
                 მეტის ნახვა
               </button>
             </div>
           )}
+
         </div>
       </div>
     </>

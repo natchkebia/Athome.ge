@@ -18,7 +18,10 @@ export default function Footer() {
           <ul className={styles["contact-list"]}>
             <li>
               <img src="/icons/footerPhone.svg" alt="Phone" />
-              <span>+995 599 09 32 09</span>
+              <div className={styles["phone-numbers"]}>
+                <a href="tel:+995322080908">032 2 08 09 08</a>
+                <a href="tel:+995599093209">+995 599 09 32 09</a>
+              </div>
             </li>
             <li>
               <img src="/icons/footerMeil.svg" alt="Email" />
@@ -26,22 +29,49 @@ export default function Footer() {
             </li>
             <li>
               <img src="/icons/footerLocation.svg" alt="Location" />
-              <span>{en ? "73 Merab Kostava St, Tbilisi" : "თბილისი, მერაბ კოსტავას ქუჩა #73"}</span>
+              <a
+                href="https://www.google.com/maps/search/?api=1&query=%E1%83%97%E1%83%91%E1%83%98%E1%83%9A%E1%83%98%E1%83%A1%E1%83%98%20%E1%83%9B%E1%83%94%E1%83%A0%E1%83%90%E1%83%91%20%E1%83%99%E1%83%9D%E1%83%A1%E1%83%A2%E1%83%90%E1%83%95%E1%83%90%E1%83%A1%2073"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {en ? "73 Merab Kostava St, Tbilisi" : "თბილისი, მერაბ კოსტავას ქუჩა #73"}
+              </a>
             </li>
             <li>
               <img src="/icons/footerLocation.svg" alt="Location" />
-              <span>{en ? "115 Akaki Tsereteli Ave, Tbilisi" : "თბილისი, აკაკი წერეთლის გამზირი #115"}</span>
+              <a
+                href="https://www.google.com/maps/search/?api=1&query=%E1%83%97%E1%83%91%E1%83%98%E1%83%9A%E1%83%98%E1%83%A1%E1%83%98%20%E1%83%90%E1%83%99%E1%83%90%E1%83%99%E1%83%98%20%E1%83%AC%E1%83%94%E1%83%A0%E1%83%94%E1%83%97%E1%83%9A%E1%83%98%E1%83%A1%20%E1%83%92%E1%83%90%E1%83%9B%E1%83%96%E1%83%98%E1%83%A0%E1%83%98%20115"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {en ? "115 Akaki Tsereteli Ave, Tbilisi" : "თბილისი, აკაკი წერეთლის გამზირი #115"}
+              </a>
             </li>
           </ul>
 
           <div className={styles.socials}>
-            <a href="#">
+            <a
+              href="https://www.facebook.com/athomege/"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Facebook"
+            >
               <img src="/icons/footerFacebook.svg" alt="Facebook" />
             </a>
-            <a href="#">
+            <a
+              href="https://www.instagram.com/athome_ge/"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Instagram"
+            >
               <img src="/icons/footerInstagram.svg" alt="Instagram" />
             </a>
-            <a href="#">
+            <a
+              href="https://www.youtube.com/@athshop"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="YouTube"
+            >
               <img src="/icons/footerYoutube.svg" alt="YouTube" />
             </a>
           </div>

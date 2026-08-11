@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   forgotPassword,
   login,
@@ -19,6 +19,7 @@ import { useStorefrontLocale } from "@/lib/i18n/useStorefrontLocale";
 
 export default function AuthForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const locale = useStorefrontLocale();
   const en = locale === "en";
   const socialRedirectUri =
@@ -52,6 +53,18 @@ export default function AuthForm() {
     type: "error" | "success";
     text: string;
   } | null>(null);
+
+  useEffect(() => {
+    const requestedTab = searchParams.get("tab");
+    if (
+      requestedTab === "login" ||
+      requestedTab === "register" ||
+      requestedTab === "reset"
+    ) {
+      setActiveTab(requestedTab);
+      setFeedback(null);
+    }
+  }, [searchParams]);
 
   const clearFeedback = () => setFeedback(null);
 

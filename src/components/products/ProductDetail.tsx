@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import DOMPurify from "isomorphic-dompurify";
 import styles from "./ProductDetail.module.scss";
 import ProductGallery from "./ProductGallery";
@@ -335,11 +336,21 @@ export default function ProductDetail({
                 {en ? "Manufacturer code:" : "მწარმოებლის კოდი:"}<span> {product.sku}</span>
               </p>
               <p>
-                {en ? "Brand:" : "ბრენდი:"} <span>{product.brand.name}</span>
+                {en ? "Brand:" : "ბრენდი:"}{" "}
+                <Link href={`/products/brand/${encodeURIComponent(product.brand.slug)}`}>
+                  {product.brand.name}
+                </Link>
               </p>
               <p>{en ? "Model:" : "მოდელი:"} {product.model && <span>{product.model}</span>}</p>
               <p>
-                {en ? "Type:" : "ტიპი:"} <span> {product.subCategory?.name || product.category.name}</span>
+                {en ? "Type:" : "ტიპი:"}{" "}
+                <Link
+                  href={`/products/${encodeURIComponent(
+                    product.subCategory?.slug || product.category.slug
+                  )}`}
+                >
+                  {product.subCategory?.name || product.category.name}
+                </Link>
               </p>
             </div>
           </div>
