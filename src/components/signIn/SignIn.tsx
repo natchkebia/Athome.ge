@@ -30,6 +30,8 @@ export default function SignIn() {
   const router = useRouter();
   const locale = useStorefrontLocale();
   const wrapperRef = useRef<HTMLDivElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -134,6 +136,57 @@ export default function SignIn() {
     };
   }, [isOpen]);
 
+  useEffect(
+    () => () => {
+      if (closeTimerRef.current) clearTimeout(closeTimerRef.current);
+    },
+    []
+  );
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const containsPoint = (rect: DOMRect, x: number, y: number, padding = 0) =>
+      x >= rect.left - padding &&
+      x <= rect.right + padding &&
+      y >= rect.top - padding &&
+      y <= rect.bottom + padding;
+
+    const handleMouseMove = (event: MouseEvent) => {
+      const trigger = wrapperRef.current?.querySelector("button");
+      const dropdown = dropdownRef.current;
+      if (!trigger || !dropdown) return;
+
+      const overTrigger = containsPoint(
+        trigger.getBoundingClientRect(),
+        event.clientX,
+        event.clientY,
+        4
+      );
+      const overDropdown = containsPoint(
+        dropdown.getBoundingClientRect(),
+        event.clientX,
+        event.clientY,
+        4
+      );
+
+      if (!overTrigger && !overDropdown) {
+        const triggerRect = trigger.getBoundingClientRect();
+        const dropdownRect = dropdown.getBoundingClientRect();
+        const inBridge =
+          event.clientX >= Math.min(triggerRect.left, dropdownRect.left) &&
+          event.clientX <= Math.max(triggerRect.right, dropdownRect.right) &&
+          event.clientY >= triggerRect.bottom &&
+          event.clientY <= dropdownRect.top;
+
+        if (!inBridge) setIsOpen(false);
+      }
+    };
+
+    document.addEventListener("mousemove", handleMouseMove);
+    return () => document.removeEventListener("mousemove", handleMouseMove);
+  }, [isOpen]);
+
   const handleLogin = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError("");
@@ -232,6 +285,30 @@ export default function SignIn() {
     router.push(path);
   };
 
+  const openMenu = () => {
+    if (closeTimerRef.current) clearTimeout(closeTimerRef.current);
+    closeTimerRef.current = null;
+    setIsOpen(true);
+  };
+
+  const scheduleCloseMenu = () => {
+    if (closeTimerRef.current) clearTimeout(closeTimerRef.current);
+    closeTimerRef.current = setTimeout(() => {
+      // Browser password managers render their suggestions outside our DOM.
+      // While a login field owns focus, moving into that native popup must not
+      // be treated as leaving the account menu.
+      if (
+        document.activeElement instanceof HTMLInputElement &&
+        wrapperRef.current?.contains(document.activeElement)
+      ) {
+        closeTimerRef.current = null;
+        return;
+      }
+      setIsOpen(false);
+      closeTimerRef.current = null;
+    }, 180);
+  };
+
   const iconSrc =
     isAuthorized && gender === "female"
       ? "/icons/profileWoman.svg"
@@ -249,14 +326,15 @@ export default function SignIn() {
     <div
       className={styles.signIn}
       ref={wrapperRef}
-      onMouseEnter={() => setIsOpen(true)}
+      onMouseEnter={openMenu}
+      onMouseLeave={scheduleCloseMenu}
     >
       <button
         type="button"
         className={`${styles.container} ${isAuthorized ? styles.authorized : ""}`}
         onClick={() => {
           setError("");
-          setIsOpen((open) => !open);
+          navigate(isAuthorized ? "/profile" : "/authorization?tab=login");
         }}
         aria-label={isAuthorized ? userName : en ? "Sign in" : "შესვლა"}
         aria-haspopup="dialog"
@@ -271,7 +349,7 @@ export default function SignIn() {
       </button>
 
       {isOpen && (
-        <div className={styles.dropdown} role="dialog" aria-label={en ? "Account menu" : "ანგარიშის მენიუ"}>
+        <div ref={dropdownRef} className={styles.dropdown} role="dialog" aria-label={en ? "Account menu" : "ანგარიშის მენიუ"}>
           {isAuthorized ? (
             <div className={styles.profileMenu}>
               <div className={styles.profileHeader}>
