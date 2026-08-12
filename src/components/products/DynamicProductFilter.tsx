@@ -62,14 +62,10 @@ export default function DynamicProductFilter({
     });
   };
 
-  const toggleRangeValue = (fieldKey: string, value: number) => {
-    const current = values.ranges[fieldKey] ?? [];
-    const next = current.includes(value)
-      ? current.filter((item) => item !== value)
-      : [...current, value].sort((a, b) => a - b);
+  const updateRange = (fieldKey: string, min: number, max: number) => {
     onChange({
       ...values,
-      ranges: { ...values.ranges, [fieldKey]: next },
+      ranges: { ...values.ranges, [fieldKey]: [min, max] },
     });
   };
 
@@ -219,48 +215,23 @@ export default function DynamicProductFilter({
                 </button>
 
                 {isOpen && filter.widgetType === "range" && filter.range && (
-                  <div className={styles.brandList}>
-                    {Array.from(
-                      {
-                        length:
-                          Math.floor(
-                            (filter.range.absoluteMax -
-                              filter.range.absoluteMin) /
-                              (filter.range.step || 1)
-                          ) + 1,
-                      },
-                      (_, optionIndex) => {
-                        const step = filter.range!.step || 1;
-                        const precision = String(step).split(".")[1]?.length ?? 0;
-                        return Number(
-                          (
-                            filter.range!.absoluteMin +
-                            optionIndex * step
-                          ).toFixed(precision)
-                        );
-                      }
-                    ).map((rangeValue) => (
-                      <label
-                        key={`${filter.fieldKey}:${rangeValue}`}
-                        className={styles.brandItem}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={(values.ranges[filter.fieldKey] ?? []).includes(
-                            rangeValue
-                          )}
-                          onChange={() =>
-                            toggleRangeValue(filter.fieldKey, rangeValue)
-                          }
-                        />
-                        <span>
-                          {rangeValue}
-                          {filter.unit ?? filter.range?.unit
-                            ? ` ${filter.unit ?? filter.range?.unit}`
-                            : ""}
-                        </span>
-                      </label>
-                    ))}
+                  <div className={styles.attributeRange}>
+                    {(() => {
+                      const absoluteMin = filter.range!.absoluteMin;
+                      const absoluteMax = filter.range!.absoluteMax;
+                      const selected = values.ranges[filter.fieldKey];
+                      const min = selected?.[0] ?? absoluteMin;
+                      const max = selected?.[1] ?? absoluteMax;
+                      const unit = filter.unit ?? filter.range!.unit ?? "";
+                      return <>
+                        <div className={styles.attributeRangeValues}>
+                          <span>{min}{unit ? ` ${unit}` : ""}</span>
+                          <span>{max}{unit ? ` ${unit}` : ""}</span>
+                        </div>
+                        <input type="range" min={absoluteMin} max={absoluteMax} step={filter.range!.step || 1} value={min} aria-label={`${filter.displayName} minimum`} onChange={(event) => updateRange(filter.fieldKey, Math.min(Number(event.target.value), max), max)} />
+                        <input type="range" min={absoluteMin} max={absoluteMax} step={filter.range!.step || 1} value={max} aria-label={`${filter.displayName} maximum`} onChange={(event) => updateRange(filter.fieldKey, min, Math.max(Number(event.target.value), min))} />
+                      </>;
+                    })()}
                   </div>
                 )}
 

@@ -25,6 +25,7 @@ export type StorefrontHome = {
 };
 
 export type StorefrontBrand = {
+  id?: number;
   name: string;
   slug: string;
   logoUrl: string;
@@ -35,6 +36,7 @@ export type StorefrontBrand = {
 };
 
 export type StorefrontCategory = {
+  id?: number;
   name: string;
   slug: string;
   description?: string;

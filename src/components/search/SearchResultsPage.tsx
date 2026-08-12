@@ -63,9 +63,9 @@ export default function SearchResultsPage({
     const attr = Object.entries(filterValues.attributes)
       .filter(([, values]) => values.length > 0)
       .map(([key, values]) => `${key}:${values.join("|")}`);
-    const range = Object.entries(filterValues.ranges).flatMap(([key, values]) =>
-      values.map((value) => `${key}:${value}:${value}`)
-    );
+    const range = Object.entries(filterValues.ranges)
+      .filter(([, bounds]) => bounds.length === 2)
+      .map(([key, bounds]) => `${key}:${bounds[0]}:${bounds[1]}`);
     const priceIsFiltered =
       !firstForQuery &&
       (filterValues.price[0] !== priceBounds[0] || filterValues.price[1] !== priceBounds[1]);

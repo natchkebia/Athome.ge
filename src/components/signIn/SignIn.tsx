@@ -7,6 +7,7 @@ import {
   getCurrentUser,
   login,
   logout,
+  socialLogin,
   type AuthUser,
 } from "@/lib/api/auth";
 import { getStoredAuthTokens } from "@/lib/auth/tokens";
@@ -20,6 +21,10 @@ import {
 import { normalizeMediaUrl } from "@/lib/storefront/products";
 import styles from "./SignIn.module.scss";
 import { useStorefrontLocale } from "@/lib/i18n/useStorefrontLocale";
+import {
+  getSocialAuthToken,
+  type SocialAuthProvider,
+} from "@/lib/auth/socialAuth";
 
 export default function SignIn() {
   const router = useRouter();
@@ -183,6 +188,45 @@ export default function SignIn() {
     }
   };
 
+  const handleSocialLogin = async (provider: SocialAuthProvider) => {
+    setError("");
+    setIsSubmitting(true);
+
+    try {
+      const token = await getSocialAuthToken(provider);
+      const response = await socialLogin({
+        token,
+        provider,
+        acceptedTerms: true,
+      });
+
+      if (!response.accessToken || !response.refreshToken) {
+        throw new Error(en ? "Sign-in failed" : "ავტორიზაცია ვერ შესრულდა");
+      }
+
+      const currentUser =
+        (await getCurrentUser().catch(() => null)) ?? response.user ?? null;
+      setUser(currentUser);
+      if (currentUser?.avatarUrl) {
+        const avatarUrl = normalizeMediaUrl(currentUser.avatarUrl);
+        setAvatar(avatarUrl);
+        storeProfileAvatar(avatarUrl);
+      }
+      setIsAuthorized(true);
+      setIsOpen(false);
+    } catch (socialError) {
+      setError(
+        socialError instanceof Error
+          ? socialError.message
+          : en
+          ? "Social sign-in failed"
+          : "სოციალური ავტორიზაცია ვერ შესრულდა"
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const navigate = (path: string) => {
     setIsOpen(false);
     router.push(path);
@@ -295,6 +339,21 @@ export default function SignIn() {
                 </button>
                 <button className={styles.forgot} type="button" onClick={() => navigate("/authorization?tab=reset")}>
                   {en ? "Forgot password?" : "დაგავიწყდა პაროლი?"}
+                </button>
+              </div>
+
+              <div className={styles.socialDivider}>
+                <span>{en ? "or" : "ან"}</span>
+              </div>
+
+              <div className={styles.socials}>
+                <button type="button" disabled={isSubmitting} onClick={() => handleSocialLogin("google")}>
+                  <img src="/icons/google.svg" alt="" />
+                  {en ? "Google" : "Google-ით შესვლა"}
+                </button>
+                <button type="button" disabled={isSubmitting} onClick={() => handleSocialLogin("facebook")}>
+                  <img src="/icons/facebook.svg" alt="" />
+                  {en ? "Facebook" : "Facebook-ით შესვლა"}
                 </button>
               </div>
 

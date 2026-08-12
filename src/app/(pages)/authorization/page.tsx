@@ -16,16 +16,13 @@ import { storeProfileGender } from "@/lib/auth/profilePreferences";
 import AtHomeLoader from "@/components/shared/AtHomeLoader";
 import styles from "./authorization.module.scss";
 import { useStorefrontLocale } from "@/lib/i18n/useStorefrontLocale";
+import { getSocialAuthToken } from "@/lib/auth/socialAuth";
 
 export default function AuthForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const locale = useStorefrontLocale();
   const en = locale === "en";
-  const socialRedirectUri =
-    typeof window === "undefined"
-      ? ""
-      : `${window.location.origin}/auth/social-callback`;
   const [activeTab, setActiveTab] = useState<"login" | "register" | "reset">(
     "login"
   );
@@ -71,136 +68,12 @@ export default function AuthForm() {
   const getErrorText = (error: unknown) =>
     error instanceof Error ? error.message : "დაფიქსირდა შეცდომა";
 
-  const openSocialPopup = (url: string) =>
-    new Promise<URLSearchParams>((resolve, reject) => {
-      const width = 520;
-      const height = 680;
-      const dualScreenLeft = window.screenLeft ?? window.screenX;
-      const dualScreenTop = window.screenTop ?? window.screenY;
-      const viewportWidth =
-        window.innerWidth ?? document.documentElement.clientWidth;
-      const viewportHeight =
-        window.innerHeight ?? document.documentElement.clientHeight;
-      const left = dualScreenLeft + Math.max((viewportWidth - width) / 2, 0);
-      const top = dualScreenTop + Math.max((viewportHeight - height) / 2, 0);
-      const popup = window.open(
-        url,
-        "athome-social-auth",
-        `width=${width},height=${height},left=${left},top=${top},menubar=no,toolbar=no,location=no,status=no`
-      );
-
-      if (!popup) {
-        reject(new Error("Popup ვერ გაიხსნა. ბრაუზერში popup-ები დაუშვი."));
-        return;
-      }
-
-      const authPopup = popup;
-
-      const timeout = window.setTimeout(() => {
-        window.removeEventListener("message", handleMessage);
-        authPopup.close();
-        reject(new Error("ავტორიზაციის დრო ამოიწურა"));
-      }, 120000);
-
-      const interval = window.setInterval(() => {
-        if (authPopup.closed) {
-          window.clearInterval(interval);
-          window.clearTimeout(timeout);
-          window.removeEventListener("message", handleMessage);
-          reject(new Error("ავტორიზაცია გაუქმდა"));
-        }
-      }, 500);
-
-      function cleanup() {
-        window.clearInterval(interval);
-        window.clearTimeout(timeout);
-        window.removeEventListener("message", handleMessage);
-        authPopup.close();
-      }
-
-      function handleMessage(event: MessageEvent) {
-        if (event.origin !== window.location.origin) return;
-
-        if (event.data?.type !== "athome-social-auth") return;
-
-        cleanup();
-        const params = new URLSearchParams(event.data.params);
-        const providerError =
-          params.get("error_description") ??
-          params.get("error_message") ??
-          params.get("error");
-
-        if (providerError) {
-          reject(new Error(providerError));
-          return;
-        }
-
-        resolve(params);
-      }
-
-      window.addEventListener("message", handleMessage);
-    });
-
-  const getSocialToken = async (provider: "google" | "facebook") => {
-    if (provider === "google") {
-      const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
-
-      if (!clientId) {
-        throw new Error("NEXT_PUBLIC_GOOGLE_CLIENT_ID არ არის მითითებული");
-      }
-
-      const params = new URLSearchParams({
-        client_id: clientId,
-        redirect_uri: socialRedirectUri,
-        response_type: "id_token",
-        scope: "openid email profile",
-        nonce: crypto.randomUUID(),
-        prompt: "select_account",
-      });
-      const response = await openSocialPopup(
-        `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`
-      );
-      const token = response.get("id_token");
-
-      if (!token) {
-        throw new Error("Google token არ დაბრუნდა");
-      }
-
-      return token;
-    }
-
-    const appId = process.env.NEXT_PUBLIC_FACEBOOK_APP_ID;
-
-    if (!appId) {
-      throw new Error("NEXT_PUBLIC_FACEBOOK_APP_ID არ არის მითითებული");
-    }
-
-    const params = new URLSearchParams({
-      client_id: appId,
-      redirect_uri: socialRedirectUri,
-      response_type: "token",
-      scope: "email,public_profile",
-      auth_type: "rerequest",
-      display: "popup",
-    });
-    const response = await openSocialPopup(
-      `https://www.facebook.com/v19.0/dialog/oauth?${params.toString()}`
-    );
-    const token = response.get("access_token");
-
-    if (!token) {
-      throw new Error("Facebook token არ დაბრუნდა");
-    }
-
-    return token;
-  };
-
   const handleSocialLogin = async (provider: "google" | "facebook") => {
     clearFeedback();
     setIsSubmitting(true);
 
     try {
-      const token = await getSocialToken(provider);
+      const token = await getSocialAuthToken(provider);
       const response = await socialLogin({
         token,
         provider,

@@ -245,14 +245,12 @@ function ProductsPageInner() {
     if (!dynamicFiltersActive || !hasFilterSchema) return;
     let active = true;
 
-    const attr = Object.entries(dynamicFilters.attributes).flatMap(
-      ([fieldKey, values]) =>
-        values.map((value) => `${fieldKey}:${value}`)
-    );
-    const range = Object.entries(dynamicFilters.ranges).flatMap(
-      ([fieldKey, selectedValues]) =>
-        selectedValues.map((value) => `${fieldKey}:${value}:${value}`)
-    );
+    const attr = Object.entries(dynamicFilters.attributes)
+      .filter(([, values]) => values.length > 0)
+      .map(([fieldKey, values]) => `${fieldKey}:${values.join("|")}`);
+    const range = Object.entries(dynamicFilters.ranges)
+      .filter(([, bounds]) => bounds.length === 2)
+      .map(([fieldKey, bounds]) => `${fieldKey}:${bounds[0]}:${bounds[1]}`);
 
     const baseQuery = {
       pageSize: PRODUCT_LIMIT,
@@ -305,40 +303,18 @@ function ProductsPageInner() {
           ...Object.entries(dynamicFilters.attributes)
             .filter(([, values]) => values.length > 0)
             .map(async ([fieldKey, values]) => {
-              const responses = await Promise.all(
-                values.map((value) =>
-                  getAllStorefrontProducts({
-                    ...baseQuery,
-                    attr: [`${fieldKey}:${value}`],
-                  })
-                )
-              );
-              return Array.from(
-                new Map(
-                  responses
-                    .flatMap((response) => response)
-                    .map((product) => [product.id, product])
-                ).values()
-              );
+              return getAllStorefrontProducts({
+                ...baseQuery,
+                attr: [`${fieldKey}:${values.join("|")}`],
+              });
             }),
           ...Object.entries(dynamicFilters.ranges)
-            .filter(([, selectedValues]) => selectedValues.length > 0)
-            .map(async ([fieldKey, selectedValues]) => {
-              const responses = await Promise.all(
-                selectedValues.map((value) =>
-                  getAllStorefrontProducts({
-                    ...baseQuery,
-                    range: [`${fieldKey}:${value}:${value}`],
-                  })
-                )
-              );
-              return Array.from(
-                new Map(
-                  responses
-                    .flatMap((response) => response)
-                    .map((product) => [product.id, product])
-                ).values()
-              );
+            .filter(([, bounds]) => bounds.length === 2)
+            .map(async ([fieldKey, bounds]) => {
+              return getAllStorefrontProducts({
+                ...baseQuery,
+                range: [`${fieldKey}:${bounds[0]}:${bounds[1]}`],
+              });
             }),
         ]);
 

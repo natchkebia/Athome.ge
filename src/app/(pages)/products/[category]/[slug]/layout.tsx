@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
+import { entityMeta } from "@/lib/admin/entity-meta";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "");
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://ithome.ge";
@@ -16,6 +17,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const kaPath = `/products/${encodeURIComponent(category)}/${encodeURIComponent(slug)}`;
   const currentPath = locale === "en" ? `/en${kaPath}` : kaPath;
   let product: {
+    id?: number;
     name?: string;
     seo?: { metaTitle?: string; metaDescription?: string; ogImageUrl?: string } | null;
     images?: { url: string }[];
@@ -57,7 +59,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       ...(image ? { images: [image] } : {}),
     },
     twitter: { card: "summary_large_image", title, description, ...(image ? { images: [image] } : {}) },
-    other: { "og:type": "product" },
+    other: {
+      "og:type": "product",
+      ...entityMeta("product", product?.id),
+    },
   };
 }
 

@@ -16,6 +16,15 @@ export default function SocialAuthCallbackPage() {
       window.location.origin
     );
 
+    if (typeof BroadcastChannel !== "undefined") {
+      const channel = new BroadcastChannel("athome-social-auth");
+      channel.postMessage({
+        type: "athome-social-auth",
+        params: params.toString(),
+      });
+      channel.close();
+    }
+
     window.close();
   }, []);
 

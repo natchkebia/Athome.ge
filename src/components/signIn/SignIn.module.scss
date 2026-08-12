@@ -213,6 +213,70 @@
   }
 }
 
+.socialDivider {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  color: $dark;
+  font-size: 12px;
+
+  &::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    right: 0;
+    left: 0;
+    height: 1px;
+    background: #edf1f3;
+  }
+
+  span {
+    position: relative;
+    padding: 0 10px;
+    background: #fff;
+  }
+}
+
+.socials {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+
+  button {
+    min-width: 0;
+    height: 44px;
+    padding: 0 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    color: $darker;
+    font: inherit;
+    font-size: 11px;
+    font-weight: 600;
+    border: 1px solid #dde5e9;
+    border-radius: 10px;
+    background: #fff;
+    cursor: pointer;
+
+    &:hover {
+      border-color: $blue-normal;
+      background: $blue-light;
+    }
+
+    &:disabled {
+      opacity: 0.65;
+      cursor: wait;
+    }
+
+    img {
+      width: 20px;
+      height: 20px;
+      flex: 0 0 20px;
+    }
+  }
+}
+
 .registration {
   margin: 0;
   padding-top: 17px;
@@ -380,6 +444,10 @@
   }
 
   .formActions {
+    grid-template-columns: 1fr;
+  }
+
+  .socials {
     grid-template-columns: 1fr;
   }
 

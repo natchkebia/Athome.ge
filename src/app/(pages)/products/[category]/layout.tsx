@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
+import { entityMeta } from "@/lib/admin/entity-meta";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "");
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://ithome.ge";
@@ -11,7 +12,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const locale = (await headers()).get("x-lang") === "en" ? "en" : "ka";
   const kaPath = `/products/${encodeURIComponent(category)}`;
   const currentPath = locale === "en" ? `/en${kaPath}` : kaPath;
-  let data: { name?: string; description?: string; seo?: { metaTitle?: string; metaDescription?: string; ogImageUrl?: string } | null } | null = null;
+  let data: { id?: number; name?: string; description?: string; seo?: { metaTitle?: string; metaDescription?: string; ogImageUrl?: string } | null } | null = null;
 
   if (API_BASE_URL) {
     try {
@@ -32,6 +33,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     description,
     alternates: { canonical: `${SITE_URL}${currentPath}`, languages: { ka: `${SITE_URL}${kaPath}`, en: `${SITE_URL}/en${kaPath}`, "x-default": `${SITE_URL}${kaPath}` } },
     openGraph: { title, description, url: `${SITE_URL}${currentPath}`, ...(image ? { images: [image] } : {}) },
+    other: { ...entityMeta("category", data?.id) },
   };
 }
 
