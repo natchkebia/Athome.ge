@@ -25,7 +25,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
   );
 
   request.nextUrl.searchParams.forEach((value, key) => {
-    url.searchParams.set(key, value);
+    url.searchParams.append(key, value);
   });
 
   const response = await fetch(url, {
@@ -62,7 +62,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
   );
 
   request.nextUrl.searchParams.forEach((value, key) => {
-    url.searchParams.set(key, value);
+    url.searchParams.append(key, value);
   });
 
   const body = await request.text();

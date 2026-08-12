@@ -17,10 +17,24 @@
   color: $dark;
   margin: 0;
 }
-.container > span {
+.numbers {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.numbers a {
   font-size: 14px;
   font-weight: 510;
   color: $red-normal-hover;
+  line-height: 1.15;
+  text-decoration: none;
+
+  &:hover,
+  &:focus-visible {
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
 }
 
 @media (max-width: 768px) {
@@ -41,7 +55,7 @@
   }
 
   .wrapper > h2,
-  .container > span {
+  .numbers a {
     font-size: 12px;
     line-height: 1.2;
     white-space: nowrap;

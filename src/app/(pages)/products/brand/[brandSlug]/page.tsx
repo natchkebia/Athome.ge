@@ -10,7 +10,7 @@ import ProductSortBar from "@/components/products/ProductSortBar";
 import EmptyState from "@/components/products/EmptyState";
 import Breadcrumb from "@/components/ breadcrumb/Breadcrumb";
 import AtHomeLoader from "@/components/shared/AtHomeLoader";
-import { getStorefrontProducts } from "@/lib/api/storefront";
+import { getAllStorefrontProducts } from "@/lib/api/storefront";
 import {
   mapStorefrontProductToCard,
   StorefrontProductCard,
@@ -48,15 +48,14 @@ export default function BrandProductsPage() {
 
     setLoading(true);
     setVisibleCount(9);
-    getStorefrontProducts({
-      page: 1,
+    getAllStorefrontProducts({
       pageSize: PRODUCT_LIMIT,
       brandSlug,
     })
-      .then((response) => {
+      .then((items) => {
         if (!isMounted) return;
 
-        setProducts(response.items.map(mapStorefrontProductToCard));
+        setProducts(items.map(mapStorefrontProductToCard));
       })
       .catch(() => {
         if (isMounted) setProducts([]);

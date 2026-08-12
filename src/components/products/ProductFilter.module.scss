@@ -241,6 +241,15 @@
 
   input {
     accent-color: rgba(16, 181, 192, 1);
+
+    &:disabled {
+      cursor: not-allowed;
+    }
+  }
+
+  &:has(input:disabled) {
+    color: rgba(105, 108, 110, 0.55);
+    cursor: not-allowed;
   }
 }
 

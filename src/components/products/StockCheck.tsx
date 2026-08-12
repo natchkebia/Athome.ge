@@ -16,6 +16,7 @@ interface StockCheckProps {
 const LOCATION_ORDER: StorefrontStockLocation["code"][] = [
   "tsereteli",
   "saburtalo",
+  "warehouse",
   "online",
 ];
 
@@ -60,12 +61,18 @@ export default function StockCheck({ stockLocations }: StockCheckProps) {
                           ? en ? "Available to order" : "შეკვეთით"
                           : location.name}
                       </p>
-                      {location.code !== "online" && branchByCode.get(location.code)?.address && (
+                      {location.note && (
+                        <p className={styles.note}>{location.note}</p>
+                      )}
+                      {!location.note && location.address && (
+                        <p className={styles.note}>{location.address}</p>
+                      )}
+                      {!location.note && !location.address && location.code !== "online" && branchByCode.get(location.code)?.address && (
                         <p className={styles.note}>
                           {branchByCode.get(location.code)?.address}
                         </p>
                       )}
-                      {location.code === "online" && (
+                      {!location.note && location.code === "online" && (
                         <p className={styles.note}>
                           {en
                             ? "Supplier stock; availability may be delayed by up to 24 hours."

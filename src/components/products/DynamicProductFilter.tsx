@@ -8,7 +8,8 @@ import { useStorefrontLocale } from "@/lib/i18n/useStorefrontLocale";
 
 export type DynamicFilterValues = {
   price: [number, number];
-  brandSlug?: string;
+  brandSlugs: string[];
+  inStockOnly: boolean;
   attributes: Record<string, string[]>;
   ranges: Record<string, number[]>;
 };
@@ -73,7 +74,7 @@ export default function DynamicProductFilter({
   };
 
   const reset = () =>
-    onChange({ price: priceBounds, brandSlug: undefined, attributes: {}, ranges: {} });
+    onChange({ price: priceBounds, brandSlugs: [], inStockOnly: false, attributes: {}, ranges: {} });
 
   const sortedFilters = [...schema.filters].sort(
     (left, right) => left.sortOrder - right.sortOrder,
@@ -92,6 +93,16 @@ export default function DynamicProductFilter({
       </div>
 
       <div className={styles.filterBox}>
+        <label className={styles.brandItem}>
+          <input
+            type="checkbox"
+            checked={values.inStockOnly}
+            onChange={() =>
+              onChange({ ...values, inStockOnly: !values.inStockOnly })
+            }
+          />
+          <span>{en ? "In stock only" : "მხოლოდ მარაგში არსებული"}</span>
+        </label>
         <div className={styles.section}>
           <label className={styles.label}>ფასი</label>
           <div className={styles.rangeWrapper}>
@@ -159,11 +170,16 @@ export default function DynamicProductFilter({
                     <label key={brand.brandId} className={styles.brandItem}>
                       <input
                         type="checkbox"
-                        checked={values.brandSlug === brand.slug}
-                        onChange={() => onChange({
-                          ...values,
-                          brandSlug: values.brandSlug === brand.slug ? undefined : brand.slug,
-                        })}
+                        checked={values.brandSlugs.includes(brand.slug)}
+                        onChange={() => {
+                          const selected = values.brandSlugs.includes(brand.slug);
+                          onChange({
+                            ...values,
+                            brandSlugs: selected
+                              ? values.brandSlugs.filter((slug) => slug !== brand.slug)
+                              : [...values.brandSlugs, brand.slug],
+                          });
+                        }}
                       />
                       <span>{brand.name}</span>
                       <span className={styles.optionCount}>{brand.productCount}</span>
@@ -250,24 +266,17 @@ export default function DynamicProductFilter({
 
                 {isOpen && filter.widgetType !== "range" && (
                   <div className={styles.brandList}>
-                    {(filter.options ?? [])
-                      .filter(
-                        (option) =>
-                          option.productCount > 0 ||
-                          (values.attributes[filter.fieldKey] ?? []).includes(
-                            option.value
-                          )
-                      )
-                      .map((option, optionIndex) => (
+                    {(filter.options ?? []).map((option, optionIndex) => {
+                      const selected = (values.attributes[filter.fieldKey] ?? []).includes(option.value);
+                      return (
                         <label
                           key={`${filter.fieldKey}:${option.optionId}:${option.value}:${optionIndex}`}
                           className={styles.brandItem}
                         >
                           <input
                             type="checkbox"
-                            checked={(
-                              values.attributes[filter.fieldKey] ?? []
-                            ).includes(option.value)}
+                            checked={selected}
+                            disabled={option.productCount === 0 && !selected}
                             onChange={() =>
                               toggleOption(filter.fieldKey, option.value)
                             }
@@ -277,7 +286,8 @@ export default function DynamicProductFilter({
                             {option.productCount}
                           </span>
                         </label>
-                      ))}
+                      );
+                    })}
                   </div>
                 )}
               </div>

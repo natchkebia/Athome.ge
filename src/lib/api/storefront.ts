@@ -128,9 +128,11 @@ export type StorefrontCompatibleGroup = {
 };
 
 export type StorefrontStockLocation = {
-  code: "tsereteli" | "saburtalo" | "online";
+  code: "tsereteli" | "saburtalo" | "warehouse" | "online";
   name: string;
+  address?: string | null;
   quantity: number;
+  note?: string | null;
 };
 
 export type StorefrontProductDetail = Omit<
@@ -138,6 +140,7 @@ export type StorefrontProductDetail = Omit<
   "sellingPrice" | "effectivePrice" | "thumbnailUrl"
 > & {
   model?: string;
+  officialUrl?: string | null;
   pricing: {
     sellingPrice: number;
     effectivePrice: number;
@@ -231,6 +234,7 @@ export type StorefrontSearchProduct = {
   brandName: string;
   categoryName: string;
   stockStatus: string;
+  isAvailable?: boolean;
   ratingAverage: number;
   ratingCount: number;
 };
@@ -267,6 +271,7 @@ export type StorefrontSearchResponse = {
       slug: string;
       count: number;
     }[];
+    attributes?: StorefrontCategoryFilter[];
   };
 };
 
@@ -296,6 +301,7 @@ export type StorefrontProductsQuery = {
   subCategorySlug?: string;
   miniCategorySlug?: string;
   brandSlug?: string;
+  brandSlugs?: string[];
   minPrice?: number;
   maxPrice?: number;
   inStockOnly?: boolean;
@@ -413,6 +419,7 @@ export function getStorefrontProducts(params: StorefrontProductsQuery = {}) {
         SubCategorySlug: params.subCategorySlug,
         MiniCategorySlug: params.miniCategorySlug,
         BrandSlug: params.brandSlug,
+        BrandSlugs: params.brandSlugs,
         MinPrice: params.minPrice,
         MaxPrice: params.maxPrice,
         InStockOnly: params.inStockOnly,
@@ -430,6 +437,21 @@ export function getStorefrontProducts(params: StorefrontProductsQuery = {}) {
   );
 }
 
+export async function getAllStorefrontProducts(
+  params: StorefrontProductsQuery = {}
+) {
+  const pageSize = Math.min(params.pageSize ?? 100, 100);
+  const first = await getStorefrontProducts({ ...params, page: 1, pageSize });
+  if (first.totalPages <= 1) return first.items;
+
+  const rest = await Promise.all(
+    Array.from({ length: first.totalPages - 1 }, (_, index) =>
+      getStorefrontProducts({ ...params, page: index + 2, pageSize })
+    )
+  );
+  return [first, ...rest].flatMap((page) => page.items);
+}
+
 export function getStorefrontCategoryFilters(
   slug: string,
   level: "categories" | "subcategories" | "minicategories",
@@ -437,6 +459,8 @@ export function getStorefrontCategoryFilters(
     attr?: string[];
     range?: string[];
     brandSlug?: string;
+    brandSlugs?: string[];
+    inStockOnly?: boolean;
     minPrice?: number;
     maxPrice?: number;
   } = {}
@@ -450,6 +474,8 @@ export function getStorefrontCategoryFilters(
         Attr: params.attr,
         Range: params.range,
         BrandSlug: params.brandSlug,
+        BrandSlugs: params.brandSlugs,
+        InStockOnly: params.inStockOnly,
         MinPrice: params.minPrice,
         MaxPrice: params.maxPrice,
       },
@@ -593,12 +619,24 @@ export function searchStorefrontProducts({
   pageSize = 24,
   categorySlug,
   brandSlug,
+  brandSlugs,
+  inStockOnly,
+  attr,
+  range,
+  minPrice,
+  maxPrice,
 }: {
   query: string;
   page?: number;
   pageSize?: number;
   categorySlug?: string;
   brandSlug?: string;
+  brandSlugs?: string[];
+  inStockOnly?: boolean;
+  attr?: string[];
+  range?: string[];
+  minPrice?: number;
+  maxPrice?: number;
 }) {
   return apiRequest<StorefrontSearchResponse>("/api/storefront/search", {
     query: {
@@ -607,6 +645,12 @@ export function searchStorefrontProducts({
       PageSize: pageSize,
       CategorySlug: categorySlug,
       BrandSlug: brandSlug,
+      BrandSlugs: brandSlugs,
+      InStockOnly: inStockOnly,
+      Attr: attr,
+      Range: range,
+      MinPrice: minPrice,
+      MaxPrice: maxPrice,
     },
     useProxy: true,
   });

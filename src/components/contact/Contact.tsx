@@ -12,7 +12,10 @@ export const Contact = () => {
         <img src="/icons/Main-headphone.svg" alt="headphone" />
         <h2>{locale === "en" ? "Contact us" : "დაგვიკავშირდით"}</h2>
       </div>
-      <span>+995 599 09 32 09</span>
+      <div className={styles.numbers}>
+        <a href="tel:+995322080908">032 2 08 09 08</a>
+        <a href="tel:+995599093209">+995 599 09 32 09</a>
+      </div>
     </div>
   );
 };

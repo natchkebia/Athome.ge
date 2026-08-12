@@ -108,6 +108,29 @@
   mix-blend-mode: multiply;
 }
 
+.outOfStockCard .productImage {
+  opacity: 0.6;
+  filter: grayscale(0.15);
+}
+
+.outOfStockBadge {
+  position: absolute;
+  z-index: 4;
+  top: 12px;
+  left: 12px;
+  padding: 6px 10px;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 590;
+  border-radius: 7px;
+  background: #7e878e;
+}
+
+.addBtn:disabled {
+  opacity: 0.58;
+  cursor: not-allowed;
+}
+
 .title {
   width: min(260px, 100%);
   height: 40px;

@@ -20,6 +20,7 @@ export interface ProductCardProps {
   oldPrice?: number;
   newPrice?: number;
   isNew?: boolean;
+  isAvailable?: boolean;
   isWishlisted?: boolean;
   onToggleWishlist?: (id: string) => void;
   onAddToCart?: (id: string) => void;
@@ -58,6 +59,7 @@ export default function DiscountCard({
   oldPrice,
   newPrice,
   isNew = false,
+  isAvailable = true,
   isWishlisted = false,
   onToggleWishlist,
   onAddToCart,
@@ -144,6 +146,7 @@ export default function DiscountCard({
   const handleAddToCart = (event: React.MouseEvent) => {
     event.preventDefault();
     event.stopPropagation();
+    if (!isAvailable) return;
     cacheInfo();
     onAddToCart?.(id);
     flyToTarget(imageRef.current, image, "cart");
@@ -195,12 +198,13 @@ export default function DiscountCard({
   // სიის (list) ვიზუალი — ჰორიზონტალური გაშლილი ბარათი (1038×172).
   if (layout === "list") {
     return (
-      <div className={styles.cardList}>
+      <div className={`${styles.cardList} ${!isAvailable ? styles.outOfStockCard : ""}`}>
         <div className={styles.listImage} ref={imageRef}>
           {(promotionLabel || discount > 0) && (
             <div className={styles.discountBadge}>{promotionLabel || `-${discount}%`}</div>
           )}
           {isNew && <div className={styles.newBadge}>NEW</div>}
+          {!isAvailable && <div className={styles.outOfStockBadge}>{en ? "Out of stock" : "ამოწურულია"}</div>}
           <Image
             className={styles.productImage}
             src={img(image, 400)}
@@ -251,9 +255,9 @@ export default function DiscountCard({
               alt="wishlist"
             />
           </button>
-          <button className={styles.addBtn} onClick={handleAddToCart}>
+          <button className={styles.addBtn} onClick={handleAddToCart} disabled={!isAvailable}>
             <img src="/icons/CartWhite.svg" alt="cart" />
-            {en ? "Add to cart" : "დამატება"}
+            {isAvailable ? (en ? "Add to cart" : "დამატება") : (en ? "Out of stock" : "ამოწურულია")}
           </button>
         </div>
         {zoomOverlay}
@@ -262,7 +266,7 @@ export default function DiscountCard({
   }
 
   return (
-    <div className={styles.card}>
+    <div className={`${styles.card} ${!isAvailable ? styles.outOfStockCard : ""}`}>
       <div className={styles.cardWrapper}>
         {(promotionLabel || discount > 0 || isNew) && (
           <div className={styles.badges}>
@@ -272,6 +276,7 @@ export default function DiscountCard({
             {isNew && <div className={styles.newBadge}>NEW</div>}
           </div>
         )}
+        {!isAvailable && <div className={styles.outOfStockBadge}>{en ? "Out of stock" : "ამოწურულია"}</div>}
 
         <div className={styles.actions}>
           <button
@@ -327,9 +332,9 @@ export default function DiscountCard({
           )}
         </div>
 
-        <button className={styles.addBtn} onClick={handleAddToCart}>
+        <button className={styles.addBtn} onClick={handleAddToCart} disabled={!isAvailable}>
           <img src="/icons/CartWhite.svg" alt="cart" />
-          {en ? "Add to cart" : "დამატება"}
+          {isAvailable ? (en ? "Add to cart" : "დამატება") : (en ? "Out of stock" : "ამოწურულია")}
         </button>
       </div>
       {zoomOverlay}

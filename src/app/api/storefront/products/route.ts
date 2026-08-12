@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
   const url = new URL("/api/storefront/products", API_BASE_URL);
 
   request.nextUrl.searchParams.forEach((value, key) => {
-    url.searchParams.set(key, value);
+    url.searchParams.append(key, value);
   });
 
   // eslint-disable-next-line no-console

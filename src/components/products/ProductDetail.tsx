@@ -37,6 +37,11 @@ interface SpecGroup {
   fields: Spec[];
 }
 
+function isModelSpec(label: string) {
+  const normalizedLabel = label.trim().replace(/:$/, "").toLocaleLowerCase();
+  return normalizedLabel === "model" || normalizedLabel === "მოდელი";
+}
+
 // componentType (backend enum) → ქართული სათაური. ენუმი შეიძლება გაიზარდოს —
 // უცნობ ტიპს ვტოვებთ (არ ვხატავთ), ვიდრე მცდარ სათაურს ვაჩვენებდეთ.
 const COMPONENT_TYPE_HEADINGS: Record<string, string> = {
@@ -139,6 +144,7 @@ export default function ProductDetail({
   const { showToast } = useToast();
   const router = useRouter();
   const isCompared = compareIds.has(product.id);
+  const isAvailable = product.isAvailable && product.stockStatus !== "OutOfStock";
   const [fallbackRelatedProducts, setFallbackRelatedProducts] = useState<
     StorefrontProductCard[]
   >([]);
@@ -252,6 +258,7 @@ export default function ProductDetail({
 
   // "ყიდვა" — ამატებს კალათაში და გადაჰყავს კალათის გვერდზე (სტუმარსაც).
   const handleBuyNow = async () => {
+    if (!isAvailable) return;
     cacheInfo();
     await addToCart(product.id);
     router.push("/basket");
@@ -259,6 +266,7 @@ export default function ProductDetail({
 
   // "დამატება" — ამატებს კალათაში, სურათი კალათისკენ ფრინავს, აჩვენებს დადასტურებას.
   const handleAddToCart = async (event: React.MouseEvent) => {
+    if (!isAvailable) return;
     const sourceEl = event.currentTarget as HTMLElement;
     cacheInfo();
     flyToTarget(sourceEl, images[0], "cart");
@@ -341,7 +349,22 @@ export default function ProductDetail({
                   {product.brand.name}
                 </Link>
               </p>
-              <p>{en ? "Model:" : "მოდელი:"} {product.model && <span>{product.model}</span>}</p>
+              {product.model && (
+                <p>
+                  {en ? "Model:" : "მოდელი:"}{" "}
+                  {product.officialUrl ? (
+                    <a
+                      href={product.officialUrl}
+                      target="_blank"
+                      rel="noopener noreferrer nofollow"
+                    >
+                      {product.model} <span aria-hidden="true">↗</span>
+                    </a>
+                  ) : (
+                    <span>{product.model}</span>
+                  )}
+                </p>
+              )}
               <p>
                 {en ? "Type:" : "ტიპი:"}{" "}
                 <Link
@@ -367,13 +390,15 @@ export default function ProductDetail({
                   </span>
                 )}
               </div>
-              <button onClick={handleBuyNow}>{en ? "Buy now" : "ყიდვა"}</button>
+              <button onClick={handleBuyNow} disabled={!isAvailable}>
+                {isAvailable ? (en ? "Buy now" : "ყიდვა") : (en ? "Out of stock" : "ამოწურულია")}
+              </button>
             </div>
 
             <div className={styles.actions}>
-              <button className={styles.buyBtn} onClick={handleAddToCart}>
+              <button className={styles.buyBtn} onClick={handleAddToCart} disabled={!isAvailable}>
                 <img src="/icons/Cart.svg" alt="Cart.svg" />
-                <span>{en ? "Add to cart" : "დამატება"}</span>
+                <span>{isAvailable ? (en ? "Add to cart" : "დამატება") : (en ? "Out of stock" : "ამოწურულია")}</span>
               </button>
               <button
                 className={`${styles.cartBtn} ${
@@ -429,7 +454,23 @@ export default function ProductDetail({
               <table>
                 <tbody>
                   {specifications.map((spec, index) => (
-                    <tr key={`${spec.label}-${index}`}><th>{spec.label}</th><td>{spec.value}</td></tr>
+                    <tr key={`${spec.label}-${index}`}>
+                      <th>{spec.label}</th>
+                      <td>
+                        {product.officialUrl && isModelSpec(spec.label) ? (
+                          <a
+                            className={styles.officialModelLink}
+                            href={product.officialUrl}
+                            target="_blank"
+                            rel="noopener noreferrer nofollow"
+                          >
+                            {spec.value} <span aria-hidden="true">↗</span>
+                          </a>
+                        ) : (
+                          spec.value
+                        )}
+                      </td>
+                    </tr>
                   ))}
                 </tbody>
               </table>

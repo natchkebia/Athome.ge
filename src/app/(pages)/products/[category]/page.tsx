@@ -16,6 +16,7 @@ import AtHomeLoader from "@/components/shared/AtHomeLoader";
 import {
   getStorefrontCategories,
   getStorefrontProducts,
+  getAllStorefrontProducts,
   getStorefrontCategoryFilters,
   StorefrontCategory,
   StorefrontCategoryFilterSet,
@@ -61,6 +62,8 @@ function ProductsPageInner() {
   const [priceBounds, setPriceBounds] = useState<[number, number]>([0, 8500]);
   const [dynamicFilters, setDynamicFilters] = useState<DynamicFilterValues>({
     price: [0, 8500],
+    brandSlugs: [],
+    inStockOnly: false,
     attributes: {},
     ranges: {},
   });
@@ -193,13 +196,12 @@ function ProductsPageInner() {
     setVisibleCount(9);
     // Legacy by-category endpoint backend-ზე შედეგებს ჭრის (მაგ. 92-დან 28).
     // Paged products endpoint სრულ totalCount-ს აბრუნებს ყველა დონეზე.
-    const productsRequest = getStorefrontProducts({
-      page: 1,
+    const productsRequest = getAllStorefrontProducts({
       pageSize: PRODUCT_LIMIT,
       categorySlug: categoryLevel === "categories" ? category : undefined,
       subCategorySlug: categoryLevel === "subcategories" ? category : undefined,
       miniCategorySlug: categoryLevel === "minicategories" ? category : undefined,
-    }).then((response) => response.items);
+    });
 
     productsRequest
       .then((list) => {
@@ -217,7 +219,8 @@ function ProductsPageInner() {
         setPriceBounds(nextBounds);
         setDynamicFilters({
           price: nextBounds,
-          brandSlug: undefined,
+          brandSlugs: [],
+          inStockOnly: false,
           attributes: {},
           ranges: {},
         });
@@ -253,7 +256,8 @@ function ProductsPageInner() {
 
     const baseQuery = {
       pageSize: PRODUCT_LIMIT,
-      brandSlug: dynamicFilters.brandSlug,
+      brandSlugs: dynamicFilters.brandSlugs,
+      inStockOnly: dynamicFilters.inStockOnly,
       categorySlug:
         !filterSubCategoryId && !filterMiniCategoryId
           ? category
@@ -287,7 +291,8 @@ function ProductsPageInner() {
           {
             attr,
             range,
-            brandSlug: dynamicFilters.brandSlug,
+            brandSlugs: dynamicFilters.brandSlugs,
+            inStockOnly: dynamicFilters.inStockOnly,
             minPrice: baseQuery.minPrice,
             maxPrice: baseQuery.maxPrice,
           }
@@ -302,7 +307,7 @@ function ProductsPageInner() {
             .map(async ([fieldKey, values]) => {
               const responses = await Promise.all(
                 values.map((value) =>
-                  getStorefrontProducts({
+                  getAllStorefrontProducts({
                     ...baseQuery,
                     attr: [`${fieldKey}:${value}`],
                   })
@@ -311,7 +316,7 @@ function ProductsPageInner() {
               return Array.from(
                 new Map(
                   responses
-                    .flatMap((response) => response.items)
+                    .flatMap((response) => response)
                     .map((product) => [product.id, product])
                 ).values()
               );
@@ -321,7 +326,7 @@ function ProductsPageInner() {
             .map(async ([fieldKey, selectedValues]) => {
               const responses = await Promise.all(
                 selectedValues.map((value) =>
-                  getStorefrontProducts({
+                  getAllStorefrontProducts({
                     ...baseQuery,
                     range: [`${fieldKey}:${value}:${value}`],
                   })
@@ -330,7 +335,7 @@ function ProductsPageInner() {
               return Array.from(
                 new Map(
                   responses
-                    .flatMap((response) => response.items)
+                    .flatMap((response) => response)
                     .map((product) => [product.id, product])
                 ).values()
               );
@@ -339,7 +344,7 @@ function ProductsPageInner() {
 
         const resultItems =
           groups.length === 0
-            ? (await getStorefrontProducts(baseQuery)).items
+            ? await getAllStorefrontProducts(baseQuery)
             : groups[0].filter((product) =>
                 groups
                   .slice(1)

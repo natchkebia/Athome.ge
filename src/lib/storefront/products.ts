@@ -72,6 +72,7 @@ export function mapStorefrontProductToCard(
     discount,
     promotionLabel: product.activePromotion?.promotionName,
     isNew: product.isNewArrival,
+    isAvailable: product.isAvailable,
     category: product.category.slug,
     subCategory: product.subCategory?.slug,
     slug: product.slug,
@@ -96,7 +97,8 @@ export function mapStorefrontSearchProductToCard(
             ((product.oldPrice - product.effectivePrice) / product.oldPrice) *
               100
           )
-        : 0,
+      : 0,
+    isAvailable: product.isAvailable ?? product.stockStatus !== "OutOfStock",
     category: "search",
     slug: product.slug,
   };
