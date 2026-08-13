@@ -281,6 +281,7 @@ export default function SignIn() {
   };
 
   const navigate = (path: string) => {
+    window.dispatchEvent(new Event("athome-route-loading"));
     setIsOpen(false);
     router.push(path);
   };

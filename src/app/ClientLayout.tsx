@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { flushSync } from "react-dom";
 import { usePathname } from "next/navigation";
 import TopBar from "@/components/TopBar/TopBar";
 import Header from "@/components/header/Header";
@@ -100,6 +101,16 @@ export default function ClientLayout({
     const interval = window.setInterval(keepSessionFresh, 30_000);
 
     return () => window.clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    const handleProgrammaticNavigation = () => {
+      flushSync(() => setIsRouteLoading(true));
+    };
+    window.addEventListener("athome-route-loading", handleProgrammaticNavigation);
+
+    return () =>
+      window.removeEventListener("athome-route-loading", handleProgrammaticNavigation);
   }, []);
 
   useEffect(() => {

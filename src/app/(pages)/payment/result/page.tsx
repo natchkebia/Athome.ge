@@ -1,20 +1,18 @@
 "use client";
 
-import { Suspense, useEffect, useRef, useState } from "react";
+import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 import styles from "./page.module.scss";
-import { pollBogPayment, type CheckoutResponse } from "@/lib/api/checkout";
 import Step5Complete from "@/components/checkout/Step5Complete";
+import type { CheckoutResponse } from "@/lib/api/checkout";
 import type { FormValues } from "@/components/checkout/Step1Contact";
 import type { ProfileCartItem } from "@/lib/api/profileCommerce";
-
-type ResultState = "checking" | "success" | "failed" | "timeout";
-
-const POLL_INTERVAL_MS = 3000;
-const MAX_ATTEMPTS = 15;
-
-const FAILED_STATUSES = ["rejected", "timeout", "expired", "failed", "declined"];
+import { useCommerce } from "@/contexts/CommerceContext";
+import {
+  getOrderPaymentStatus,
+  retryOrderPayment,
+  type OrderPaymentStatus,
+} from "@/lib/api/orders";
 
 type CheckoutSummary = {
   result: CheckoutResponse;
@@ -23,184 +21,167 @@ type CheckoutSummary = {
   orderType?: "store" | "delivery" | null;
 };
 
-function PaymentResultContent() {
-  const searchParams = useSearchParams();
-  const [state, setState] = useState<ResultState>("checking");
-  const [orderNumber, setOrderNumber] = useState<string>("");
-  const [summary, setSummary] = useState<CheckoutSummary | null>(null);
-  const stoppedRef = useRef(false);
+type ViewState = "loading" | "missing" | "error" | "pendingTimeout" | "ready";
+const POLL_INTERVAL_MS = 2_000;
+const POLL_LIMIT_MS = 30_000;
 
+function readSummary(): CheckoutSummary | null {
+  const stored = sessionStorage.getItem("pendingCheckoutSummary");
+  if (!stored) return null;
+  try {
+    return JSON.parse(stored) as CheckoutSummary;
+  } catch {
+    return null;
+  }
+}
+
+function formatMoney(amount: number, currency: string) {
+  return `${amount.toFixed(2)} ${currency === "GEL" ? "₾" : currency}`;
+}
+
+function Countdown({ until }: { until?: string | null }) {
+  const [remaining, setRemaining] = useState("");
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    if (!until) return;
+    const update = () => {
+      const seconds = Math.max(0, Math.floor((new Date(until).getTime() - Date.now()) / 1000));
+      const hours = String(Math.floor(seconds / 3600)).padStart(2, "0");
+      const minutes = String(Math.floor((seconds % 3600) / 60)).padStart(2, "0");
+      const secs = String(seconds % 60).padStart(2, "0");
+      setRemaining(`${hours}:${minutes}:${secs}`);
+    };
+    update();
+    const timer = window.setInterval(update, 1000);
+    return () => window.clearInterval(timer);
+  }, [until]);
+  return remaining ? <p className={styles.countdown}>ხელახლა ცდის დრო: {remaining}</p> : null;
+}
 
-    const storedOrderId = sessionStorage.getItem("pendingOrderId");
-    const storedOrderNumber = sessionStorage.getItem("pendingOrderNumber");
-    if (storedOrderNumber) setOrderNumber(storedOrderNumber);
-    const storedSummary = sessionStorage.getItem("pendingCheckoutSummary");
-    if (storedSummary) {
-      try {
-        setSummary(JSON.parse(storedSummary) as CheckoutSummary);
-      } catch {
-        sessionStorage.removeItem("pendingCheckoutSummary");
-      }
-    }
+function PaymentStatusContent() {
+  const [view, setView] = useState<ViewState>("loading");
+  const [status, setStatus] = useState<OrderPaymentStatus | null>(null);
+  const [summary, setSummary] = useState<CheckoutSummary | null>(null);
+  const [retrying, setRetrying] = useState(false);
+  const [retryError, setRetryError] = useState<string | null>(null);
+  const stopped = useRef(false);
+  const cartCleared = useRef(false);
+  const { clearCart } = useCommerce();
 
-    const orderId = storedOrderId ? Number(storedOrderId) : NaN;
-
-    if (!orderId || Number.isNaN(orderId)) {
-      setState("timeout");
+  const load = useCallback(async () => {
+    const storedSummary = readSummary();
+    setSummary(storedSummary);
+    const orderNumber =
+      sessionStorage.getItem("pendingOrderNumber") ||
+      storedSummary?.result.orderNumber ||
+      "";
+    const email =
+      sessionStorage.getItem("pendingOrderEmail") ||
+      storedSummary?.contactData?.email ||
+      undefined;
+    if (!orderNumber) {
+      setView("missing");
       return;
     }
 
-    let attempts = 0;
-    let timer: ReturnType<typeof setTimeout>;
-
-    const poll = async () => {
-      if (stoppedRef.current) return;
-      attempts += 1;
-
+    const startedAt = Date.now();
+    while (!stopped.current) {
       try {
-        const res = await pollBogPayment(orderId);
-        const status = String(res.bogStatus ?? res.status ?? "").toLowerCase();
-
-        if (status === "completed" || status === "success") {
-          setState("success");
+        const next = await getOrderPaymentStatus(orderNumber, email);
+        if (stopped.current) return;
+        setStatus(next);
+        if (next.state !== "pending") {
+          setView("ready");
           return;
         }
-
-        if (FAILED_STATUSES.includes(status)) {
-          setState("failed");
-          return;
-        }
+        setView("ready");
       } catch {
-        // network hiccup — keep trying until attempts run out
-      }
-
-      if (attempts >= MAX_ATTEMPTS) {
-        setState("timeout");
+        if (stopped.current) return;
+        setView("error");
         return;
       }
 
-      timer = setTimeout(poll, POLL_INTERVAL_MS);
-    };
+      if (Date.now() - startedAt >= POLL_LIMIT_MS) {
+        setView("pendingTimeout");
+        return;
+      }
+      await new Promise((resolve) => window.setTimeout(resolve, POLL_INTERVAL_MS));
+    }
+  }, []);
 
-    poll();
+  useEffect(() => {
+    stopped.current = false;
+    void load();
+    return () => { stopped.current = true; };
+  }, [load]);
 
-    return () => {
-      stoppedRef.current = true;
-      clearTimeout(timer);
-    };
-  }, [searchParams]);
+  useEffect(() => {
+    if (status?.state !== "paid" || cartCleared.current) return;
+    cartCleared.current = true;
+    void clearCart().finally(() => {
+      sessionStorage.removeItem("pendingOrderId");
+      sessionStorage.removeItem("pendingOrderNumber");
+      sessionStorage.removeItem("pendingOrderEmail");
+    });
+  }, [status?.state, clearCart]);
 
-  if (state === "checking") {
-    return (
-      <div className={styles.wrapper}>
-        <div className={styles.spinner} />
-        <h1 className={styles.title}>გადახდის სტატუსი მოწმდება...</h1>
-        <p className={styles.subtitle}>გთხოვთ, დაელოდოთ. ეს რამდენიმე წამს გასტანს.</p>
-      </div>
-    );
+  const retry = async () => {
+    if (!status?.canRetry) return;
+    setRetrying(true);
+    setRetryError(null);
+    try {
+      const email = sessionStorage.getItem("pendingOrderEmail") || undefined;
+      const result = await retryOrderPayment(status.orderNumber, email);
+      if (!result.paymentRedirectUrl) throw new Error("გადახდის ბმული ვერ მოიძებნა");
+      window.location.href = result.paymentRedirectUrl;
+    } catch (error) {
+      setRetryError(error instanceof Error ? error.message : "ხელახლა ცდა ვერ შესრულდა");
+      setRetrying(false);
+    }
+  };
+
+  if (view === "loading") return <StatusCard icon="spinner" title="ვადასტურებთ გადახდას…" text="გთხოვთ, დაელოდოთ. ეს რამდენიმე წამს გასტანს." />;
+  if (view === "missing") return <StatusCard icon="warning" title="შეკვეთის ნომერი ვერ მოიძებნა" text="გთხოვთ, შეკვეთის სტატუსი შეამოწმოთ პროფილიდან ან დაგვიკავშირდეთ." />;
+  if (view === "error") return <StatusCard icon="warning" title="სტატუსი ვერ ჩაიტვირთა" text="გთხოვთ, გადაამოწმოთ შეკვეთის ნომერი და ელფოსტა ან სცადოთ მოგვიანებით." />;
+  if (view === "pendingTimeout") return <StatusCard icon="pending" title="გადახდის დადასტურება მიმდინარეობს" text="შეკვეთის სტატუსს მოგწერთ ელფოსტაზე. გადახდა შესაძლოა უკვე წარმატებით იყოს შესრულებული." />;
+  if (!status) return null;
+
+  if (status.state === "paid" && summary) {
+    return <main className={styles.resultPage}><Step5Complete result={summary.result} items={summary.items} contactData={summary.contactData} orderType={summary.orderType} paymentState="success" /></main>;
   }
 
-  if (state === "success") {
-    if (summary) {
-      return (
-        <main className={styles.resultPage}>
-          <Step5Complete
-            result={summary.result}
-            items={summary.items}
-            contactData={summary.contactData}
-            orderType={summary.orderType}
-            paymentState="success"
-          />
-        </main>
-      );
-    }
-
-    return (
-      <div className={styles.wrapper}>
-        <div className={`${styles.icon} ${styles.success}`}>✓</div>
-        <h1 className={styles.title}>გადახდა დადასტურდა!</h1>
-        {orderNumber && (
-          <p className={styles.subtitle}>
-            შეკვეთის ნომერი: <span className={styles.orderNumber}>{orderNumber}</span>
-          </p>
-        )}
-        <div className={styles.actions}>
-          <Link href="/profile?tab=orders" className={styles.primaryBtn}>
-            ჩემი შეკვეთები
-          </Link>
-          <Link href="/" className={styles.secondaryBtn}>
-            მთავარი გვერდი
-          </Link>
-        </div>
-      </div>
-    );
+  if (status.state === "paid") return <StatusCard icon="success" title="გადახდა დადასტურდა!" text={`შეკვეთა ${status.orderNumber} · ${formatMoney(status.totalAmount, status.currency)}. დადასტურების წერილი გამოგზავნილია.`} />;
+  if (status.state === "pending") return <StatusCard icon="spinner" title="ვადასტურებთ გადახდას…" text="ბანკის პასუხს ველოდებით. გთხოვთ, არ დახუროთ გვერდი." />;
+  if (status.state === "cancelled") return <StatusCard icon="failed" title="შეკვეთა გაუქმებულია" text={`შეკვეთა ${status.orderNumber} გაუქმებულია. ხელახლა გადახდა ამ შეკვეთაზე შეუძლებელია.`} />;
+  if (status.state === "awaitingBankTransfer") {
+    const transfer = summary?.result.bankTransferDetails;
+    return <StatusCard icon="pending" title="საბანკო გადარიცხვა" text={`დანიშნულებაში მიუთითეთ შეკვეთის ნომერი: ${status.orderNumber}${transfer?.iban ? ` · IBAN: ${transfer.iban}` : ""}`} />;
   }
-
-  if (state === "failed") {
-    if (summary) {
-      return (
-        <main className={styles.resultPage}>
-          <Step5Complete
-            result={summary.result}
-            items={summary.items}
-            contactData={summary.contactData}
-            orderType={summary.orderType}
-            paymentState="failed"
-          />
-        </main>
-      );
-    }
-
-    return (
-      <div className={styles.wrapper}>
-        <div className={`${styles.icon} ${styles.failed}`}>✕</div>
-        <h1 className={styles.title}>გადახდა ვერ განხორციელდა</h1>
-        <p className={styles.subtitle}>
-          გადახდა არ დასრულდა. შეგიძლიათ სცადოთ ხელახლა შეკვეთების გვერდიდან.
-        </p>
-        <div className={styles.actions}>
-          <Link href="/profile?tab=orders" className={styles.primaryBtn}>
-            ჩემი შეკვეთები
-          </Link>
-          <Link href="/" className={styles.secondaryBtn}>
-            მთავარი გვერდი
-          </Link>
-        </div>
-      </div>
-    );
+  if (status.state === "installmentPending") {
+    const merchant = status.installment?.awaitingMerchantConfirmation;
+    return <StatusCard icon="pending" title={merchant ? "შეკვეთა ფორმდება" : "განვადების განაცხადი ბანკშია"} text={merchant ? "ბანკმა განაცხადი დაამტკიცა და მაღაზიის დადასტურებას ელოდება. დამატებითი მოქმედება არ გჭირდებათ." : "ბანკი განიხილავს განაცხადს. პასუხს დამატებით შეგატყობინებთ."} />;
   }
 
   return (
-    <div className={styles.wrapper}>
-      <div className={`${styles.icon} ${styles.timeout}`}>!</div>
-      <h1 className={styles.title}>სტატუსი ვერ განისაზღვრა</h1>
-      <p className={styles.subtitle}>
-        გადახდის სტატუსი დროულად ვერ დადასტურდა. შეამოწმეთ შეკვეთის სტატუსი მოგვიანებით.
-      </p>
-      <div className={styles.actions}>
-        <Link href="/profile?tab=orders" className={styles.primaryBtn}>
-          ჩემი შეკვეთები
-        </Link>
-        <Link href="/" className={styles.secondaryBtn}>
-          მთავარი გვერდი
-        </Link>
-      </div>
-    </div>
+    <StatusCard icon="failed" title="გადახდა ვერ შესრულდა" text={`შეკვეთა ${status.orderNumber} · ${formatMoney(status.totalAmount, status.currency)}`}>
+      {status.canRetry && <>
+        <Countdown until={status.cancelScheduledAt} />
+        <button className={styles.primaryBtn} onClick={retry} disabled={retrying}>{retrying ? "იტვირთება…" : "ხელახლა ცდა"}</button>
+      </>}
+      {retryError && <p className={styles.errorText}>{retryError}</p>}
+    </StatusCard>
   );
 }
 
+function StatusCard({ icon, title, text, children }: { icon: "success" | "failed" | "warning" | "pending" | "spinner"; title: string; text: string; children?: React.ReactNode }) {
+  return <div className={styles.wrapper}>
+    {icon === "spinner" ? <div className={styles.spinner} /> : <div className={`${styles.icon} ${styles[icon]}`}>{icon === "success" ? "✓" : icon === "failed" ? "✕" : icon === "warning" ? "!" : "⌛"}</div>}
+    <h1 className={styles.title}>{title}</h1>
+    <p className={styles.subtitle}>{text}</p>
+    {children}
+    <div className={styles.actions}><Link href="/profile?tab=orders" className={styles.primaryBtn}>ჩემი შეკვეთები</Link><Link href="/" className={styles.secondaryBtn}>მთავარი გვერდი</Link></div>
+  </div>;
+}
+
 export default function PaymentResultPage() {
-  return (
-    <Suspense
-      fallback={
-        <div className={styles.wrapper}>
-          <div className={styles.spinner} />
-        </div>
-      }
-    >
-      <PaymentResultContent />
-    </Suspense>
-  );
+  return <Suspense fallback={<div className={styles.wrapper}><div className={styles.spinner} /></div>}><PaymentStatusContent /></Suspense>;
 }

@@ -412,10 +412,31 @@ export default function ProductDetail({
               </button>
             </div>
 
-            <div className={styles.badges}>
-              <img src="/icons/Tbc.svg" alt="Tbc.svg" />
-              <img src="/icons/Bank_of_Georgia.svg" alt="Bank_of_Georgia.svg" />
-              <img src="/icons/kredo.svg" alt="kredo.svg" />
+            <div className={styles.paymentOptions} aria-label={en ? "Installment banks" : "განვადების ბანკები"}>
+              <fieldset className={styles.paymentOption}>
+                <legend>{en ? "Installment" : "განვადება"}</legend>
+                <img src="/icons/Tbc.svg" alt={en ? "TBC Bank" : "თიბისი ბანკი"} />
+              </fieldset>
+              <fieldset className={styles.paymentOption}>
+                <legend>{en ? "Installment" : "განვადება"}</legend>
+                <img src="/icons/Bank_of_Georgia.svg" alt={en ? "Bank of Georgia" : "საქართველოს ბანკი"} />
+              </fieldset>
+              <fieldset className={styles.paymentOption}>
+                <legend>{en ? "Installment" : "განვადება"}</legend>
+                <img src="/icons/kredo.svg" alt={en ? "Credo Bank" : "კრედო ბანკი"} />
+              </fieldset>
+              <fieldset className={styles.paymentOption}>
+                <legend>{en ? "TBC Bank split payment" : "TBC ბანკის განაწილება"}</legend>
+                <div className={styles.tbcSplitLogo}>
+                  <span className={styles.tbcMark}>
+                    <img src="/icons/Tbc.svg" alt="" />
+                  </span>
+                  <span className={styles.tbcSplitText}>
+                    <span>{en ? "TBC Bank" : "თიბისი ბანკი"}</span>
+                    <strong>{en ? "Split payment" : "განაწილება"}</strong>
+                  </span>
+                </div>
+              </fieldset>
             </div>
           </div>
         </div>

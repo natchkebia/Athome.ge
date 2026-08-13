@@ -59,16 +59,19 @@
     border-right: 1px solid #e4e8eb;
     overflow-y: auto;
     overscroll-behavior: contain;
-    scrollbar-width: thin;
-    scrollbar-color: rgba(16, 181, 192, 0.55) transparent;
+    scrollbar-color: #10b5c0 transparent;
 
     &::-webkit-scrollbar {
-      width: 6px;
+      width: 8px;
     }
 
     &::-webkit-scrollbar-thumb {
-      border-radius: 999px;
-      background: rgba(16, 181, 192, 0.55);
+      border-radius: 5px;
+      background: #10b5c0;
+    }
+
+    &::-webkit-scrollbar-thumb:hover {
+      background: #0fa1ab;
     }
   }
 

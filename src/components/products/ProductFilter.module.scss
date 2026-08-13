@@ -215,12 +215,11 @@
     gap: 10px;
     max-height: 320px;
     overflow-y: auto;
-    scrollbar-width: thin;
     scrollbar-color: #10b5c0 transparent;
     border-bottom: 1px solid rgba(236, 242, 246, 1);
 
     &::-webkit-scrollbar {
-      width: 4px;
+      width: 8px;
     }
 
     &::-webkit-scrollbar-track {
@@ -229,7 +228,7 @@
 
     &::-webkit-scrollbar-thumb {
       background: #10b5c0;
-      border-radius: 999px;
+      border-radius: 5px;
     }
 
     &::-webkit-scrollbar-thumb:hover {

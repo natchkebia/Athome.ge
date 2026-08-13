@@ -1,12 +1,44 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import styles from "./Footer.module.scss";
 import { useStorefrontLocale } from "@/lib/i18n/useStorefrontLocale";
+import {
+  getStorefrontCategories,
+  type StorefrontCategory,
+} from "@/lib/api/storefront";
+
+const categoryFallback = [
+  { slug: "computers", ka: "კომპიუტერები", en: "Computers" },
+  { slug: "computer-parts", ka: "კომპიუტერის ნაწილები", en: "Computer parts" },
+  { slug: "laptops", ka: "ნოუთბუქები", en: "Laptops" },
+  { slug: "monitors-and-screens", ka: "მონიტორები", en: "Monitors" },
+  { slug: "laptop-bags", ka: "ნოუთბუქის ჩანთები", en: "Laptop bags" },
+  { slug: "cables-and-adapters", ka: "კაბელები და ადაპტერები", en: "Cables and adapters" },
+];
 
 export default function Footer() {
   const locale = useStorefrontLocale();
   const en = locale === "en";
+  const [footerCategories, setFooterCategories] = useState<StorefrontCategory[]>([]);
+
+  useEffect(() => {
+    let active = true;
+
+    getStorefrontCategories()
+      .then((categories) => {
+        if (!active) return;
+        setFooterCategories(categories.filter((category) => category.productCount > 0).slice(0, 6));
+      })
+      .catch(() => {
+        if (active) setFooterCategories([]);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [locale]);
   return (
     <footer className={styles.footer}>
       <div className={styles.container}>
@@ -82,12 +114,19 @@ export default function Footer() {
           <div className={styles["menu-column"]}>
             <h4>{en ? "Categories" : "კატეგორიები"}</h4>
             <ul>
-              <li>{en ? "Computers" : "კომპიუტერები"}</li>
-              <li>{en ? "Computer parts" : "კომპიუტერის ნაწილები"}</li>
-              <li>{en ? "Laptops" : "ნოუთბუქები"}</li>
-              <li>{en ? "Monitors" : "მონიტორები"}</li>
-              <li>{en ? "Laptop bags" : "ნოუთბუქის ჩანთები"}</li>
-              <li>{en ? "Cables and adapters" : "კაბელები და ადაპტერები"}</li>
+              {footerCategories.length > 0
+                ? footerCategories.map((category) => (
+                    <li key={category.slug}>
+                      <Link href={`/products/${category.slug}`}>{category.name}</Link>
+                    </li>
+                  ))
+                : categoryFallback.map((category) => (
+                    <li key={category.slug}>
+                      <Link href={`/products/${category.slug}`}>
+                        {en ? category.en : category.ka}
+                      </Link>
+                    </li>
+                  ))}
             </ul>
           </div>
 
@@ -95,8 +134,6 @@ export default function Footer() {
             <h4>{en ? "About us" : "ჩვენ შესახებ"}</h4>
             <ul>
               <li>{en ? "Who we are" : "ვინ ვართ ჩვენ"}</li>
-              <li>{en ? "Online store infrastructure" : "ონლაინ შოპის ინფრასტრუქტურა"}</li>
-              <li>{en ? "Online sales management" : "ონლაინ გაყიდვის მენეჯმენტი"}</li>
             </ul>
           </div>
 

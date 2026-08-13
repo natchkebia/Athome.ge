@@ -112,7 +112,7 @@ export default function Step4Payment({
           >
             <div className={styles.bankWrapper}>
               <div className={styles.radio}>{bank === "tbc" && <div />}</div>
-              <img src="/icons/tbc.svg" className={styles.bankIcon} />
+              <img src="/icons/Tbc.svg" className={styles.bankIcon} alt={en ? "TBC Bank" : "თიბისი ბანკი"} />
             </div>
             <div className={styles.cards}>
               <img src="/icons/Group.svg" />
@@ -143,7 +143,7 @@ export default function Step4Payment({
           >
             <div className={styles.bankWrapper}>
               <div className={styles.radio}>{bank === "tbc" && <div />}</div>
-              <img src="/icons/tbc.svg" className={styles.bankIcon} />
+              <img src="/icons/Tbc.svg" className={styles.bankIcon} alt={en ? "TBC Bank" : "თიბისი ბანკი"} />
             </div>
             <div className={styles.cards}>
               <img src="/icons/Group.svg" />
@@ -173,7 +173,7 @@ export default function Step4Payment({
           >
             <div className={styles.bankWrapper}>
               <div className={styles.radio}>{bank === "credo" && <div />}</div>
-              <img src="/icons/Kredo.svg" className={styles.bankIcon} />
+              <img src="/icons/kredo.svg" className={styles.bankIcon} alt={en ? "Credo Bank" : "კრედო ბანკი"} />
             </div>
             <div className={styles.cards}>
               <img src="/icons/Group.svg" />

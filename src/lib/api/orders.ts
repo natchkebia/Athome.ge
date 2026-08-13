@@ -1,5 +1,6 @@
 import { apiRequest } from "./client";
 import { authorizedRequest } from "./authorized";
+import { getStoredAuthTokens } from "@/lib/auth/tokens";
 
 // ---- Types (Swagger: /api/profile/orders, /api/storefront/orders/*) ----
 
@@ -124,6 +125,34 @@ export type RetryPaymentResponse = {
   cancelScheduledAt?: string | null;
 };
 
+export type PaymentResultState =
+  | "paid"
+  | "failed"
+  | "pending"
+  | "cancelled"
+  | "awaitingBankTransfer"
+  | "installmentPending";
+
+export type OrderPaymentStatus = {
+  orderNumber: string;
+  state: PaymentResultState;
+  orderStatus: string;
+  paymentStatus: string;
+  gateway?: string | null;
+  totalAmount: number;
+  currency: string;
+  placedAt: string;
+  paidAt?: string | null;
+  canRetry: boolean;
+  cancelScheduledAt?: string | null;
+  refreshedFromGateway: boolean;
+  installment?: {
+    provider?: string | null;
+    status?: string | null;
+    awaitingMerchantConfirmation?: boolean;
+  } | null;
+};
+
 // ---- Functions ----
 
 export function getProfileOrders(page = 1, pageSize = 10) {
@@ -146,12 +175,26 @@ export function trackGuestOrder(orderNumber: string, email: string) {
 }
 
 export function retryOrderPayment(orderNumber: string, email?: string) {
+  const tokens = getStoredAuthTokens();
   return apiRequest<RetryPaymentResponse>(
     `/api/storefront/orders/${encodeURIComponent(orderNumber)}/retry-payment`,
     {
       method: "POST",
-      body: JSON.stringify({ email: email ?? null }),
+      body: JSON.stringify(tokens?.accessToken ? {} : { email: email ?? null }),
+      token: tokens?.accessToken ?? null,
       useProxy: true,
     }
+  );
+}
+
+export function getOrderPaymentStatus(orderNumber: string, email?: string) {
+  const tokens = getStoredAuthTokens();
+  return apiRequest<OrderPaymentStatus>(
+    `/api/storefront/orders/${encodeURIComponent(orderNumber)}/payment-status`,
+    {
+      query: tokens?.accessToken ? undefined : { email },
+      token: tokens?.accessToken ?? null,
+      useProxy: true,
+    },
   );
 }

@@ -58,6 +58,19 @@ export default function Discount() {
     };
   }, []);
 
+  const availableFilters = filters.filter((filter) => {
+    const slug = FILTER_SLUGS[filter];
+    return products.some((product) =>
+      product.category === slug || product.subCategory === slug
+    );
+  });
+
+  useEffect(() => {
+    if (availableFilters.length > 0 && !availableFilters.includes(activeFilter)) {
+      setActiveFilter(availableFilters[0]);
+    }
+  }, [activeFilter, availableFilters]);
+
   // real slug-based filtering — ვამოწმებთ ორივე დონეს: ბარათი ატარებს ზედა
   // კატეგორიის slug-საც (მაგ. "computers") და ქვეკატეგორიისასაც (მაგ. "laptop"),
   // ამიტომ tab-ის slug ნებისმიერ დონეს ერგება.
@@ -71,7 +84,7 @@ export default function Discount() {
   };
 
   if (loading) return null;
-  if (products.length === 0) return null;
+  if (products.length === 0 || availableFilters.length === 0) return null;
 
   return (
     <>
@@ -82,7 +95,7 @@ export default function Discount() {
           <span className={styles.discountText}>{locale === "en" ? "Discounts" : "ფასდაკლება"}</span>
         </div>
         <div className={styles.right}>
-          {filters.map((filter) => (
+          {availableFilters.map((filter) => (
             <button
               key={filter}
               className={`${styles.filterBtn} ${
@@ -97,13 +110,7 @@ export default function Discount() {
       </div>
 
       {/* სლაიდერი — არჩეული კატეგორიის ფასდაკლებები */}
-      {filteredProducts.length > 0 ? (
-        <DiscountSlider products={filteredProducts} />
-      ) : (
-        <p className={styles.emptyDeals}>
-          {locale === "en" ? "There are no discounts in this category yet" : "ამ კატეგორიაში ფასდაკლება ჯერ არ არის"}
-        </p>
-      )}
+      {filteredProducts.length > 0 && <DiscountSlider products={filteredProducts} />}
     </>
   );
 }

@@ -42,10 +42,12 @@ export default function CommerceList({
   const router = useRouter();
 
   const handleGoToBasket = () => {
+    window.dispatchEvent(new Event("athome-route-loading"));
     onNavigate?.();
     router.push("/basket");
   };
   const handleGoToWishlist = () => {
+    window.dispatchEvent(new Event("athome-route-loading"));
     onNavigate?.();
     router.push("/wishlist");
   };

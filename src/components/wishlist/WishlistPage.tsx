@@ -43,7 +43,7 @@ export default function WishlistPage() {
   }, [isOpen]);
 
   const handleGoToWishlist = () => {
-    setIsOpen(false);
+    window.dispatchEvent(new Event("athome-route-loading"));
     router.push("/wishlist");
   };
 

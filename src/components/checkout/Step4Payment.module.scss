@@ -113,20 +113,27 @@
 }
 
 .radio {
-  width: 12px;
-  height: 12px;
-  border: 1px solid rgba(16, 181, 192, 1);
+  width: 24px;
+  height: 24px;
+  flex: 0 0 24px;
+  border: 2px solid #dfe9ee;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
+  box-sizing: border-box;
+  background: #fff;
 }
 
 .radio div {
-  width: 9px;
-  height: 9px;
+  width: 14px;
+  height: 14px;
   border-radius: 50%;
-  background: rgba(16, 181, 192, 1);
+  background: #10b5c0;
+}
+
+.bankActive .radio {
+  border-color: #10b5c0;
 }
 
 .cards {
@@ -181,9 +188,12 @@
     padding: 0;
     font: inherit;
     font-weight: 600;
-    text-decoration: underline;
-    text-decoration-thickness: 1px;
-    text-underline-offset: 2px;
+    text-decoration: none;
+
+    &:hover,
+    &:focus-visible {
+      text-decoration: none;
+    }
   }
 }
 

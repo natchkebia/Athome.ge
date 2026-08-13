@@ -42,6 +42,9 @@
 }
 
 .list {
+  width: calc(100% + 8px);
+  margin-right: -8px;
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -50,7 +53,25 @@
   // ზუსტად 3 ქარდი (80px×3 + 12px gap×2 = 264px) — მე-4 მთლიანად იმალება და სქროლზე ჩანს
   max-height: min(264px, calc(100vh - 260px));
   overflow-y: auto;
-  padding-right: 4px;
+  padding-right: 8px;
+
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+    margin-block: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #10b5c0;
+    border-radius: 5px;
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background: #0fa1ab;
+  }
 }
 
 .item {
@@ -218,6 +239,11 @@
     padding: 10px;
     border-radius: 8px;
     cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+
   }
 
   p {

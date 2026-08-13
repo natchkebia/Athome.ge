@@ -4,18 +4,10 @@ import { headers } from "next/headers";
 
 const deliveryItems = [
   {
-    icon: "/icons/moped.svg",
+    icon: "/icons/Moped.svg",
     title: "მიწოდება თბილისის მასშტაბით იმავე დღეს (მხოლოდ სადარბაზომდე)",
     text: "თუ შეკვეთას Athome.ge –ზე განახორციელებთ 13 საათამდე, ჩვენი კურიერი პროდუქტს მოგაწვდით იმავე დღეს 19 საათამდე (შაბათ-კვირის, ოფიციალური უქმე დღეების გარდა).",
     bold: "ტარიფი: მიწოდების ღირებულებას შეკვეთის გვერდზე ავტომატურად დაგიგენერირებთ საიტი ადგილდმებარეობის და ნივთის ზომის მიხედვით.",
-  },
-  {
-    icon: "/icons/delivo.svg",
-    title: "Delivo - მიწოდება თბილისის მასშტაბით შეკვეთიდან 1:30 საათში",
-    text: "15:00 საათამდე მიღებული შეკვეთის მიწოდება მოხდება შეკვეთიდან 2 საათში იმავე დღეს.",
-    warning:
-      "შენიშვნა: ამ სერვისით სარგებლობა შეგიძლიათ დილის 11:00 საათიდან, საღამოს 16:30 საათამდე (შაბათ-კვირის, ოფიციალური უქმე დღეების გარდა).",
-    price: "ტარიფი: 20 ლარი",
   },
   {
     icon: "/icons/gift.svg",
@@ -41,17 +33,10 @@ export default async function DeliveryInfoPage() {
   const localizedItems = locale === "en"
     ? [
         {
-          icon: "/icons/moped.svg",
+          icon: "/icons/Moped.svg",
           title: "Same-day delivery within Tbilisi (to the building entrance only)",
           text: "Place your order on Athome.ge before 1:00 PM and our courier will deliver it by 7:00 PM the same day, excluding weekends and public holidays.",
           bold: "Rate: The delivery fee is calculated automatically at checkout based on the location and item size.",
-        },
-        {
-          icon: "/icons/delivo.svg",
-          title: "Delivo — delivery within Tbilisi in approximately 1.5 hours",
-          text: "Orders received before 3:00 PM will be delivered within two hours on the same day.",
-          warning: "Note: This service is available from 11:00 AM to 4:30 PM, excluding weekends and public holidays.",
-          price: "Rate: GEL 20",
         },
         {
           icon: "/icons/gift.svg",
@@ -92,10 +77,6 @@ export default async function DeliveryInfoPage() {
                 <div className={styles.content}>
                   <h2>{item.title}</h2>
                   <p>{item.text}</p>
-
-                  {item.warning && (
-                    <p className={styles.warning}>{item.warning}</p>
-                  )}
 
                   {item.bold && <p className={styles.bold}>{item.bold}</p>}
                   {item.price && <p className={styles.price}>{item.price}</p>}

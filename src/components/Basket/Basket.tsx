@@ -51,7 +51,7 @@ export default function BasketPage() {
   }, [isOpen]);
 
   const handleGoToBasket = () => {
-    setIsOpen(false);
+    window.dispatchEvent(new Event("athome-route-loading"));
     router.push("/basket");
   };
 

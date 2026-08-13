@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useId, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { Swiper, SwiperSlide } from "swiper/react";
-import { Autoplay, Navigation } from "swiper/modules";
+import { Autoplay } from "swiper/modules";
+import type { Swiper as SwiperInstance } from "swiper";
 import "swiper/css";
 import styles from "./BrandSlider.module.scss";
 import BrandCard from "./BrandCard";
@@ -23,8 +24,8 @@ function normalizeLogoUrl(logoUrl: string) {
 
 export default function BrandSlider() {
   const locale = useStorefrontLocale();
-  const sliderId = useId().replace(/:/g, "");
   const [brands, setBrands] = useState<StorefrontBrand[]>([]);
+  const swiperRef = useRef<SwiperInstance | null>(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -55,14 +56,28 @@ export default function BrandSlider() {
   );
   if (slides.length === 0) return null;
 
+  const changeDirection = (reverse: boolean) => {
+    const swiper = swiperRef.current;
+    if (!swiper?.autoplay) return;
+
+    swiper.autoplay.stop();
+    swiper.params.autoplay = {
+      ...(typeof swiper.params.autoplay === "object" ? swiper.params.autoplay : {}),
+      reverseDirection: reverse,
+    };
+    reverse ? swiper.slidePrev(450) : swiper.slideNext(450);
+    swiper.autoplay.start();
+  };
+
   return (
     <div className={styles.sliderWrapper}>
       <h2 className={styles.title}>{locale === "en" ? "Brands" : "ბრენდები"}</h2>
 
       <div className={styles.sliderShell}>
         <button
-          className={`${styles.navigationButton} ${styles.previous} brand-prev-${sliderId}`}
+          className={`${styles.navigationButton} ${styles.previous}`}
           type="button"
+          onClick={() => changeDirection(true)}
           aria-label={locale === "en" ? "Previous brands" : "წინა ბრენდები"}
         >
           <img src="/icons/DiscountArrow.svg" alt="" />
@@ -71,17 +86,15 @@ export default function BrandSlider() {
         <Swiper
           className={styles.slider}
           aria-label="Featured brands"
-          modules={[Navigation, Autoplay]}
-          navigation={{
-            prevEl: `.brand-prev-${sliderId}`,
-            nextEl: `.brand-next-${sliderId}`,
-          }}
+          modules={[Autoplay]}
+          onSwiper={(swiper) => { swiperRef.current = swiper; }}
           loop={slides.length > 6}
           speed={7000}
           autoplay={{
             delay: 0,
             disableOnInteraction: false,
             pauseOnMouseEnter: false,
+            reverseDirection: false,
           }}
           slidesPerView={6}
           spaceBetween={24}
@@ -105,8 +118,9 @@ export default function BrandSlider() {
         </Swiper>
 
         <button
-          className={`${styles.navigationButton} ${styles.next} brand-next-${sliderId}`}
+          className={`${styles.navigationButton} ${styles.next}`}
           type="button"
+          onClick={() => changeDirection(false)}
           aria-label={locale === "en" ? "Next brands" : "შემდეგი ბრენდები"}
         >
           <img src="/icons/DiscountArrowLeft.svg" alt="" />

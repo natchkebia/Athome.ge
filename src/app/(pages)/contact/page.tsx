@@ -55,24 +55,24 @@ export default async function ContactPage() {
 
               <div className={styles.infoBox}>
                 <div className={styles.infoItem}>
-                  <span className={styles.icon}>●</span>
+                  <img className={styles.icon} src="/icons/footerLocation.svg" alt="" aria-hidden="true" />
                   <p>{item.address}</p>
                 </div>
 
                 <div className={styles.infoItem}>
-                  <span className={styles.icon}>●</span>
+                  <img className={styles.icon} src="/icons/footerPhone.svg" alt="" aria-hidden="true" />
                   <a href={`tel:${item.phone.replaceAll(" ", "")}`}>
                     {item.phone}
                   </a>
                 </div>
 
                 <div className={styles.infoItem}>
-                  <span className={styles.icon}>●</span>
+                  <img className={styles.icon} src="/icons/footerMeil.svg" alt="" aria-hidden="true" />
                   <a href={`mailto:${item.email}`}>{item.email}</a>
                 </div>
 
                 <div className={styles.infoItem}>
-                  <span className={styles.icon}>●</span>
+                  <span className={`${styles.icon} ${styles.clockIcon}`} aria-hidden="true" />
                   <p>{item.workTime}</p>
                 </div>
               </div>

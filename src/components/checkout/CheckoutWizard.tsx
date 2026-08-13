@@ -176,6 +176,10 @@ export default function CheckoutWizard({ onStepChange, onDeliverySummaryChange }
           result.orderNumber ?? ""
         );
         sessionStorage.setItem(
+          "pendingOrderEmail",
+          payload.email
+        );
+        sessionStorage.setItem(
           "pendingCheckoutSummary",
           JSON.stringify({
             result,
@@ -186,10 +190,10 @@ export default function CheckoutWizard({ onStepChange, onDeliverySummaryChange }
         );
       }
 
-      // snapshot items before clearing the cart so the summary still renders
+      // Keep the cart until payment is positively confirmed. Failed, cancelled
+      // or timed-out payments must remain retryable without rebuilding the cart.
       setOrderItems(cart.items);
       setCheckoutResult(result);
-      await clearCart();
 
       // Phase 3: redirect to bank when a payment URL is returned (happy path —
       // backend already returns the flitt/bank URL).
@@ -219,6 +223,7 @@ export default function CheckoutWizard({ onStepChange, onDeliverySummaryChange }
         }
       }
 
+      await clearCart();
       goToStep(5);
     } catch (error) {
       const message =
@@ -244,7 +249,12 @@ export default function CheckoutWizard({ onStepChange, onDeliverySummaryChange }
       // ყველა დეფიციტური პროდუქტით. ვაჩვენებთ და ვაბრუნებთ კალათაზე, სადაც
       // მომხმარებელი რაოდენობას შეასწორებს (შეკვეთა საერთოდ არ იქმნება).
       if (code === "OUT_OF_STOCK") {
-        showToast(message, "error");
+        showToast(
+          en
+            ? "Some products are no longer available in the requested quantity. Please review your cart."
+            : "ზოგი პროდუქტი მოთხოვნილი რაოდენობით აღარ არის მარაგში. გთხოვთ, გადაამოწმოთ კალათა.",
+          "error",
+        );
         router.push("/basket");
         return;
       }

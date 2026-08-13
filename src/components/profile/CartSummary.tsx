@@ -56,8 +56,9 @@ export default function CartSummary({
 
   return (
     <div
-      className={styles.cartSection}
-      style={{ height: showItems ? "451px" : "280px" }}
+      className={`${styles.cartSection} ${
+        showItems ? styles.expanded : styles.compact
+      }`}
     >
       {showItems && (
         <div className={styles.wrapper}>
@@ -67,10 +68,7 @@ export default function CartSummary({
         </div>
       )}
       <div className={styles.summaryBox}>
-        <div
-          className={styles.summary}
-          style={{ marginTop: showItems ? "" : "0px" }}
-        >
+        <div className={styles.summary}>
           <div className={styles.row}>
             <p>{en ? "Quantity" : "რაოდენობა"}</p>
             <span>{totalQuantity}x</span>
@@ -111,7 +109,6 @@ export default function CartSummary({
             className={`${styles.button} ${isContinuing ? styles.loading : ""}`}
             onClick={handleContinue}
             disabled={isContinuing}
-            style={{ marginTop: showItems ? "" : "10px" }}
           >
             {isContinuing && <span className={styles.spinner} />}
             <span>{en ? "Proceed to checkout" : "ყიდვის გაგრძელება"}</span>

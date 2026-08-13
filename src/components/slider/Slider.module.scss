@@ -113,11 +113,20 @@
   gap: 8px;
 
   .arrow {
+    width: 36px;
+    height: 36px;
+    padding: 0;
     border: none;
     background: transparent;
     color: #fff;
     cursor: pointer;
     transition: 0.3s;
+
+    img {
+      display: block;
+      width: 36px;
+      height: 36px;
+    }
   }
 }
 
@@ -158,13 +167,13 @@
     gap: 6px;
 
     .arrow {
-      width: 28px;
-      height: 28px;
+      width: 36px;
+      height: 36px;
       padding: 0;
 
       img {
-        width: 28px;
-        height: 28px;
+        width: 36px;
+        height: 36px;
       }
     }
   }
@@ -224,13 +233,13 @@
     gap: 6px;
 
     .arrow {
-      width: 26px;
-      height: 26px;
+      width: 36px;
+      height: 36px;
       padding: 0;
 
       img {
-        width: 26px;
-        height: 26px;
+        width: 36px;
+        height: 36px;
       }
     }
   }
