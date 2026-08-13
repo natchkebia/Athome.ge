@@ -13,6 +13,7 @@ type Step5CompleteProps = {
   orderType?: "store" | "delivery" | null;
   result?: CheckoutResponse | null;
   items?: ProfileCartItem[];
+  paymentState?: "success" | "failed";
 };
 
 function formatPrice(value: number) {
@@ -43,6 +44,7 @@ export default function Step5Complete({
   orderType,
   result,
   items: itemsProp,
+  paymentState = "success",
 }: Step5CompleteProps) {
   const { cart } = useCommerce();
   const createdAt = new Date();
@@ -149,7 +151,7 @@ export default function Step5Complete({
         <body>
           <div class="top">
             <div class="brand">at home</div>
-            <div class="status">შეკვეთა მიღებულია</div>
+            <div class="status">${paymentState === "success" ? "გადახდა წარმატებით დასრულდა" : "გადახდა ვერ განხორციელდა"}</div>
           </div>
           <div class="meta">
             <div><span>შეკვეთის ნომერი</span><strong>${escapeHtml(
@@ -206,8 +208,10 @@ export default function Step5Complete({
   return (
     <section className={styles.complete}>
       <div className={styles.hero}>
-        <div className={styles.checkmark}>✓</div>
-        <h2>შეკვეთა მიღებულია</h2>
+        <div className={`${styles.checkmark} ${paymentState === "failed" ? styles.failedMark : ""}`}>
+          {paymentState === "success" ? "✓" : "✕"}
+        </div>
+        <h2>{paymentState === "success" ? "თქვენი შეკვეთა მიღებულია" : "გადახდა ვერ განხორციელდა"}</h2>
         <Link href="/" className={styles.homeLink}>
           მთავარი გვერდი
         </Link>

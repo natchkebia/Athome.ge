@@ -66,7 +66,11 @@ export default function WishlistPage() {
       )}
 
       {isOpen && (
-        <div className={styles.dropdownBox}>
+        <div
+          className={`${styles.dropdownBox} ${
+            wishlistItems.length === 0 ? styles.emptyDropdown : ""
+          }`}
+        >
           {wishlistItems.length === 0 ? (
             <>
               <div>

@@ -35,7 +35,7 @@
   color: #696c6e;
   margin-left: 16px;
   font-size: 14px;
-  font-weight: 510;
+  font-weight: 400;
   max-width: 180px;
   min-width: 0;
   gap: 8px;
@@ -52,7 +52,7 @@
   position: absolute;
   top: 120%;
   left: 0;
-  width: 232px;
+  width: 300px;
   background: white;
   border-radius: 14px;
   z-index: 10;
@@ -69,6 +69,7 @@
 .dropdownListItem {
   padding: 8px 12px;
   cursor: pointer;
+  white-space: nowrap;
 }
 
 .dropdownListItem.selected {
@@ -269,7 +270,7 @@
   }
 
   .dropdownList {
-    width: min(232px, calc(100vw - 24px));
+    width: min(300px, calc(100vw - 24px));
   }
 
   .suggestions {

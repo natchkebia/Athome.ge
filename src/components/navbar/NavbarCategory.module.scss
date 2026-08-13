@@ -37,16 +37,16 @@
   }
 
   .smallWidth {
-    width: 275px;
+    width: 335px;
   }
 
   .fullWidth {
-    width: min(668px, calc(100vw - 32px));
+    width: min(760px, calc(100vw - 32px));
   }
 
   .leftMenu {
-    width: min(280px, 45vw);
-    flex: 0 0 min(280px, 45vw);
+    width: min(320px, 45vw);
+    flex: 0 0 min(320px, 45vw);
     height: calc(100% - 32px);
     background: #fff;
     display: flex;
@@ -73,7 +73,7 @@
   }
 
   .menuGroup {
-    width: min(240px, 100%);
+    width: min(300px, 100%);
   }
 
   .menuItem {
@@ -91,7 +91,7 @@
     text-decoration: none;
     cursor: pointer;
     transition: 0.2s;
-    width: min(240px, 100%);
+    width: min(300px, 100%);
     min-height: 48px;
     border-radius: 6px;
 
@@ -102,7 +102,7 @@
       min-width: 0;
 
       span {
-        overflow-wrap: anywhere;
+        white-space: nowrap;
       }
     }
 
@@ -245,6 +245,10 @@
 
     .menuItem {
       width: 100%;
+
+      div span {
+        white-space: normal;
+      }
     }
 
     .rightPanel {

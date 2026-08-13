@@ -13,12 +13,14 @@ body {
   display: flex;
   flex-direction: column;
   --site-gutter: 40px;
+  --site-max-width: 1440px;
 }
 
 .site-wrapper {
-  max-width: 1440px;
+  max-width: var(--site-max-width);
   margin: 0 auto;
   width: 100%;
+  padding-inline: var(--site-gutter);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -54,7 +56,7 @@ body {
 
 .page-content--inner {
   width: 100%;
-  padding-inline: var(--site-gutter);
+  padding-inline: 0;
 }
 
 .fixed-header.scrolled + .page-content {
@@ -103,7 +105,7 @@ img {
   }
 
   .site-wrapper {
-    padding: 0 16px;
+    padding-inline: var(--site-gutter);
     gap: 16px;
   }
 }
@@ -129,7 +131,7 @@ img {
   }
 
   .site-wrapper {
-    padding: 0 12px;
+    padding-inline: var(--site-gutter);
     gap: 12px;
   }
 }

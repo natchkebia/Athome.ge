@@ -201,7 +201,7 @@ export default function DiscountCard({
       <div className={`${styles.cardList} ${!isAvailable ? styles.outOfStockCard : ""}`}>
         <div className={styles.listImage} ref={imageRef}>
           {(promotionLabel || discount > 0) && (
-            <div className={styles.discountBadge}>{promotionLabel || `-${discount}%`}</div>
+            <div className={styles.discountBadge}>{promotionLabel || `${Math.abs(discount)}%`}</div>
           )}
           {isNew && <div className={styles.newBadge}>NEW</div>}
           {!isAvailable && <div className={styles.outOfStockBadge}>{en ? "Out of stock" : "ამოწურულია"}</div>}
@@ -251,6 +251,7 @@ export default function DiscountCard({
             aria-label="wishlist"
           >
             <img
+              className={isWishlisted ? styles.activeHeart : undefined}
               src={isWishlisted ? "/icons/redHeart.svg" : "/icons/Heart.svg"}
               alt="wishlist"
             />
@@ -271,7 +272,7 @@ export default function DiscountCard({
         {(promotionLabel || discount > 0 || isNew) && (
           <div className={styles.badges}>
             {(promotionLabel || discount > 0) && (
-              <div className={styles.discountBadge}>{promotionLabel || `-${discount}%`}</div>
+              <div className={styles.discountBadge}>{promotionLabel || `${Math.abs(discount)}%`}</div>
             )}
             {isNew && <div className={styles.newBadge}>NEW</div>}
           </div>
@@ -286,6 +287,7 @@ export default function DiscountCard({
             aria-label="wishlist"
           >
             <img
+              className={isWishlisted ? styles.activeHeart : undefined}
               src={isWishlisted ? "/icons/redHeart.svg" : "/icons/Heart.svg"}
               alt="wishlist"
             />

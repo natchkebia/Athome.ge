@@ -175,6 +175,15 @@ export default function CheckoutWizard({ onStepChange, onDeliverySummaryChange }
           "pendingOrderNumber",
           result.orderNumber ?? ""
         );
+        sessionStorage.setItem(
+          "pendingCheckoutSummary",
+          JSON.stringify({
+            result,
+            items: cart.items,
+            contactData,
+            orderType,
+          })
+        );
       }
 
       // snapshot items before clearing the cart so the summary still renders

@@ -10,11 +10,15 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  transition: all 0.3s ease;
+  transition: box-shadow 0.25s ease;
   overflow: hidden;
 
   &:hover {
-    transform: translateY(-4px);
+    box-shadow: 0 10px 28px rgba(32, 78, 81, 0.1);
+
+    .productImage {
+      transform: scale(1.04);
+    }
   }
 }
 .cardWrapper {
@@ -26,15 +30,13 @@
   flex: 0 0 236px;
 }
 .discountBadge {
-  width: fit-content;
-  min-width: 36px;
-  min-height: 36px;
-  max-width: min(190px, calc(100% - 76px));
-  padding: 6px 10px;
-  border-radius: 50px;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border-radius: 50%;
   position: absolute;
-  top: 23px;
-  left: 25px;
+  top: 12px;
+  left: 12px;
   background: #ef0d4a;
   color: #fff;
   display: flex;
@@ -44,15 +46,15 @@
   font-weight: 510;
   line-height: 1.15;
   text-align: center;
-  overflow-wrap: anywhere;
+  white-space: nowrap;
 }
 .newBadge {
   width: 32px;
   height: 32px;
   border-radius: 50px;
   position: absolute;
-  top: 23px;
-  left: 25px;
+  top: 12px;
+  left: 12px;
   background: #388d93;
   color: #fff;
   display: flex;
@@ -65,8 +67,8 @@
 
 .actions {
   position: absolute;
-  top: 23px;
-  right: 25px;
+  top: 12px;
+  right: 12px;
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -82,6 +84,12 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
+
+  img {
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+  }
 }
 
 .iconBtnActive {
@@ -90,6 +98,12 @@
   img {
     filter: brightness(0) invert(1);
   }
+}
+
+.iconBtn img.activeHeart,
+.listIconBtn img.activeHeart {
+  width: 24px;
+  height: 24px;
 }
 
 .imageWrapper {
@@ -106,6 +120,7 @@
   height: 100%;
   object-fit: contain;
   mix-blend-mode: multiply;
+  transition: transform 0.3s ease;
 }
 
 .outOfStockCard .productImage {
@@ -135,7 +150,7 @@
   width: min(260px, 100%);
   height: 40px;
   text-align: center;
-  font-weight: 410;
+  font-weight: 590;
   font-size: 14px;
   line-height: 20px;
   color: #3b3f42;
@@ -148,10 +163,12 @@
 }
 .priceWrapper {
   width: 100%;
+  box-sizing: border-box;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+  padding: 0 8px;
   margin-top: auto;
   margin-bottom: 16px;
 }

@@ -1,11 +1,15 @@
 .filtersWrapper {
-  width: min(1282px, 100%);
+  --discount-navigation-space: 88px;
+  width: min(var(--site-max-width), 100%);
   min-height: 24px;
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   margin: 0 auto;
-  padding: 0 16px;
+  // The slider track below stops before the two navigation arrows. Reserve
+  // that exact area here too, so the final filter label ends on the same line.
+  padding: 0 calc(var(--site-gutter) + var(--discount-navigation-space)) 0
+    var(--site-gutter);
   gap: 16px;
 }
 
@@ -24,7 +28,8 @@
 .right {
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
+  justify-content: flex-end;
+  flex-wrap: nowrap;
   gap: 19px;
 }
 
@@ -46,7 +51,7 @@
   .filtersWrapper {
     align-items: flex-start;
     flex-direction: column;
-    padding: 0 12px;
+    padding: 0 var(--site-gutter);
   }
 
   .right {

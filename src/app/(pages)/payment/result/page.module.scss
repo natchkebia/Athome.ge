@@ -1,3 +1,10 @@
+.resultPage {
+  width: min(var(--site-max-width), 100%);
+  margin: 0 auto 72px;
+  padding: 32px var(--site-gutter) 0;
+  box-sizing: border-box;
+}
+
 .wrapper {
   max-width: 560px;
   margin: 60px auto;
@@ -7,6 +14,13 @@
   flex-direction: column;
   align-items: center;
   gap: 16px;
+}
+
+@media (max-width: 768px) {
+  .resultPage {
+    margin-bottom: 48px;
+    padding: 20px 12px 0;
+  }
 }
 
 .icon {

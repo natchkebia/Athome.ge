@@ -6,6 +6,8 @@
   justify-content: center;
 
   > div {
+    width: min(var(--site-max-width), 100%);
+    padding-inline: var(--site-gutter);
     display: flex;
     flex-direction: column;
     gap: 24px;
@@ -19,9 +21,20 @@
 }
 
 .grid {
-  max-width: 1440px;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 24px;
+}
+
+@media (max-width: 1100px) {
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
 }

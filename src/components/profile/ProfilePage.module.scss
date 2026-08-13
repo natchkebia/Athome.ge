@@ -1,12 +1,12 @@
 .wrapper {
   display: flex;
   width: 100%;
-  max-width: 1440px;
+  max-width: var(--site-max-width);
   margin: 0 auto;
   gap: 24px;
   font-family: "SF Georgian Rounded", sans-serif;
   margin-bottom: 52px;
-  padding: 0 16px;
+  padding: 0 var(--site-gutter);
   box-sizing: border-box;
 }
 
@@ -162,12 +162,16 @@
 .save {
   width: min(298px, 100%);
   padding: 10px 24px;
-  background: #26b6b3;
+  background: #10b5c0;
   color: #fff;
   border: none;
   border-radius: 8px;
   font-weight: 600;
   cursor: pointer;
+
+  &:hover {
+    background: #0fa1ab;
+  }
 }
 
 .avatar {

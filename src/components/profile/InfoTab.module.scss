@@ -220,12 +220,16 @@
   .save {
     width: 298px;
     padding: 10px 24px;
-    background: #26b6b3;
+    background: #10b5c0;
     color: #fff;
     border: none;
     border-radius: 8px;
     font-weight: 600;
     cursor: pointer;
+
+    &:hover:not(:disabled) {
+      background: #0fa1ab;
+    }
 
     &:disabled {
       cursor: default;

@@ -2,14 +2,16 @@
   display: flex;
   align-items: flex-start;
   gap: 24px;
-  padding: 32px 0;
+  padding-top: 32px;
+  padding-bottom: 32px;
   box-sizing: border-box;
 
   @media (max-width: 992px) {
     flex-direction: column;
     align-items: center;
     gap: 20px;
-    padding: 24px 12px 32px;
+    padding-top: 24px;
+    padding-bottom: 32px;
   }
 }
 
@@ -70,7 +72,7 @@
   cursor: pointer;
   transition: 0.3s;
   &:hover {
-    background-color: #0ea4ae;
+    background-color: #0fa1ab;
   }
 }
 
@@ -188,11 +190,11 @@
 
 // ქვეკატეგორიების landing — დაჯგუფებული ბარათები (მაგ. პერიფერია → მაუსი/კლავიატურა...).
 .subcatPage {
-  max-width: 1440px;
+  max-width: var(--site-max-width);
   margin: 0 auto;
   width: 100%;
   box-sizing: border-box;
-  padding: 32px 16px 56px;
+  padding: 32px var(--site-gutter) 56px;
 }
 
 .subcatTitle {
@@ -204,8 +206,20 @@
 }
 
 .subcatGrid {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 24px;
+}
+
+@media (max-width: 1100px) {
+  .subcatGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .subcatGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }

@@ -4,7 +4,11 @@
   display: flex;
   justify-content: center;
   gap: 30px;
-  padding: 48px 16px;
+  padding-block: 48px;
+  padding-inline: max(
+    var(--site-gutter),
+    calc((100% - var(--site-max-width)) / 2 + var(--site-gutter))
+  );
   background-color: #f6f8fb;
   overflow: hidden;
 }
@@ -14,12 +18,12 @@
     align-items: center;
     flex-direction: column;
     gap: 20px;
-    padding: 28px 12px;
+    padding: 28px var(--site-gutter);
   }
 }
 
 @media (max-width: 560px) {
   .hero {
-    padding: 20px 12px;
+    padding: 20px var(--site-gutter);
   }
 }

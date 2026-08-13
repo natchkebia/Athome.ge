@@ -1,4 +1,3 @@
-import Link from "next/link";
 import BasketPage from "../Basket/Basket";
 import SearchBar from "../searchBar/SearchBar";
 import SignIn from "../signIn/SignIn";
@@ -9,18 +8,18 @@ export default function Header() {
   return (
     <div className={styles.container}>
       <div className="site-wrapper">
-        <Link href="/">
+        <a href="/" aria-label="მთავარ გვერდზე დაბრუნება">
           <img
             src="/icons/Logo.svg"
             alt="Ethome Logo"
             className="header-logo"
           />
-        </Link>
+        </a>
         <SearchBar />
         <div className={styles.wrapper}>
+          <SignIn />
           <WishlistPage />
           <BasketPage />
-          <SignIn />
         </div>
       </div>
     </div>

@@ -178,7 +178,14 @@ export default function ConfiguratorProductModal({
                 onChange={(event) => setSearchValue(event.target.value)}
                 placeholder={en ? "Search products..." : "ვეძებოთ რას ეძებ?..."}
               />
-              <span>⌕</span>
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                aria-hidden="true"
+              >
+                <circle cx="11" cy="11" r="6.5" stroke="currentColor" strokeWidth="2" />
+                <path d="M16 16L21 21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+              </svg>
             </div>
 
             <ul>

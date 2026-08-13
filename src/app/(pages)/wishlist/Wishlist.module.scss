@@ -3,9 +3,9 @@
   flex-direction: column;
   align-items: center;
   background-color: #ffffff;
-  width: min(1440px, 100%);
+  width: min(var(--site-max-width), 100%);
   margin: 0 auto;
-  padding: 0 16px;
+  padding: 0 var(--site-gutter);
 
   > div {
     width: 100%;
@@ -61,7 +61,7 @@
   font-weight: 510;
   cursor: pointer;
   &:hover {
-    background-color: #0e9fa9;
+    background-color: #0fa1ab;
   }
 }
 

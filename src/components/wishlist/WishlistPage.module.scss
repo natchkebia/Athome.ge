@@ -5,6 +5,12 @@
   cursor: pointer;
 }
 
+.heartIcon {
+  display: block;
+  width: 24px;
+  height: 24px;
+}
+
 .badge {
   position: absolute;
   top: -5px;
@@ -24,8 +30,8 @@
 .dropdownBox {
   position: absolute;
   top: 45px;
-  right: 0;
-  width: min(350px, calc(100vw - 24px));
+  right: -48px;
+  width: min(344px, calc(100vw - 24px));
   max-height: calc(100vh - 80px);
   background-color: #fff;
   box-shadow: 0px 2px 8px 0px #204e511a;
@@ -39,11 +45,37 @@
   overflow: hidden;
 }
 
+.emptyDropdown {
+  width: min(330px, calc(100vw - 24px));
+  height: min(330px, calc(100vh - 80px));
+  box-sizing: border-box;
+  padding: 24px 16px 16px;
+  gap: 0;
+  justify-content: space-between;
+
+  > div {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .dropdownText,
+  .dropdownImage,
+  .dropdownButton {
+    margin: 0;
+  }
+
+  .dropdownButton {
+    width: 298px;
+    max-width: 100%;
+  }
+}
+
 .dropdownText {
   font-size: 14px;
   font-weight: 590;
   color: $darker;
-  margin-top: 24px;
+  margin: 0;
 }
 
 .dropdownBox > div > span {
@@ -54,7 +86,7 @@
 .dropdownImage {
   width: 140px;
   height: 108px;
-  margin-bottom: 20px;
+  margin: 0;
 }
 
 .dropdownButton {
@@ -69,12 +101,16 @@
   align-items: center;
   justify-content: center;
   border: none;
-  margin-bottom: 16px;
+  margin: 0;
   cursor: pointer;
+
+  &:hover {
+    background-color: #0fa1ab;
+  }
 }
 
 @media (max-width: 480px) {
   .dropdownBox {
-    right: -48px;
+    right: calc(-1 * (24px + 8px));
   }
 }

@@ -8,12 +8,12 @@
 }
 
 .navbar > div {
-  width: min(1400px, 100%);
+  width: min(var(--site-max-width), 100%);
   display: flex;
   align-items: center;
   justify-content: flex-start;
   gap: 24px;
-  padding: 20px 16px;
+  padding: 20px var(--site-gutter);
   margin: 0 auto;
   min-width: 0;
   position: relative;
@@ -68,7 +68,7 @@
     align-items: center;
     justify-content: space-between;
     gap: 16px;
-    padding: 14px 16px;
+    padding: 14px var(--site-gutter);
   }
 
   .mobileMenuButton {
@@ -121,7 +121,7 @@
 
 @media (max-width: 560px) {
   .navbar > div {
-    padding: 12px;
+    padding: 12px var(--site-gutter);
   }
 
   .menuList {

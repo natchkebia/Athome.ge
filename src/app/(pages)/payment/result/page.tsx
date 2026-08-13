@@ -4,7 +4,10 @@ import { Suspense, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import styles from "./page.module.scss";
-import { pollBogPayment } from "@/lib/api/checkout";
+import { pollBogPayment, type CheckoutResponse } from "@/lib/api/checkout";
+import Step5Complete from "@/components/checkout/Step5Complete";
+import type { FormValues } from "@/components/checkout/Step1Contact";
+import type { ProfileCartItem } from "@/lib/api/profileCommerce";
 
 type ResultState = "checking" | "success" | "failed" | "timeout";
 
@@ -13,10 +16,18 @@ const MAX_ATTEMPTS = 15;
 
 const FAILED_STATUSES = ["rejected", "timeout", "expired", "failed", "declined"];
 
+type CheckoutSummary = {
+  result: CheckoutResponse;
+  items: ProfileCartItem[];
+  contactData?: FormValues | null;
+  orderType?: "store" | "delivery" | null;
+};
+
 function PaymentResultContent() {
   const searchParams = useSearchParams();
   const [state, setState] = useState<ResultState>("checking");
   const [orderNumber, setOrderNumber] = useState<string>("");
+  const [summary, setSummary] = useState<CheckoutSummary | null>(null);
   const stoppedRef = useRef(false);
 
   useEffect(() => {
@@ -25,6 +36,14 @@ function PaymentResultContent() {
     const storedOrderId = sessionStorage.getItem("pendingOrderId");
     const storedOrderNumber = sessionStorage.getItem("pendingOrderNumber");
     if (storedOrderNumber) setOrderNumber(storedOrderNumber);
+    const storedSummary = sessionStorage.getItem("pendingCheckoutSummary");
+    if (storedSummary) {
+      try {
+        setSummary(JSON.parse(storedSummary) as CheckoutSummary);
+      } catch {
+        sessionStorage.removeItem("pendingCheckoutSummary");
+      }
+    }
 
     const orderId = storedOrderId ? Number(storedOrderId) : NaN;
 
@@ -84,6 +103,20 @@ function PaymentResultContent() {
   }
 
   if (state === "success") {
+    if (summary) {
+      return (
+        <main className={styles.resultPage}>
+          <Step5Complete
+            result={summary.result}
+            items={summary.items}
+            contactData={summary.contactData}
+            orderType={summary.orderType}
+            paymentState="success"
+          />
+        </main>
+      );
+    }
+
     return (
       <div className={styles.wrapper}>
         <div className={`${styles.icon} ${styles.success}`}>✓</div>
@@ -106,6 +139,20 @@ function PaymentResultContent() {
   }
 
   if (state === "failed") {
+    if (summary) {
+      return (
+        <main className={styles.resultPage}>
+          <Step5Complete
+            result={summary.result}
+            items={summary.items}
+            contactData={summary.contactData}
+            orderType={summary.orderType}
+            paymentState="failed"
+          />
+        </main>
+      );
+    }
+
     return (
       <div className={styles.wrapper}>
         <div className={`${styles.icon} ${styles.failed}`}>✕</div>

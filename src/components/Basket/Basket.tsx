@@ -78,7 +78,11 @@ export default function BasketPage() {
       )}
 
       {isOpen && (
-        <div className={styles.dropdownBox}>
+        <div
+          className={`${styles.dropdownBox} ${
+            basket.length === 0 ? styles.emptyDropdown : ""
+          }`}
+        >
           {basket.length === 0 ? (
             <>
               <div>

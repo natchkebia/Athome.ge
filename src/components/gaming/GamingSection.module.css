@@ -1,8 +1,8 @@
 .gamingSection {
-  max-width: 1440px;
+  max-width: var(--site-max-width);
   width: 100%;
   margin: 0 auto;
-  padding: 0px 24px;
+  padding: 0 var(--site-gutter);
 }
 
 .gamingGrid {

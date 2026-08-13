@@ -19,8 +19,9 @@
 }
 .numbers {
   display: flex;
-  flex-direction: column;
-  gap: 2px;
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
 }
 
 .numbers a {
@@ -29,11 +30,11 @@
   color: $red-normal-hover;
   line-height: 1.15;
   text-decoration: none;
+  white-space: nowrap;
 
   &:hover,
   &:focus-visible {
-    text-decoration: underline;
-    text-underline-offset: 2px;
+    text-decoration: none;
   }
 }
 
