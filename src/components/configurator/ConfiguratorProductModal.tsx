@@ -9,6 +9,7 @@ import {
   SelectedConfiguratorProduct,
 } from "./configuratorTypes";
 import { useStorefrontLocale } from "@/lib/i18n/useStorefrontLocale";
+import type { ConfiguratorBrandFacet } from "@/lib/api/configurator";
 
 type Props = {
   title: string;
@@ -21,6 +22,12 @@ type Props = {
     quantity: number,
   ) => Promise<ProductSelectionResult>;
   onUpdateQuantity: (product: ConfiguratorProduct, quantity: number) => void;
+  brands?: ConfiguratorBrandFacet[];
+  selectedBrandSlugs?: string[];
+  onBrandSlugsChange?: (slugs: string[]) => void;
+  hiddenByCompatibility?: number;
+  totalCount?: number;
+  onClearCompatibilityFilter?: () => void;
 };
 
 export type ProductSelectionResult = {
@@ -28,7 +35,6 @@ export type ProductSelectionResult = {
   message?: string;
 };
 
-const brands = ["ყველა", "AsRock", "Asus", "Gigabyte", "Msi"];
 const EN_SPEC_LABELS: Record<string, string> = {
   ჩიპსეტი: "Chipset", სოკეტი: "Socket", მეხსიერება: "Memory", ფორმფაქტორი: "Form factor",
   ბირთვი: "Cores", ნაკადი: "Threads", მოცულობა: "Capacity", ტიპი: "Type", სიხშირე: "Frequency",
@@ -47,10 +53,15 @@ export default function ConfiguratorProductModal({
   onClose,
   onSelect,
   onUpdateQuantity,
+  brands = [],
+  selectedBrandSlugs = [],
+  onBrandSlugsChange,
+  hiddenByCompatibility = 0,
+  totalCount = 0,
+  onClearCompatibilityFilter,
 }: Props) {
   const en = useStorefrontLocale() === "en";
   const [searchValue, setSearchValue] = useState("");
-  const [activeBrand, setActiveBrand] = useState("ყველა");
   const [checkingProductId, setCheckingProductId] = useState<number | null>(null);
   const [compatibilityErrors, setCompatibilityErrors] = useState<
     Record<number, string>
@@ -78,20 +89,16 @@ export default function ConfiguratorProductModal({
 
       const matchesSearch = !search || productText.includes(search);
 
-      const matchesBrand =
-        activeBrand === "ყველა" ||
-        product.title.toLowerCase().includes(activeBrand.toLowerCase());
-
-      return matchesSearch && matchesBrand;
+      return matchesSearch;
     });
-  }, [products, searchValue, activeBrand]);
+  }, [products, searchValue]);
 
-  const getBrandCount = (brand: string) => {
-    if (brand === "ყველა") return products.length;
-
-    return products.filter((product) =>
-      product.title.toLowerCase().includes(brand.toLowerCase()),
-    ).length;
+  const toggleBrand = (slug: string) => {
+    onBrandSlugsChange?.(
+      selectedBrandSlugs.includes(slug)
+        ? selectedBrandSlugs.filter((item) => item !== slug)
+        : [...selectedBrandSlugs, slug],
+    );
   };
 
   const normalizeQuantity = (value: string, stock: number) => {
@@ -189,20 +196,39 @@ export default function ConfiguratorProductModal({
             </div>
 
             <ul>
+              <li
+                className={selectedBrandSlugs.length === 0 ? styles.activeFilter : ""}
+                onClick={() => onBrandSlugsChange?.([])}
+              >
+                <span>{en ? "All" : "ყველა"}</span>
+                <strong>{totalCount}</strong>
+              </li>
               {brands.map((brand) => (
                 <li
-                  key={brand}
-                  className={activeBrand === brand ? styles.activeFilter : ""}
-                  onClick={() => setActiveBrand(brand)}
+                  key={brand.slug}
+                  className={selectedBrandSlugs.includes(brand.slug) ? styles.activeFilter : ""}
+                  onClick={() => toggleBrand(brand.slug)}
                 >
-                  <span>{en && brand === "ყველა" ? "All" : brand}</span>
-                  <strong>{getBrandCount(brand)}</strong>
+                  <span>{brand.name}</span>
+                  <strong>{brand.productCount}</strong>
                 </li>
               ))}
             </ul>
           </aside>
 
           <div className={styles.productList}>
+            {hiddenByCompatibility > 0 && (
+              <div className={styles.compatibilityFilterNotice}>
+                <span>
+                  {en
+                    ? `Showing ${totalCount} — ${hiddenByCompatibility} more do not fit your selection`
+                    : `ნაჩვენებია ${totalCount} — კიდევ ${hiddenByCompatibility} არ ჯდება თქვენს არჩევანთან`}
+                </span>
+                <button type="button" onClick={onClearCompatibilityFilter}>
+                  {en ? "Clear filter" : "ფილტრის მოხსნა"}
+                </button>
+              </div>
+            )}
             {loading ? (
               <AtHomeLoader variant="section" />
             ) : filteredProducts.length === 0 ? (
@@ -237,6 +263,12 @@ export default function ConfiguratorProductModal({
                           </li>
                         ))}
                       </ul>
+
+                      {product.compatibilityStatus === "unknown" && (
+                        <div className={styles.compatibilityUnknown}>
+                          {en ? "Compatibility is unconfirmed" : "თავსებადობა დაუდასტურებელია"}
+                        </div>
+                      )}
 
                       {compatibilityError && (
                         <div className={styles.productCompatibilityError}>

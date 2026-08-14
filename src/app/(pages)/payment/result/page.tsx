@@ -2,6 +2,7 @@
 
 import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import styles from "./page.module.scss";
 import Step5Complete from "@/components/checkout/Step5Complete";
 import type { CheckoutResponse } from "@/lib/api/checkout";
@@ -58,6 +59,7 @@ function Countdown({ until }: { until?: string | null }) {
 }
 
 function PaymentStatusContent() {
+  const searchParams = useSearchParams();
   const [view, setView] = useState<ViewState>("loading");
   const [status, setStatus] = useState<OrderPaymentStatus | null>(null);
   const [summary, setSummary] = useState<CheckoutSummary | null>(null);
@@ -71,6 +73,9 @@ function PaymentStatusContent() {
     const storedSummary = readSummary();
     setSummary(storedSummary);
     const orderNumber =
+      searchParams.get("orderNumber") ||
+      searchParams.get("order_number") ||
+      searchParams.get("order") ||
       sessionStorage.getItem("pendingOrderNumber") ||
       storedSummary?.result.orderNumber ||
       "";
@@ -106,7 +111,7 @@ function PaymentStatusContent() {
       }
       await new Promise((resolve) => window.setTimeout(resolve, POLL_INTERVAL_MS));
     }
-  }, []);
+  }, [searchParams]);
 
   useEffect(() => {
     stopped.current = false;

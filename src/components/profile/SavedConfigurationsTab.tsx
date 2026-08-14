@@ -1,180 +1,165 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import styles from "./SavedConfigurationsTab.module.scss";
-import { SavedConfiguration } from "../configurator/configuratorTypes";
 import { useRouter } from "next/navigation";
-import { useCommerce } from "@/contexts/CommerceContext";
+import styles from "./SavedConfigurationsTab.module.scss";
+import AtHomeLoader from "../shared/AtHomeLoader";
+import { useToast } from "@/contexts/ToastContext";
+import {
+  addProfileConfiguratorBuildToCart,
+  deleteProfileConfiguratorBuild,
+  getProfileConfiguratorBuild,
+  getProfileConfiguratorBuilds,
+  type ConfiguratorSlot,
+  type ProfileConfiguratorBuild,
+} from "@/lib/api/configurator";
+import type { ConfiguratorCategoryKey, SelectedConfiguratorProduct } from "@/components/configurator/configuratorTypes";
+import { printConfiguration } from "@/lib/configurator/printConfiguration";
+
+const SLOT_TO_CATEGORY: Record<ConfiguratorSlot, ConfiguratorCategoryKey> = {
+  cpu: "processor",
+  motherboard: "motherboard",
+  ram: "ram",
+  gpu: "gpu",
+  psu: "psu",
+  case: "case",
+  cpuCooler: "cooler",
+  liquidCooler: "cooler",
+  storageDrive: "drive",
+  storageSsd: "storage",
+  storageHdd: "drive",
+  caseFan: "caseFan",
+};
 
 export default function SavedConfigurationsTab() {
   const router = useRouter();
-  const { addToCart } = useCommerce();
-  const [configurations, setConfigurations] = useState<SavedConfiguration[]>(
-    [],
-  );
-
-  const [openConfigIds, setOpenConfigIds] = useState<number[]>([]);
+  const { showToast } = useToast();
+  const [configurations, setConfigurations] = useState<ProfileConfiguratorBuild[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [busyId, setBusyId] = useState<number | null>(null);
 
   useEffect(() => {
-    const saved = JSON.parse(
-      localStorage.getItem("savedConfigurations") || "[]",
-    ) as SavedConfiguration[];
+    let active = true;
+    getProfileConfiguratorBuilds()
+      .then((items) => active && setConfigurations(items ?? []))
+      .catch(() => active && showToast("შენახული სისტემები ვერ ჩაიტვირთა", "error"))
+      .finally(() => active && setLoading(false));
+    return () => { active = false; };
+  }, [showToast]);
 
-    setConfigurations(saved);
-  }, []);
-
-  const handleDelete = (id: number) => {
-    const updated = configurations.filter((config) => config.id !== id);
-
-    setConfigurations(updated);
-    setOpenConfigIds((prev) => prev.filter((configId) => configId !== id));
-
-    localStorage.setItem("savedConfigurations", JSON.stringify(updated));
-  };
-
-  const handleToggleProducts = (id: number) => {
-    setOpenConfigIds((prev) =>
-      prev.includes(id)
-        ? prev.filter((configId) => configId !== id)
-        : [...prev, id],
-    );
-  };
-
-  const handleBuySystem = async (config: SavedConfiguration) => {
-    for (const product of config.products) {
-      await addToCart(product.id, product.quantity || 1);
+  const handleDelete = async (id: number) => {
+    setBusyId(id);
+    try {
+      await deleteProfileConfiguratorBuild(id);
+      setConfigurations((items) => items.filter((item) => item.id !== id));
+      showToast("კონფიგურაცია წაიშალა");
+    } catch {
+      showToast("კონფიგურაციის წაშლა ვერ მოხერხდა", "error");
+    } finally {
+      setBusyId(null);
     }
-
-    router.push("/basket");
   };
+
+  const handleAddToCart = async (build: ProfileConfiguratorBuild) => {
+    setBusyId(build.id);
+    try {
+      const result = await addProfileConfiguratorBuildToCart(build.id);
+      if (result.skipped?.length) {
+        showToast(
+          `${result.addedCount} პროდუქტი დაემატა. ვერ დაემატა: ${result.skipped.map((item) => `${item.name} — ${item.reason}`).join(", ")}`,
+          "error",
+        );
+      } else {
+        showToast(`${result.addedCount} პროდუქტი დაემატა კალათაში`);
+      }
+      if (result.addedCount > 0) router.push("/basket");
+    } catch {
+      showToast("კალათაში დამატება ვერ მოხერხდა", "error");
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  const handleDownload = async (build: ProfileConfiguratorBuild) => {
+    setBusyId(build.id);
+    try {
+      const details = await getProfileConfiguratorBuild(build.id);
+      const selected: Record<string, SelectedConfiguratorProduct[]> = {};
+      details.slots.forEach((slot) => {
+        const category = SLOT_TO_CATEGORY[slot.slot];
+        if (!category) return;
+        selected[category] = [
+          ...(selected[category] || []),
+          {
+            id: slot.productId,
+            category,
+            title: slot.productName || "პროდუქტი",
+            image: slot.thumbnailUrl || "",
+            price: slot.price,
+            stock: 1,
+            specs: [],
+            quantity: 1,
+          },
+        ];
+      });
+      if (!(await printConfiguration(selected, "ka"))) {
+        showToast("კონფიგურაციაში ჩამოსატვირთი ნაწილები ვერ მოიძებნა", "error");
+      }
+    } catch {
+      showToast("დოკუმენტის მომზადება ვერ მოხერხდა", "error");
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  if (loading) return <AtHomeLoader variant="section" label="იტვირთება" />;
 
   if (configurations.length === 0) {
-    return (
-      <div className={styles.empty}>
-        <p>თქვენ ჯერ არ გაქვთ შენახული სისტემები</p>
-      </div>
-    );
+    return <div className={styles.empty}><p>თქვენ ჯერ არ გაქვთ შენახული სისტემები</p></div>;
   }
 
   return (
     <div className={styles.configurations}>
       <h2>ჩემი სისტემები</h2>
+      <div className={styles.notice}>თქვენ გაქვთ დამატებული {configurations.length} სისტემა</div>
 
-      <div className={styles.notice}>
-        თქვენ გაქვთ დამატებული {configurations.length} სისტემა
-      </div>
-
-      {configurations.map((config) => {
-        const isOpen = openConfigIds.includes(config.id);
-
-        return (
-          <div key={config.id} className={styles.configCard}>
-            <div className={styles.infoTable}>
-              <div>
-                <span>სისტემის ID</span>
-                <strong>{config.id}</strong>
-              </div>
-
-              <div>
-                <span>კომპონენტების რაოდენობა</span>
-                <strong>{config.products.length}</strong>
-              </div>
-
-              <div>
-                <span>გარანტია</span>
-                <strong>1 წელი</strong>
-              </div>
-
-              <div>
-                <span>სისტემის ღირებულება</span>
-                <strong>{config.totalPrice} ₾</strong>
-              </div>
-
-              <div>
-                <span>ფასდაკლება</span>
-                <strong>0 ₾</strong>
-              </div>
-
-              <div>
-                <span>დამატების თარიღი და დრო</span>
-                <strong>
-                  {new Date(config.createdAt).toLocaleString("ka-GE")}
-                </strong>
-              </div>
+      {configurations.map((config) => (
+        <div key={config.id} className={styles.configCard}>
+          <div className={styles.infoTable}>
+            <div><span>დასახელება</span><strong>{config.name}</strong></div>
+            <div><span>კომპონენტები</span><strong>{config.itemCount}</strong></div>
+            <div><span>დღევანდელი ღირებულება</span><strong>{config.totalPrice} ₾</strong></div>
+            <div><span>დამატების თარიღი</span><strong>{new Date(config.createdAt).toLocaleString("ka-GE")}</strong></div>
+            <div>
+              <span>მიუწვდომელი ნაწილები</span>
+              <strong>{config.unavailableCount}</strong>
             </div>
-
-            <div className={styles.actions}>
-              <button
-                type="button"
-                className={styles.cartBtn}
-                onClick={() => handleBuySystem(config)}
-              >
-                <img src="/images/systemBay.svg" alt="buy" />
-                <span>სისტემის შეძენა</span>
-              </button>
-
-              <button
-                type="button"
-                className={styles.viewBtn}
-                onClick={() => handleToggleProducts(config.id)}
-              >
-                <img src="/images/systemAye.svg" alt="view" />
-                <span>
-                  {isOpen
-                    ? "სისტემის კომპონენტების დახურვა"
-                    : "სისტემის კომპონენტების ნახვა"}
-                </span>
-              </button>
-
-              <button
-                type="button"
-                className={styles.deleteBtn}
-                onClick={() => handleDelete(config.id)}
-              >
-                <img src="/images/systemDelete.svg" alt="delete" />
-                <span>სისტემის წაშლა</span>
-              </button>
-            </div>
-
-            {isOpen && (
-              <>
-                <h3>სისტემის კომპონენტები</h3>
-
-                <div className={styles.products}>
-                  {config.products.map((product) => (
-                    <div
-                      key={`${config.id}-${product.id}`}
-                      className={styles.product}
-                    >
-                      <img src={product.image} alt={product.title} />
-
-                      <div>
-                        <span>დასახელება</span>
-                        <strong>{product.title}</strong>
-                      </div>
-
-                      <div>
-                        <span>კოდი</span>
-                        <strong>{product.id}</strong>
-                      </div>
-
-                      <div>
-                        <span>რაოდენობა</span>
-                        <strong>{product.quantity} ერთეული</strong>
-                      </div>
-
-                      <div>
-                        <span>ფასი</span>
-                        <strong>{product.price * product.quantity} ₾</strong>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </>
-            )}
           </div>
-        );
-      })}
+
+          {config.unavailableCount > 0 && (
+            <div className={styles.notice}>
+              {config.unavailableCount} ნაწილი აღარ იყიდება და მიმდინარე ჯამში არ შედის.
+            </div>
+          )}
+
+          <div className={styles.actions}>
+            <button type="button" className={styles.cartBtn} disabled={busyId === config.id} onClick={() => handleAddToCart(config)}>
+              <img src="/images/systemBay.svg" alt="" /><span>კალათაში დამატება</span>
+            </button>
+            {config.shareUrl && (
+              <button type="button" className={styles.viewBtn} onClick={() => router.push(config.shareUrl!)}>
+                <img src="/images/systemAye.svg" alt="" /><span>კონფიგურაციის ნახვა</span>
+              </button>
+            )}
+            <button type="button" className={styles.viewBtn} disabled={busyId === config.id} onClick={() => handleDownload(config)}>
+              <span>PDF შეთავაზების ჩამოტვირთვა</span>
+            </button>
+            <button type="button" className={styles.deleteBtn} disabled={busyId === config.id} onClick={() => handleDelete(config.id)}>
+              <img src="/images/systemDelete.svg" alt="" /><span>სისტემის წაშლა</span>
+            </button>
+          </div>
+        </div>
+      ))}
     </div>
   );
 }

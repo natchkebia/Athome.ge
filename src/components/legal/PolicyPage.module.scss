@@ -119,6 +119,11 @@
     border-radius: 18px;
     background: #fff;
     box-shadow: 0 10px 34px rgba(28, 37, 43, 0.045);
+
+    &:target {
+      border-color: rgba(255, 49, 95, 0.32);
+      box-shadow: 0 12px 38px rgba(255, 49, 95, 0.08);
+    }
   }
 
   h2 {

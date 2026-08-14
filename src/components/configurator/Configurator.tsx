@@ -30,6 +30,7 @@ import {
   getConfiguratorSlotProducts,
   saveConfiguratorBuild,
   type ConfiguratorBuildSlot,
+  type ConfiguratorBrandFacet,
   type ConfiguratorCheckResult,
   type ConfiguratorIssue,
   type ConfiguratorProductCard,
@@ -84,13 +85,20 @@ type AlertState = {
   message: string;
 } | null;
 
+type GuestBuild = {
+  token: string;
+  name: string;
+  expiresAt: string;
+};
+
+const GUEST_BUILDS_KEY = "athomeGuestConfiguratorBuilds";
+
 const REQUIRED_SYSTEM_CATEGORIES: ConfiguratorCategoryKey[] = [
   "processor",
   "motherboard",
   "ram",
   "gpu",
   "psu",
-  "cooler",
   "case",
   "storage",
 ];
@@ -115,6 +123,8 @@ const BACKEND_TO_FRONTEND_SLOT: Record<ConfiguratorSlot, ConfiguratorCategoryKey
     cpuCooler: "cooler",
     liquidCooler: "cooler",
     storageDrive: "storage",
+    storageSsd: "storage",
+    storageHdd: "drive",
     caseFan: "caseFan",
   };
 
@@ -131,6 +141,9 @@ function adaptCard(
     image: normalizeMediaUrl(card.thumbnailUrl ?? undefined) || "/images/case.svg",
     price: card.effectivePrice,
     stock: outOfStock ? 0 : 99,
+    brandName: card.brandName ?? undefined,
+    brandSlug: card.brandSlug ?? undefined,
+    compatibilityStatus: card.compatibilityStatus ?? undefined,
     specs: (card.keySpecs ?? []).map((spec) => ({
       label: spec.label ?? "",
       value: spec.value ?? "",
@@ -154,12 +167,32 @@ export default function Configurator() {
 
   const [modalProducts, setModalProducts] = useState<ConfiguratorProduct[]>([]);
   const [modalLoading, setModalLoading] = useState(false);
+  const [modalBrands, setModalBrands] = useState<ConfiguratorBrandFacet[]>([]);
+  const [selectedBrandSlugs, setSelectedBrandSlugs] = useState<string[]>([]);
+  const [hiddenByCompatibility, setHiddenByCompatibility] = useState(0);
+  const [modalTotalCount, setModalTotalCount] = useState(0);
 
   const [checkResult, setCheckResult] = useState<ConfiguratorCheckResult | null>(
     null
   );
   const [saving, setSaving] = useState(false);
   const [addingToCart, setAddingToCart] = useState(false);
+  const [guestBuilds, setGuestBuilds] = useState<GuestBuild[]>([]);
+  const [lastGuestBuildToken, setLastGuestBuildToken] = useState<string | null>(null);
+
+  useEffect(() => {
+    try {
+      const now = Date.now();
+      const stored = JSON.parse(localStorage.getItem(GUEST_BUILDS_KEY) || "[]") as GuestBuild[];
+      const active = Array.isArray(stored)
+        ? stored.filter((item) => item.token && new Date(item.expiresAt).getTime() > now)
+        : [];
+      setGuestBuilds(active);
+      localStorage.setItem(GUEST_BUILDS_KEY, JSON.stringify(active));
+    } catch {
+      setGuestBuilds([]);
+    }
+  }, []);
 
   const visibleCategories = showPeripherals
     ? peripheralCategories
@@ -186,15 +219,33 @@ export default function Configurator() {
     setModalLoading(true);
     setModalProducts([]);
 
+    const selectedIds = (Object.keys(selectedProducts) as ConfiguratorCategoryKey[])
+      // მიმდინარე სლოტის ძველი არჩევანი კანდიდატებს არ უნდა შეედაროს — ის ჩანაცვლდება.
+      .filter((key) => key !== selectedCategory && Boolean(FRONTEND_TO_BACKEND_SLOT[key]))
+      .flatMap((key) => selectedProducts[key]?.map((item) => item.id) ?? []);
     const request = backendSlot
-      ? getConfiguratorSlotProducts(backendSlot).then((res) => res.items)
+      ? getConfiguratorSlotProducts(backendSlot, {
+          selectedIds,
+          brandSlugs: selectedBrandSlugs,
+          pageSize: 1000,
+        })
       : getCategoryProductsBySlugs(PERIPHERAL_PARENT_CATEGORY, [
           selectedCategory,
         ]);
 
     request
-      .then((items) => {
+      .then((response) => {
         if (!active) return;
+        const items = Array.isArray(response) ? response : response.items;
+        if (!Array.isArray(response)) {
+          setModalBrands(response.brands ?? []);
+          setHiddenByCompatibility(response.hiddenByCompatibility ?? 0);
+          setModalTotalCount(response.totalCount ?? items.length);
+        } else {
+          setModalBrands([]);
+          setHiddenByCompatibility(0);
+          setModalTotalCount(items.length);
+        }
         setModalProducts(
           (items ?? []).map((card) => adaptCard(card, selectedCategory))
         );
@@ -209,6 +260,10 @@ export default function Configurator() {
     return () => {
       active = false;
     };
+  }, [selectedCategory, selectedBrandSlugs, selectedProducts]);
+
+  useEffect(() => {
+    setSelectedBrandSlugs([]);
   }, [selectedCategory]);
 
   const activeCategoryTitle = useMemo(() => {
@@ -454,8 +509,9 @@ export default function Configurator() {
 
     setSaving(true);
     try {
+      const buildName = `${en ? "Configuration" : "კონფიგურაცია"} ${new Date().toLocaleDateString(en ? "en-GB" : "ka-GE")}`;
       const result = await saveConfiguratorBuild(
-        `${en ? "Configuration" : "კონფიგურაცია"} ${new Date().toLocaleDateString(en ? "en-GB" : "ka-GE")}`,
+        buildName,
         backendSlots
       );
       const shareUrl =
@@ -463,9 +519,28 @@ export default function Configurator() {
         (result.shareToken
           ? `${window.location.origin}/configurator?build=${result.shareToken}`
           : "");
+      if (result.savedToProfile === false && result.expiresAt && result.shareToken) {
+        const guestBuild: GuestBuild = {
+          token: result.shareToken,
+          name: buildName,
+          expiresAt: result.expiresAt,
+        };
+        setGuestBuilds((items) => {
+          const next = [guestBuild, ...items.filter((item) => item.token !== guestBuild.token)];
+          localStorage.setItem(GUEST_BUILDS_KEY, JSON.stringify(next));
+          return next;
+        });
+        setLastGuestBuildToken(result.shareToken);
+      } else {
+        setLastGuestBuildToken(null);
+      }
       setAlert({
         type: "success",
-        message: shareUrl
+        message: result.savedToProfile === false && result.expiresAt
+          ? en
+            ? `Configuration saved for 24 hours. Sign in to keep it permanently.${shareUrl ? ` Share link: ${shareUrl}` : ""}`
+            : `კონფიგურაცია 24 საათით შეინახა. მუდმივად შესანახად გაიარეთ ავტორიზაცია.${shareUrl ? ` გასაზიარებელი ბმული: ${shareUrl}` : ""}`
+          : shareUrl
           ? en ? `Configuration saved. Share link: ${shareUrl}` : `კონფიგურაცია შენახულია. გასაზიარებელი ბმული: ${shareUrl}`
           : en ? "Configuration saved." : "კონფიგურაცია შენახულია.",
       });
@@ -584,12 +659,15 @@ export default function Configurator() {
             </section>
 
             <ConfiguratorSummary
+              showPeripherals={showPeripherals}
               selectedProducts={selectedProducts}
               totalPrice={totalPrice}
               onSaveConfiguration={handleSaveConfiguration}
               onAddToCart={handleAddToCart}
               saving={saving}
               addingToCart={addingToCart}
+              guestBuilds={guestBuilds}
+              onOpenGuestBuild={(token) => router.push(`/configurator?build=${encodeURIComponent(token)}`)}
             />
           </div>
         </div>
@@ -603,6 +681,12 @@ export default function Configurator() {
             onClose={() => setSelectedCategory(null)}
             onSelect={handleSelectProduct}
             onUpdateQuantity={handleUpdateQuantity}
+            brands={modalBrands}
+            selectedBrandSlugs={selectedBrandSlugs}
+            onBrandSlugsChange={setSelectedBrandSlugs}
+            hiddenByCompatibility={hiddenByCompatibility}
+            totalCount={modalTotalCount}
+            onClearCompatibilityFilter={handleClearConfiguration}
           />
         )}
 
@@ -637,9 +721,17 @@ export default function Configurator() {
                     <button
                       type="button"
                       className={styles.alertLink}
-                      onClick={() => router.push("/profile?tab=configurations")}
+                      onClick={() =>
+                        router.push(
+                          lastGuestBuildToken
+                            ? `/configurator?build=${encodeURIComponent(lastGuestBuildToken)}`
+                            : "/profile?tab=configurations",
+                        )
+                      }
                     >
-                      {en ? "View saved configurations" : "ამ გვერდზე"}
+                      {lastGuestBuildToken
+                        ? (en ? "Open configuration" : "კონფიგურაციის გახსნა")
+                        : (en ? "View saved configurations" : "შენახულ სისტემებში ნახვა")}
                     </button>
                   </>
                 )}

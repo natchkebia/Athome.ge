@@ -3,25 +3,33 @@
 import styles from "./Configurator.module.scss";
 import { SelectedConfiguratorProduct } from "./configuratorTypes";
 import { useStorefrontLocale } from "@/lib/i18n/useStorefrontLocale";
+import { printConfiguration } from "@/lib/configurator/printConfiguration";
 
 type Props = {
+  showPeripherals: boolean;
   selectedProducts: Record<string, SelectedConfiguratorProduct[] | undefined>;
   totalPrice: number;
   onSaveConfiguration: () => void;
   onAddToCart: () => void;
   saving?: boolean;
   addingToCart?: boolean;
+  guestBuilds?: { token: string; name: string; expiresAt: string }[];
+  onOpenGuestBuild?: (token: string) => void;
 };
 
 export default function ConfiguratorSummary({
+  showPeripherals,
   selectedProducts,
   totalPrice,
   onSaveConfiguration,
   onAddToCart,
   saving = false,
   addingToCart = false,
+  guestBuilds = [],
+  onOpenGuestBuild,
 }: Props) {
-  const en = useStorefrontLocale() === "en";
+  const locale = useStorefrontLocale();
+  const en = locale === "en";
   // ბოლოს არჩეული კომპონენტი ზემოთ ჩანს (newest first)
   const products = Object.values(selectedProducts)
     .flatMap((categoryProducts) => categoryProducts || [])
@@ -31,7 +39,14 @@ export default function ConfiguratorSummary({
     <div className={styles.summaryColumn}>
       <aside className={styles.summary}>
         <div className={styles.summaryImage}>
-          <img src="/images/case.svg" alt="PC Case" />
+          <img
+            src={showPeripherals
+              ? "/images/configurator-peripherals.png"
+              : "/images/case.svg"}
+            alt={showPeripherals
+              ? (en ? "Monitor and peripherals" : "მონიტორი და პერიფერია")
+              : (en ? "PC case" : "კომპიუტერის კორპუსი")}
+          />
         </div>
 
         <div className={styles.total}>
@@ -65,7 +80,11 @@ export default function ConfiguratorSummary({
         </div>
 
         <div>
-          <button type="button">
+          <button
+            type="button"
+            onClick={() => void printConfiguration(selectedProducts, locale)}
+            disabled={products.length === 0}
+          >
             <img src="/images/conf2.svg" alt="configurator" />
             <span>{en ? "Download configuration" : "კონფიგურაციის ჩამოტვირთვა"}</span>
           </button>
@@ -85,6 +104,20 @@ export default function ConfiguratorSummary({
           </button>
         </div>
       </div>
+
+      {guestBuilds.length > 0 && (
+        <div className={styles.guestBuilds}>
+          <h3>{en ? "Temporarily saved configurations" : "დროებით შენახული კონფიგურაციები"}</h3>
+          {guestBuilds.map((build) => (
+            <button key={build.token} type="button" onClick={() => onOpenGuestBuild?.(build.token)}>
+              <span>{build.name}</span>
+              <small>
+                {en ? "Available until" : "ხელმისაწვდომია"}: {new Date(build.expiresAt).toLocaleString(en ? "en-GB" : "ka-GE")}
+              </small>
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

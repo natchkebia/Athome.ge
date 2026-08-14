@@ -1,3 +1,6 @@
+"use client";
+
+import type { MouseEvent } from "react";
 import Breadcrumb from "@/components/ breadcrumb/Breadcrumb";
 import styles from "./PolicyPage.module.scss";
 
@@ -24,6 +27,15 @@ export default function PolicyPage({
   homeLabel,
   contactLabel,
 }: PolicyPageProps) {
+  const handleSectionClick = (event: MouseEvent<HTMLAnchorElement>, id: string) => {
+    event.preventDefault();
+    const section = document.getElementById(id);
+    if (!section) return;
+
+    section.scrollIntoView({ behavior: "smooth", block: "start" });
+    window.history.replaceState(null, "", `#${id}`);
+  };
+
   return (
     <>
       <div className={styles.breadcrumbWrap}>
@@ -40,7 +52,11 @@ export default function PolicyPage({
           <nav className={styles.navigation} aria-label={title}>
             <p>{eyebrow}</p>
             {sections.map((section, index) => (
-              <a key={section.title} href={`#section-${index + 1}`}>
+              <a
+                key={section.title}
+                href={`#section-${index + 1}`}
+                onClick={(event) => handleSectionClick(event, `section-${index + 1}`)}
+              >
                 <span>{String(index + 1).padStart(2, "0")}</span>
                 {section.title}
               </a>

@@ -13,6 +13,8 @@ export type ConfiguratorSlot =
   | "cpuCooler"
   | "liquidCooler"
   | "storageDrive"
+  | "storageSsd"
+  | "storageHdd"
   | "caseFan";
 
 // Maps the frontend category keys (configuratorTypes) to backend slot values.
@@ -25,8 +27,8 @@ export const FRONTEND_TO_BACKEND_SLOT: Record<string, ConfiguratorSlot> = {
   psu: "psu",
   cooler: "cpuCooler",
   case: "case",
-  drive: "storageDrive",
-  storage: "storageDrive",
+  drive: "storageHdd",
+  storage: "storageSsd",
   caseFan: "caseFan",
 };
 
@@ -60,10 +62,19 @@ export type ConfiguratorProductCard = {
   discountPercent?: number | null;
   currencyCode?: string | null;
   brandName?: string | null;
+  brandSlug?: string | null;
   stockStatus?: string | null;
+  compatibilityStatus?: "compatible" | "unknown" | "unchecked" | null;
   ratingAverage: number;
   ratingCount: number;
   keySpecs: ConfiguratorSpecBadge[];
+};
+
+export type ConfiguratorBrandFacet = {
+  id: number;
+  name: string;
+  slug: string;
+  productCount: number;
 };
 
 export type ConfiguratorProductsResponse = {
@@ -72,8 +83,9 @@ export type ConfiguratorProductsResponse = {
   page: number;
   pageSize: number;
   totalPages: number;
-  hasNext: boolean;
-  hasPrev: boolean;
+  brands: ConfiguratorBrandFacet[];
+  hiddenByCompatibility: number;
+  unknownCount: number;
 };
 
 export type ConfiguratorBuildSlot = {
@@ -126,9 +138,26 @@ export type ConfiguratorCheckResult = {
 };
 
 export type SaveBuildResponse = {
+  id?: number;
   shareToken?: string | null;
   shareUrl?: string | null;
-  expiresAt: string;
+  expiresAt: string | null;
+  savedToProfile?: boolean;
+};
+
+export type ProfileConfiguratorBuild = {
+  id: number;
+  name: string;
+  createdAt: string;
+  itemCount: number;
+  totalPrice: number;
+  unavailableCount: number;
+  shareUrl?: string | null;
+};
+
+export type AddBuildToCartResponse = {
+  addedCount: number;
+  skipped: { productId: number; name: string; reason: string }[];
 };
 
 export type LoadedBuild = {
@@ -143,6 +172,8 @@ export type LoadedBuild = {
 export type SlotProductsQuery = {
   search?: string;
   brandSlug?: string;
+  brandSlugs?: string[];
+  selectedIds?: number[];
   minPrice?: number;
   maxPrice?: number;
   page?: number;
@@ -158,13 +189,15 @@ export function getConfiguratorSlotProducts(
     `/api/storefront/configurator/slots/${encodeURIComponent(slot)}/products`,
     {
       query: {
-        Search: params.search,
-        BrandSlug: params.brandSlug,
-        MinPrice: params.minPrice,
-        MaxPrice: params.maxPrice,
-        Page: params.page,
-        PageSize: params.pageSize ?? 50,
-        SortBy: params.sortBy,
+        search: params.search,
+        brandSlug: params.brandSlug,
+        brandSlugs: params.brandSlugs,
+        selectedIds: params.selectedIds,
+        minPrice: params.minPrice,
+        maxPrice: params.maxPrice,
+        page: params.page,
+        pageSize: params.pageSize ?? 1000,
+        sortBy: params.sortBy,
       },
       useProxy: true,
     }
@@ -223,4 +256,54 @@ export function getConfiguratorBuild(token: string) {
     `/api/storefront/configurator/builds/${encodeURIComponent(token)}`,
     { useProxy: true }
   );
+}
+
+function profileToken() {
+  return getStoredAuthTokens()?.accessToken ?? null;
+}
+
+export function getProfileConfiguratorBuilds() {
+  return apiRequest<ProfileConfiguratorBuild[]>("/api/profile/configurator-builds", {
+    token: profileToken(),
+    useProxy: true,
+  });
+}
+
+export function getProfileConfiguratorBuild(id: number) {
+  return apiRequest<LoadedBuild>(`/api/profile/configurator-builds/${id}`, {
+    token: profileToken(),
+    useProxy: true,
+  });
+}
+
+export function deleteProfileConfiguratorBuild(id: number) {
+  return apiRequest<void>(`/api/profile/configurator-builds/${id}`, {
+    method: "DELETE",
+    token: profileToken(),
+    useProxy: true,
+  });
+}
+
+export function addProfileConfiguratorBuildToCart(id: number) {
+  return apiRequest<AddBuildToCartResponse>(
+    `/api/profile/configurator-builds/${id}/add-to-cart`,
+    { method: "POST", token: profileToken(), useProxy: true },
+  );
+}
+
+export async function downloadProfileConfiguratorBuild(id: number) {
+  const response = await fetch(`/api/profile/configurator-builds/${id}/export`, {
+    headers: {
+      Accept: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      ...(profileToken() ? { Authorization: `Bearer ${profileToken()}` } : {}),
+    },
+  });
+  if (!response.ok) throw new Error(`Export failed: ${response.status}`);
+  const blob = await response.blob();
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = `configuration-${id}.xlsx`;
+  anchor.click();
+  URL.revokeObjectURL(url);
 }

@@ -30,6 +30,9 @@ export type ConfiguratorProduct = {
   image: string;
   price: number;
   stock: number;
+  brandName?: string;
+  brandSlug?: string;
+  compatibilityStatus?: "compatible" | "unknown" | "unchecked";
   specs: {
     label: string;
     value: string;

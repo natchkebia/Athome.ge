@@ -28,6 +28,7 @@ import WishlistTab from "./WishlistTab";
 import SavedConfigurationsTab from "./SavedConfigurationsTab";
 import AtHomeLoader from "../shared/AtHomeLoader";
 import { useCommerce } from "@/contexts/CommerceContext";
+import { getProfileConfiguratorBuilds } from "@/lib/api/configurator";
 
 type ProfileTab =
   | "info"
@@ -113,16 +114,13 @@ export default function ProfilePage() {
     };
   }, []);
 
-  // შენახული სისტემები localStorage-შია — ვკითხულობთ თავიდან და ტაბის ცვლილებაზე.
+  // შენახული სისტემები ავტორიზებული მომხმარებლის პროფილიდან მოდის.
   useEffect(() => {
-    try {
-      const saved = JSON.parse(
-        localStorage.getItem("savedConfigurations") || "[]"
-      );
-      setSavedSystemsCount(Array.isArray(saved) ? saved.length : 0);
-    } catch {
-      setSavedSystemsCount(0);
-    }
+    let active = true;
+    getProfileConfiguratorBuilds()
+      .then((items) => active && setSavedSystemsCount(items?.length ?? 0))
+      .catch(() => active && setSavedSystemsCount(0));
+    return () => { active = false; };
   }, [activeTab]);
 
   useEffect(() => {
