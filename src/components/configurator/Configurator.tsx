@@ -50,22 +50,22 @@ function translateCompatibilityIssue(issue: ConfiguratorIssue, en: boolean) {
         ? `Processor socket “${values[0]}” does not match motherboard socket “${values[1]}”.`
         : "The processor and motherboard sockets do not match.";
       return values?.length && values.length >= 2
-        ? `პროცესორის სოკეტი „${values[0]}“ დედაპლატის სოკეტს „${values[1]}“ არ ემთხვევა.`
-        : "პროცესორისა და დედაპლატის სოკეტები ერთმანეთს არ ემთხვევა.";
+        ? `პროცესორის სოკეტი „${values[0]}“ დედა დაფის სოკეტს „${values[1]}“ არ ემთხვევა.`
+        : "პროცესორისა და დედა დაფის სოკეტები ერთმანეთს არ ემთხვევა.";
     case "MEMORY_TYPE_MISMATCH":
     case "RAM_TYPE_MISMATCH":
       if (en) return values?.length && values.length >= 2
         ? `Memory type “${values[0]}” does not match motherboard type “${values[1]}”.`
         : "The selected memory is not compatible with the motherboard.";
       return values?.length && values.length >= 2
-        ? `ოპერატიული მეხსიერების ტიპი „${values[0]}“ დედაპლატის ტიპს „${values[1]}“ არ ემთხვევა.`
-        : "ოპერატიული მეხსიერების ტიპი დედაპლატასთან თავსებადი არ არის.";
+        ? `ოპერატიული მეხსიერების ტიპი „${values[0]}“ დედა დაფის ტიპს „${values[1]}“ არ ემთხვევა.`
+        : "ოპერატიული მეხსიერების ტიპი დედა დაფასთან თავსებადი არ არის.";
     case "INSUFFICIENT_PSU_WATTAGE":
     case "PSU_WATTAGE_INSUFFICIENT":
       return en ? "The selected power supply does not provide enough wattage for this configuration." : "არჩეული კვების ბლოკის სიმძლავრე ამ კონფიგურაციისთვის საკმარისი არ არის.";
     case "FORM_FACTOR_MISMATCH":
     case "CASE_FORM_FACTOR_MISMATCH":
-      return en ? "The motherboard form factor is not compatible with the selected case." : "დედაპლატის ზომა არჩეულ ქეისში თავსებადი არ არის.";
+      return en ? "The motherboard form factor is not compatible with the selected case." : "დედა დაფის ზომა არჩეულ ქეისში თავსებადი არ არის.";
     case "COOLER_SOCKET_MISMATCH":
       return en ? "The CPU cooler is not compatible with the selected processor socket." : "პროცესორის ქულერი არჩეული პროცესორის სოკეტთან თავსებადი არ არის.";
     case "GPU_LENGTH_EXCEEDS_CASE":

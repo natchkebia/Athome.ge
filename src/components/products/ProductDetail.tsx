@@ -46,7 +46,7 @@ function isModelSpec(label: string) {
 // უცნობ ტიპს ვტოვებთ (არ ვხატავთ), ვიდრე მცდარ სათაურს ვაჩვენებდეთ.
 const COMPONENT_TYPE_HEADINGS: Record<string, string> = {
   Cpu: "პროცესორები",
-  Motherboard: "დედაპლატები",
+  Motherboard: "დედა დაფები",
   Ram: "ოპერატიული მეხსიერება",
   Gpu: "ვიდეობარათები",
   Psu: "კვების ბლოკები",

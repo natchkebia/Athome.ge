@@ -7,7 +7,7 @@ import { PDFDocument, PDFFont, PDFPage, rgb } from "pdf-lib";
 
 const CATEGORY_NAMES: Record<ConfiguratorCategoryKey, { ka: string; en: string }> = {
   processor: { ka: "პროცესორი", en: "Processor" },
-  motherboard: { ka: "დედაპლატა", en: "Motherboard" },
+  motherboard: { ka: "დედა დაფა", en: "Motherboard" },
   ram: { ka: "ოპერატიული მეხსიერება", en: "Memory" },
   gpu: { ka: "ვიდეობარათი", en: "Graphics card" },
   psu: { ka: "კვების ბლოკი", en: "Power supply" },
@@ -30,7 +30,7 @@ const PAGE_WIDTH = 595.28;
 const PAGE_HEIGHT = 841.89;
 const MARGIN = 42;
 // PDF აქცენტები ემთხვევა საიტზე გამოყენებულ შედარების ფერს ($red-normal).
-const BRAND = rgb(186 / 255, 54 / 255, 87 / 255);
+const BRAND = rgb(249 / 255, 4 / 255, 70 / 255);
 const INK = rgb(38 / 255, 50 / 255, 56 / 255);
 const MUTED = rgb(105 / 255, 118 / 255, 126 / 255);
 // Keep the quotation table in sync with the comparison palette. SOFT is the
