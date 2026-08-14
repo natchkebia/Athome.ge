@@ -15,6 +15,7 @@ const CATEGORY_NAMES: Record<ConfiguratorCategoryKey, { ka: string; en: string }
   case: { ka: "ქეისი", en: "Case" },
   drive: { ka: "მყარი დისკი", en: "Hard drive" },
   storage: { ka: "SSD მეხსიერება", en: "SSD storage" },
+  storageDrive: { ka: "საცავი", en: "Storage" },
   caseFan: { ka: "ქეისის ქულერი", en: "Case fan" },
   os: { ka: "სისტემის ლიცენზია", en: "System license" },
   monitor: { ka: "მონიტორი", en: "Monitor" },
@@ -28,11 +29,14 @@ const CATEGORY_NAMES: Record<ConfiguratorCategoryKey, { ka: string; en: string }
 const PAGE_WIDTH = 595.28;
 const PAGE_HEIGHT = 841.89;
 const MARGIN = 42;
-const BRAND = rgb(16 / 255, 181 / 255, 192 / 255);
+// PDF აქცენტები ემთხვევა საიტზე გამოყენებულ შედარების ფერს ($red-normal).
+const BRAND = rgb(186 / 255, 54 / 255, 87 / 255);
 const INK = rgb(38 / 255, 50 / 255, 56 / 255);
 const MUTED = rgb(105 / 255, 118 / 255, 126 / 255);
-const LINE = rgb(220 / 255, 231 / 255, 234 / 255);
-const SOFT = rgb(247 / 255, 249 / 255, 250 / 255);
+// Keep the quotation table in sync with the comparison palette. SOFT is the
+// comparison colour at 6% opacity composited on white.
+const LINE = rgb(233 / 255, 235 / 255, 248 / 255);
+const SOFT = rgb(251 / 255, 243 / 255, 245 / 255);
 
 function formatMoney(value: number, locale: string) {
   return `${new Intl.NumberFormat(locale === "en" ? "en-US" : "ka-GE", {
@@ -197,7 +201,7 @@ export async function printConfiguration(
     : "ფასები და მარაგი აქტუალურია დოკუმენტის შექმნის მომენტში და შესაძლოა შეიცვალოს. შეძენამდე გთხოვთ გადაამოწმოთ ხელმისაწვდომობა.";
   const noticeLines = wrapText(notice, font, 8.5, PAGE_WIDTH - MARGIN * 2 - 24);
   const noticeHeight = 22 + noticeLines.length * 12;
-  page.drawRectangle({ x: MARGIN, y: y - noticeHeight + 8, width: PAGE_WIDTH - MARGIN * 2, height: noticeHeight, color: rgb(239 / 255, 250 / 255, 251 / 255) });
+  page.drawRectangle({ x: MARGIN, y: y - noticeHeight + 8, width: PAGE_WIDTH - MARGIN * 2, height: noticeHeight, color: SOFT });
   page.drawRectangle({ x: MARGIN, y: y - noticeHeight + 8, width: 3, height: noticeHeight, color: BRAND });
   noticeLines.forEach((line, index) => page.drawText(line, { x: MARGIN + 13, y: y - 9 - index * 12, font, size: 8.5, color: MUTED }));
 

@@ -5,7 +5,9 @@
   background-color: #ffffff;
   width: min(var(--site-max-width), 100%);
   margin: 0 auto;
-  padding: 0 var(--site-gutter);
+  padding: 0 var(--site-gutter) clamp(96px, 10vw, 160px);
+  box-sizing: border-box;
+  min-height: 520px;
 
   > div {
     width: 100%;

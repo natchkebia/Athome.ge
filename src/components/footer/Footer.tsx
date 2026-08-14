@@ -133,7 +133,7 @@ export default function Footer() {
           <div className={styles["menu-column"]}>
             <h4>{en ? "About us" : "ჩვენ შესახებ"}</h4>
             <ul>
-              <li>{en ? "Who we are" : "ვინ ვართ ჩვენ"}</li>
+              <li><Link href="/about-us">{en ? "Who we are" : "ვინ ვართ ჩვენ"}</Link></li>
             </ul>
           </div>
 

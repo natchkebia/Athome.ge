@@ -15,6 +15,8 @@ type Props = {
   addingToCart?: boolean;
   guestBuilds?: { token: string; name: string; expiresAt: string }[];
   onOpenGuestBuild?: (token: string) => void;
+  onAddGuestBuildToCart?: (token: string) => void;
+  onDeleteGuestBuild?: (token: string) => void;
 };
 
 export default function ConfiguratorSummary({
@@ -27,6 +29,8 @@ export default function ConfiguratorSummary({
   addingToCart = false,
   guestBuilds = [],
   onOpenGuestBuild,
+  onAddGuestBuildToCart,
+  onDeleteGuestBuild,
 }: Props) {
   const locale = useStorefrontLocale();
   const en = locale === "en";
@@ -60,9 +64,15 @@ export default function ConfiguratorSummary({
           <p>{en ? "No components selected yet" : "ჯერ არცერთი ნაწილი არ არის არჩეული"}</p>
         ) : (
           products.map((product) => (
-            <div key={product.id} className={styles.selectedItem}>
+            <div
+              key={product.id}
+              className={`${styles.selectedItem} ${product.stock <= 0 ? styles.selectedItemUnavailable : ""}`}
+            >
               <span>
                 {product.title} × {product.quantity}
+                {product.stock <= 0 && (
+                  <small>{en ? "Unavailable" : "მიუწვდომელია"}</small>
+                )}
               </span>
 
               <strong>{product.price * product.quantity} ₾</strong>
@@ -109,12 +119,22 @@ export default function ConfiguratorSummary({
         <div className={styles.guestBuilds}>
           <h3>{en ? "Temporarily saved configurations" : "დროებით შენახული კონფიგურაციები"}</h3>
           {guestBuilds.map((build) => (
-            <button key={build.token} type="button" onClick={() => onOpenGuestBuild?.(build.token)}>
-              <span>{build.name}</span>
-              <small>
-                {en ? "Available until" : "ხელმისაწვდომია"}: {new Date(build.expiresAt).toLocaleString(en ? "en-GB" : "ka-GE")}
-              </small>
-            </button>
+            <div key={build.token} className={styles.guestBuildRow}>
+              <button type="button" className={styles.guestBuildOpen} onClick={() => onOpenGuestBuild?.(build.token)}>
+                <span>{build.name}</span>
+                <small>
+                  {en ? "Available until" : "ხელმისაწვდომია"}: {new Date(build.expiresAt).toLocaleString(en ? "en-GB" : "ka-GE")}
+                </small>
+              </button>
+              <div className={styles.guestBuildActions}>
+                <button type="button" className={styles.guestBuildCart} onClick={() => onAddGuestBuildToCart?.(build.token)}>
+                  {en ? "Add to cart" : "კალათაში დამატება"}
+                </button>
+                <button type="button" className={styles.guestBuildDelete} onClick={() => onDeleteGuestBuild?.(build.token)}>
+                  {en ? "Delete" : "წაშლა"}
+                </button>
+              </div>
+            </div>
           ))}
         </div>
       )}

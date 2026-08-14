@@ -15,10 +15,9 @@ export default function BasketPage() {
   const router = useRouter();
   const { cart, updateCartQuantity, removeFromCart, clearCart } = useCommerce();
   const basket: ProductItem[] = cart.items
-    .filter((item) => item.productName)
     .map((item) => ({
       id: String(item.productId),
-      title: item.productName,
+      title: item.productName || item.productSku || (en ? `Product #${item.productId}` : `პროდუქტი #${item.productId}`),
       image: normalizeMediaUrl(item.imageUrl),
       oldPrice: item.oldPrice,
       newPrice: item.sellingPrice,

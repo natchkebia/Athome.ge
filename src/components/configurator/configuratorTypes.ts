@@ -8,6 +8,7 @@ export type ConfiguratorCategoryKey =
   | "case"
   | "drive"
   | "storage"
+  | "storageDrive"
   | "caseFan"
   | "os"
   | "monitor"
@@ -30,6 +31,8 @@ export type ConfiguratorProduct = {
   image: string;
   price: number;
   stock: number;
+  stockStatus?: string;
+  hasOwnStock?: boolean;
   brandName?: string;
   brandSlug?: string;
   compatibilityStatus?: "compatible" | "unknown" | "unchecked";

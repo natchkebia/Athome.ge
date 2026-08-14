@@ -320,23 +320,72 @@
     color: #3b3f42;
   }
 
-  > button {
+  .guestBuildRow {
     width: 100%;
-    padding: 10px 12px;
-    border: 0;
     border-radius: 10px;
     background: #f6f8fb;
+    display: flex;
+    align-items: stretch;
+    gap: 8px;
+    padding: 8px;
+
+    & + .guestBuildRow { margin-top: 8px; }
+    &:hover { background: #eef9fa; }
+  }
+
+  .guestBuildOpen {
+    min-width: 0;
+    flex: 1;
+    padding: 2px 4px;
+    border: 0;
+    background: transparent;
     text-align: left;
     cursor: pointer;
     display: flex;
     flex-direction: column;
     gap: 4px;
 
-    & + button { margin-top: 8px; }
-    &:hover { background: #eef9fa; }
-
     span { color: #3b3f42; font-weight: 600; }
     small { color: #7e8b96; font-size: 11px; }
+  }
+
+  .guestBuildCart {
+    flex: 0 0 auto;
+    min-width: 118px;
+    padding: 7px 10px;
+    border: 0;
+    border-radius: 8px;
+    background: #10b5c0;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+
+    &:hover { background: #0fa1ab; }
+  }
+
+  .guestBuildActions {
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 5px;
+  }
+
+  .guestBuildDelete {
+    padding: 5px 10px;
+    border: 1px solid #f3cbd1;
+    border-radius: 8px;
+    background: #fff;
+    color: #b3344b;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+
+    &:hover {
+      border-color: #b3344b;
+      background: #fff5f6;
+    }
   }
 }
 
@@ -366,12 +415,25 @@
 
   span {
     color: #60707d;
+
+    small {
+      display: block;
+      margin-top: 3px;
+      color: #e53935;
+      font-size: 10px;
+      font-weight: 600;
+    }
   }
 
   strong {
     color: #27c2cf;
     white-space: nowrap;
   }
+}
+
+.selectedItemUnavailable {
+  background: #fff4f4;
+  border: 1px solid #ffd9d9;
 }
 
 /* MODAL */
@@ -570,6 +632,20 @@
   background: #fff7e6;
   color: #9a6a12;
   font-size: 13px;
+  font-weight: 600;
+}
+
+.ownStockBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 24px;
+  margin: -4px 0 8px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: rgba(16, 181, 192, 0.12);
+  color: #0fa1ab !important;
+  font-size: 11px !important;
   font-weight: 600;
 }
 

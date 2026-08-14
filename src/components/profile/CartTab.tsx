@@ -34,10 +34,9 @@ export default function CartTab({ showSummary = true }: CartTabProps) {
   const [isContinuing, setIsContinuing] = useState(false);
   const { cart, updateCartQuantity, removeFromCart, clearCart } = useCommerce();
   const cartItems: CartItem[] = cart.items
-    .filter((item) => item.productName)
     .map((item) => ({
       id: item.productId,
-      title: item.productName,
+      title: item.productName || item.productSku || (en ? `Product #${item.productId}` : `პროდუქტი #${item.productId}`),
       image: normalizeMediaUrl(item.imageUrl),
       price: item.sellingPrice,
       oldPrice: item.oldPrice,

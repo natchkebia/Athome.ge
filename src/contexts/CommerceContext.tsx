@@ -23,7 +23,12 @@ import {
 } from "@/lib/api/profileCommerce";
 import { getStoredAuthTokens } from "@/lib/auth/tokens";
 import {
+  getConfiguratorSlotProducts,
+  type ConfiguratorSlot,
+} from "@/lib/api/configurator";
+import {
   addGuestCartItem,
+  cacheProductInfo,
   clearGuestCart,
   clearGuestWishlist,
   getCachedInfo,
@@ -87,6 +92,83 @@ function isProfileWishlist(value: unknown): value is ProfileWishlist {
       typeof value === "object" &&
       Array.isArray((value as ProfileWishlist).items)
   );
+}
+
+// Configurator/cart mutations can briefly return cart rows without presentation
+// fields. Keep the backend quantities authoritative, but fill the visible data
+// from the product cache so the badge and the rendered list never disagree.
+function hydrateCart(cart: ProfileCart): ProfileCart {
+  return {
+    ...cart,
+    items: cart.items.map((item) => {
+      const cached = getCachedInfo(item.productId);
+      if (!cached) return item;
+
+      const sellingPrice = item.sellingPrice || cached.sellingPrice;
+      return {
+        ...item,
+        productName: item.productName || cached.productName,
+        imageUrl: item.imageUrl || cached.imageUrl,
+        slug: item.slug || cached.slug,
+        sellingPrice,
+        oldPrice: item.oldPrice ?? cached.oldPrice,
+        lineTotal: item.lineTotal || sellingPrice * item.quantity,
+        isInStock: item.isInStock ?? cached.isInStock ?? true,
+      };
+    }),
+  };
+}
+
+const CONFIGURATOR_SLOTS: ConfiguratorSlot[] = [
+  "cpu",
+  "motherboard",
+  "ram",
+  "gpu",
+  "psu",
+  "case",
+  "cpuCooler",
+  "liquidCooler",
+  "storageDrive",
+  "storageSsd",
+  "storageHdd",
+  "caseFan",
+];
+
+async function hydrateConfiguratorCart(cart: ProfileCart): Promise<ProfileCart> {
+  let hydrated = hydrateCart(cart);
+  const missingIds = new Set(
+    hydrated.items
+      .filter((item) => !item.productName || !item.imageUrl || !item.sellingPrice)
+      .map((item) => item.productId)
+  );
+
+  if (missingIds.size === 0) return hydrated;
+
+  const results = await Promise.allSettled(
+    CONFIGURATOR_SLOTS.map((slot) =>
+      getConfiguratorSlotProducts(slot, { pageSize: 1000 })
+    )
+  );
+
+  for (const result of results) {
+    if (result.status !== "fulfilled") continue;
+    for (const product of result.value.items) {
+      if (!missingIds.has(product.id)) continue;
+      cacheProductInfo({
+        productId: product.id,
+        productName: product.name || `პროდუქტი #${product.id}`,
+        imageUrl: product.thumbnailUrl || "",
+        slug: product.slug || "",
+        sellingPrice: product.effectivePrice,
+        oldPrice: product.oldPrice ?? undefined,
+        isInStock: !String(product.stockStatus ?? "").toLowerCase().includes("out"),
+      });
+      missingIds.delete(product.id);
+    }
+  }
+
+  hydrated = hydrateCart(hydrated);
+  return hydrated;
 }
 
 // optimistic item — ბარათი add-ისას პროდუქტის ინფოს ქეშავს (getCachedInfo),
@@ -170,7 +252,7 @@ export function CommerceProvider({ children }: { children: React.ReactNode }) {
         getProfileWishlist(),
       ]);
 
-      setCart(cartResponse ?? emptyCart);
+      setCart(cartResponse ? await hydrateConfiguratorCart(cartResponse) : emptyCart);
       setWishlist(wishlistResponse ?? emptyWishlist);
     } catch {
       setCart(emptyCart);
@@ -188,7 +270,7 @@ export function CommerceProvider({ children }: { children: React.ReactNode }) {
 
     try {
       const cartResponse = await getProfileCart();
-      setCart(cartResponse ?? emptyCart);
+      setCart(cartResponse ? await hydrateConfiguratorCart(cartResponse) : emptyCart);
     } catch {
       setCart(emptyCart);
     }
@@ -292,8 +374,9 @@ export function CommerceProvider({ children }: { children: React.ReactNode }) {
             ? await updateProfileCartItem(productId, targetQuantity)
             : await addProfileCartItem(productId, quantity);
           if (isProfileCart(updatedCart)) {
-            cartRef.current = updatedCart;
-            setCart(updatedCart);
+            const hydratedCart = await hydrateConfiguratorCart(updatedCart);
+            cartRef.current = hydratedCart;
+            setCart(hydratedCart);
           } else {
             await refreshCart();
           }

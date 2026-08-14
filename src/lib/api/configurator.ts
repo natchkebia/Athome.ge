@@ -29,6 +29,7 @@ export const FRONTEND_TO_BACKEND_SLOT: Record<string, ConfiguratorSlot> = {
   case: "case",
   drive: "storageHdd",
   storage: "storageSsd",
+  storageDrive: "storageDrive",
   caseFan: "caseFan",
 };
 
@@ -64,6 +65,8 @@ export type ConfiguratorProductCard = {
   brandName?: string | null;
   brandSlug?: string | null;
   stockStatus?: string | null;
+  stockQuantity?: number | null;
+  hasOwnStock?: boolean | null;
   compatibilityStatus?: "compatible" | "unknown" | "unchecked" | null;
   ratingAverage: number;
   ratingCount: number;
@@ -108,6 +111,8 @@ export type ConfiguratorBuildSlotSummary = {
   productName?: string | null;
   thumbnailUrl?: string | null;
   price: number;
+  stockQuantity?: number | null;
+  stockStatus?: string | null;
   hasIssue: boolean;
 };
 

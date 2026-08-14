@@ -28,7 +28,7 @@ export const systemUnitCategories: ConfiguratorCategory[] = [
   },
   {
     key: "cooler",
-    title: "პროცესორის გამაგრილებელი",
+    title: "პროცესორის ქულერი",
     icon: "/images/cooler.svg",
   },
   {
@@ -45,6 +45,11 @@ export const systemUnitCategories: ConfiguratorCategory[] = [
     key: "storage",
     title: "SSD მეხსიერება",
     icon: "/images/ssd.svg",
+  },
+  {
+    key: "storageDrive",
+    title: "საცავი",
+    icon: "/images/Harddrive.svg",
   },
   {
     key: "caseFan",

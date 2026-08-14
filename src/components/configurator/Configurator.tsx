@@ -19,6 +19,7 @@ import type { ProductSelectionResult } from "./ConfiguratorProductModal";
 import ConfiguratorSummary from "./ConfiguratorSummary";
 import Breadcrumb from "../ breadcrumb/Breadcrumb";
 import { useCommerce } from "@/contexts/CommerceContext";
+import { cacheProductInfo } from "@/lib/commerce/guestStore";
 import { normalizeMediaUrl } from "@/lib/storefront/products";
 import {
   FRONTEND_TO_BACKEND_SLOT,
@@ -106,7 +107,7 @@ const REQUIRED_SYSTEM_CATEGORIES: ConfiguratorCategoryKey[] = [
 const EN_CATEGORY_TITLES: Record<ConfiguratorCategoryKey, string> = {
   processor: "Processor", motherboard: "Motherboard", ram: "Memory", gpu: "Graphics card",
   psu: "Power supply", cooler: "CPU cooler", case: "Case", drive: "Hard drive",
-  storage: "SSD storage", caseFan: "Case fan", os: "System license", monitor: "Monitor",
+  storage: "SSD storage", storageDrive: "Storage", caseFan: "Case fan", os: "System license", monitor: "Monitor",
   headphones: "Headset", keyboard: "Keyboard", mouse: "Mouse", microphone: "Microphone",
   speaker: "Speakers",
 };
@@ -122,7 +123,7 @@ const BACKEND_TO_FRONTEND_SLOT: Record<ConfiguratorSlot, ConfiguratorCategoryKey
     case: "case",
     cpuCooler: "cooler",
     liquidCooler: "cooler",
-    storageDrive: "storage",
+    storageDrive: "storageDrive",
     storageSsd: "storage",
     storageHdd: "drive",
     caseFan: "caseFan",
@@ -134,13 +135,18 @@ function adaptCard(
   category: ConfiguratorCategoryKey
 ): ConfiguratorProduct {
   const outOfStock = (card.stockStatus ?? "").toLowerCase().includes("out");
+  const stock = card.stockQuantity == null
+    ? (outOfStock ? 0 : 99)
+    : Math.max(0, card.stockQuantity);
   return {
     id: card.id,
     category,
     title: card.name ?? "",
     image: normalizeMediaUrl(card.thumbnailUrl ?? undefined) || "/images/case.svg",
     price: card.effectivePrice,
-    stock: outOfStock ? 0 : 99,
+    stock,
+    stockStatus: card.stockStatus ?? undefined,
+    hasOwnStock: card.hasOwnStock ?? undefined,
     brandName: card.brandName ?? undefined,
     brandSlug: card.brandSlug ?? undefined,
     compatibilityStatus: card.compatibilityStatus ?? undefined,
@@ -155,7 +161,7 @@ export default function Configurator() {
   const en = useStorefrontLocale() === "en";
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { addToCart } = useCommerce();
+  const { addToCart, refreshCart } = useCommerce();
 
   const [selectedCategory, setSelectedCategory] =
     useState<ConfiguratorCategoryKey | null>(null);
@@ -171,6 +177,7 @@ export default function Configurator() {
   const [selectedBrandSlugs, setSelectedBrandSlugs] = useState<string[]>([]);
   const [hiddenByCompatibility, setHiddenByCompatibility] = useState(0);
   const [modalTotalCount, setModalTotalCount] = useState(0);
+  const [compatibilityFilterEnabled, setCompatibilityFilterEnabled] = useState(true);
 
   const [checkResult, setCheckResult] = useState<ConfiguratorCheckResult | null>(
     null
@@ -219,10 +226,12 @@ export default function Configurator() {
     setModalLoading(true);
     setModalProducts([]);
 
-    const selectedIds = (Object.keys(selectedProducts) as ConfiguratorCategoryKey[])
+    const selectedIds = compatibilityFilterEnabled
+      ? (Object.keys(selectedProducts) as ConfiguratorCategoryKey[])
       // მიმდინარე სლოტის ძველი არჩევანი კანდიდატებს არ უნდა შეედაროს — ის ჩანაცვლდება.
       .filter((key) => key !== selectedCategory && Boolean(FRONTEND_TO_BACKEND_SLOT[key]))
-      .flatMap((key) => selectedProducts[key]?.map((item) => item.id) ?? []);
+          .flatMap((key) => selectedProducts[key]?.map((item) => item.id) ?? [])
+      : [];
     const request = backendSlot
       ? getConfiguratorSlotProducts(backendSlot, {
           selectedIds,
@@ -260,10 +269,11 @@ export default function Configurator() {
     return () => {
       active = false;
     };
-  }, [selectedCategory, selectedBrandSlugs, selectedProducts]);
+  }, [selectedCategory, selectedBrandSlugs, selectedProducts, compatibilityFilterEnabled]);
 
   useEffect(() => {
     setSelectedBrandSlugs([]);
+    setCompatibilityFilterEnabled(true);
   }, [selectedCategory]);
 
   const activeCategoryTitle = useMemo(() => {
@@ -348,7 +358,10 @@ export default function Configurator() {
               title: slot.productName ?? "",
               image: slot.thumbnailUrl || "/images/case.svg",
               price: slot.price,
-              stock: 99,
+              stock: slot.stockQuantity == null
+                ? ((slot.stockStatus ?? "").toLowerCase().includes("out") ? 0 : 99)
+                : Math.max(0, slot.stockQuantity),
+              stockStatus: slot.stockStatus ?? undefined,
               specs: [],
               quantity: 1,
             },
@@ -362,7 +375,9 @@ export default function Configurator() {
   const totalPrice = checkResult?.summary?.totalPrice ?? localTotalPrice;
 
   const getSafeQuantity = (product: ConfiguratorProduct, quantity: number) => {
-    return Math.min(Math.max(1, quantity), product.stock);
+    return product.stock > 0
+      ? Math.min(Math.max(1, quantity), product.stock)
+      : 1;
   };
 
   const handleSelectProduct = async (
@@ -375,6 +390,13 @@ export default function Configurator() {
     const alreadySelected = categoryProducts.some(
       (item) => item.id === product.id
     );
+
+    if (!alreadySelected && product.stock <= 0) {
+      return {
+        allowed: false,
+        message: en ? "This product is out of stock." : "პროდუქტი მარაგში არ არის.",
+      };
+    }
 
     // უკვე არჩეულ პროდუქტზე დაჭერა წაშლაა და თავსებადობის შემოწმება არ სჭირდება.
     if (!alreadySelected) {
@@ -562,8 +584,16 @@ export default function Configurator() {
     setAddingToCart(true);
     try {
       for (const product of allSelectedProducts) {
+        cacheProductInfo({
+          productId: product.id,
+          productName: product.title,
+          imageUrl: product.image,
+          sellingPrice: product.price,
+          isInStock: product.stock > 0,
+        });
         await addToCart(product.id, product.quantity || 1);
       }
+      await refreshCart();
       router.push("/basket");
     } catch {
       setAlert({
@@ -573,7 +603,67 @@ export default function Configurator() {
     } finally {
       setAddingToCart(false);
     }
-  }, [addToCart, allSelectedProducts, en, router]);
+  }, [addToCart, allSelectedProducts, en, refreshCart, router]);
+
+  const handleAddGuestBuildToCart = useCallback(async (token: string) => {
+    setAddingToCart(true);
+    try {
+      const build = await getConfiguratorBuild(token);
+      const availableSlots = build.slots.filter((slot) => {
+        if (slot.stockQuantity != null) return slot.stockQuantity > 0;
+        return !(slot.stockStatus ?? "").toLowerCase().includes("out");
+      });
+
+      for (const slot of availableSlots) {
+        // CommerceContext automatically routes this to the authenticated
+        // profile cart or the guest local cart, while keeping the normal
+        // storefront basket/header state in sync.
+        cacheProductInfo({
+          productId: slot.productId,
+          productName: slot.productName || (en ? "Configuration component" : "კონფიგურაციის კომპონენტი"),
+          imageUrl: slot.thumbnailUrl || "",
+          sellingPrice: slot.price,
+          isInStock: true,
+        });
+        await addToCart(slot.productId, 1);
+      }
+
+      const skippedCount = build.slots.length - availableSlots.length;
+      if (availableSlots.length === 0) {
+        setAlert({
+          type: "warning",
+          message: en ? "No available products were found in this configuration." : "ამ კონფიგურაციაში ხელმისაწვდომი პროდუქტი ვერ მოიძებნა.",
+        });
+        return;
+      }
+      if (skippedCount > 0) {
+        setAlert({
+          type: "warning",
+          message: en
+            ? `${availableSlots.length} products were added. ${skippedCount} unavailable products were skipped.`
+            : `${availableSlots.length} პროდუქტი დაემატა. ${skippedCount} მიუწვდომელი პროდუქტი გამოტოვებულია.`,
+        });
+      }
+      await refreshCart();
+      router.push("/basket");
+    } catch {
+      setAlert({
+        type: "warning",
+        message: en ? "Could not add the saved configuration to the cart." : "შენახული კონფიგურაციის კალათაში დამატება ვერ მოხერხდა.",
+      });
+    } finally {
+      setAddingToCart(false);
+    }
+  }, [addToCart, en, refreshCart, router]);
+
+  const handleDeleteGuestBuild = useCallback((token: string) => {
+    setGuestBuilds((items) => {
+      const next = items.filter((item) => item.token !== token);
+      localStorage.setItem(GUEST_BUILDS_KEY, JSON.stringify(next));
+      return next;
+    });
+    if (lastGuestBuildToken === token) setLastGuestBuildToken(null);
+  }, [lastGuestBuildToken]);
 
   const breadcrumbs = en
     ? [{ label: "Home", href: "/" }, { label: "Configurator" }]
@@ -668,6 +758,8 @@ export default function Configurator() {
               addingToCart={addingToCart}
               guestBuilds={guestBuilds}
               onOpenGuestBuild={(token) => router.push(`/configurator?build=${encodeURIComponent(token)}`)}
+              onAddGuestBuildToCart={handleAddGuestBuildToCart}
+              onDeleteGuestBuild={handleDeleteGuestBuild}
             />
           </div>
         </div>
@@ -686,7 +778,7 @@ export default function Configurator() {
             onBrandSlugsChange={setSelectedBrandSlugs}
             hiddenByCompatibility={hiddenByCompatibility}
             totalCount={modalTotalCount}
-            onClearCompatibilityFilter={handleClearConfiguration}
+            onClearCompatibilityFilter={() => setCompatibilityFilterEnabled(false)}
           />
         )}
 

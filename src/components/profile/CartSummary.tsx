@@ -24,10 +24,9 @@ export default function CartSummary({
   const [isContinuing, setIsContinuing] = useState(false);
   const { cart } = useCommerce();
   const cartItems: ProductItem[] = cart.items
-    .filter((item) => item.productName)
     .map((item) => ({
       id: item.productId,
-      title: item.productName,
+      title: item.productName || item.productSku || (en ? `Product #${item.productId}` : `პროდუქტი #${item.productId}`),
       image: normalizeMediaUrl(item.imageUrl),
       price: item.sellingPrice,
       oldPrice: item.oldPrice,

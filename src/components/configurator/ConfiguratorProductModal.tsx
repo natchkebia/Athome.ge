@@ -103,7 +103,7 @@ export default function ConfiguratorProductModal({
 
   const normalizeQuantity = (value: string, stock: number) => {
     const numericValue = Number(value) || 1;
-    return Math.min(Math.max(1, numericValue), stock);
+    return stock > 0 ? Math.min(Math.max(1, numericValue), stock) : 1;
   };
 
   const getSelectedProduct = (productId: number) => {
@@ -294,12 +294,24 @@ export default function ConfiguratorProductModal({
                         />
                       </label>
 
-                      <small>{en ? `In stock: ${product.stock} units` : `მარაგშია: ${product.stock} ერთეული`}</small>
+                      <small>
+                        {product.stock <= 0
+                          ? (en ? "Out of stock" : "მარაგში არ არის")
+                          : product.stock <= 10
+                            ? (en ? `In stock: ${product.stock} units` : `მარაგშია: ${product.stock} ერთეული`)
+                            : (en ? "In stock" : "მარაგშია")}
+                      </small>
+
+                      {product.hasOwnStock && product.stock > 0 && (
+                        <span className={styles.ownStockBadge}>
+                          {en ? "In our stock" : "ჩვენს მარაგშია"}
+                        </span>
+                      )}
 
                       <button
                         type="button"
                         className={isSelected ? styles.removeProductBtn : ""}
-                        disabled={isChecking}
+                        disabled={isChecking || (!isSelected && product.stock <= 0)}
                         onClick={() => handleSelect(product, quantity)}
                       >
                         {isChecking

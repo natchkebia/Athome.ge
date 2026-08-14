@@ -15,6 +15,7 @@ import {
 } from "@/lib/api/configurator";
 import type { ConfiguratorCategoryKey, SelectedConfiguratorProduct } from "@/components/configurator/configuratorTypes";
 import { printConfiguration } from "@/lib/configurator/printConfiguration";
+import { useCommerce } from "@/contexts/CommerceContext";
 
 const SLOT_TO_CATEGORY: Record<ConfiguratorSlot, ConfiguratorCategoryKey> = {
   cpu: "processor",
@@ -25,7 +26,7 @@ const SLOT_TO_CATEGORY: Record<ConfiguratorSlot, ConfiguratorCategoryKey> = {
   case: "case",
   cpuCooler: "cooler",
   liquidCooler: "cooler",
-  storageDrive: "drive",
+  storageDrive: "storageDrive",
   storageSsd: "storage",
   storageHdd: "drive",
   caseFan: "caseFan",
@@ -34,6 +35,7 @@ const SLOT_TO_CATEGORY: Record<ConfiguratorSlot, ConfiguratorCategoryKey> = {
 export default function SavedConfigurationsTab() {
   const router = useRouter();
   const { showToast } = useToast();
+  const { refreshCart } = useCommerce();
   const [configurations, setConfigurations] = useState<ProfileConfiguratorBuild[]>([]);
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState<number | null>(null);
@@ -72,7 +74,13 @@ export default function SavedConfigurationsTab() {
       } else {
         showToast(`${result.addedCount} პროდუქტი დაემატა კალათაში`);
       }
-      if (result.addedCount > 0) router.push("/basket");
+      if (result.addedCount > 0) {
+        // Bulk endpoint updates the profile cart on the backend. Refresh the
+        // shared storefront cart as well, so the header and /basket show the
+        // same products immediately without requiring a reload.
+        await refreshCart();
+        router.push("/basket");
+      }
     } catch {
       showToast("კალათაში დამატება ვერ მოხერხდა", "error");
     } finally {
@@ -96,7 +104,10 @@ export default function SavedConfigurationsTab() {
             title: slot.productName || "პროდუქტი",
             image: slot.thumbnailUrl || "",
             price: slot.price,
-            stock: 1,
+            stock: slot.stockQuantity == null
+              ? ((slot.stockStatus ?? "").toLowerCase().includes("out") ? 0 : 99)
+              : Math.max(0, slot.stockQuantity),
+            stockStatus: slot.stockStatus ?? undefined,
             specs: [],
             quantity: 1,
           },
