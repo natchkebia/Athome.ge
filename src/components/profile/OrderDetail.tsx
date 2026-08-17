@@ -10,6 +10,7 @@ import {
 import { orderStatusLabel } from "./orderStatus";
 import { normalizeMediaUrl } from "@/lib/storefront/products";
 import AtHomeLoader from "../shared/AtHomeLoader";
+import MessengerContactLink from "../shared/MessengerContactLink";
 
 type Props = {
   orderId: number;
@@ -163,6 +164,13 @@ export default function OrderDetail({ orderId, onBack }: Props) {
         <h4>შეკვეთა {order.orderNumber}</h4>
         <span>{orderStatusLabel(order.status)}</span>
       </div>
+
+      {order.orderNumber && (
+        <MessengerContactLink
+          className={styles.orderMessenger}
+          context={{ type: "order", value: order.orderNumber }}
+        />
+      )}
 
       {showRetry && (
         <div className={styles.retryBox}>

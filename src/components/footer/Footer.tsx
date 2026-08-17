@@ -8,6 +8,7 @@ import {
   getStorefrontCategories,
   type StorefrontCategory,
 } from "@/lib/api/storefront";
+import MessengerContactLink from "../shared/MessengerContactLink";
 
 const categoryFallback = [
   { slug: "computers", ka: "კომპიუტერები", en: "Computers" },
@@ -80,6 +81,11 @@ export default function Footer() {
               </a>
             </li>
           </ul>
+
+          <MessengerContactLink
+            className={styles.messengerContact}
+            locale={en ? "en" : "ka"}
+          />
 
           <div className={styles.socials}>
             <a

@@ -7,6 +7,7 @@ import { useCommerce } from "@/contexts/CommerceContext";
 import { normalizeMediaUrl } from "@/lib/storefront/products";
 import type { CheckoutResponse } from "@/lib/api/checkout";
 import type { ProfileCartItem } from "@/lib/api/profileCommerce";
+import MessengerContactLink from "../shared/MessengerContactLink";
 
 type Step5CompleteProps = {
   contactData?: FormValues | null;
@@ -245,6 +246,11 @@ export default function Step5Complete({
           {bankTransfer.instructions && <p>{bankTransfer.instructions}</p>}
         </div>
       )}
+
+      <MessengerContactLink
+        className={styles.messengerContact}
+        context={{ type: "order", value: orderNumber }}
+      />
 
       <div className={styles.invoiceCard}>
         <div className={styles.invoiceMeta}>

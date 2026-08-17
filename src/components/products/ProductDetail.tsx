@@ -26,6 +26,7 @@ import { useToast } from "@/contexts/ToastContext";
 import { cacheProductInfo } from "@/lib/commerce/guestStore";
 import { flyToTarget } from "@/lib/ui/flyToCart";
 import { useStorefrontLocale } from "@/lib/i18n/useStorefrontLocale";
+import MessengerContactLink from "../shared/MessengerContactLink";
 
 interface Spec {
   label: string;
@@ -438,6 +439,12 @@ export default function ProductDetail({
                 </div>
               </fieldset>
             </div>
+
+            <MessengerContactLink
+              className={styles.messengerContact}
+              context={{ type: "product", value: product.sku }}
+              locale={en ? "en" : "ka"}
+            />
           </div>
         </div>
       </div>

@@ -14,6 +14,7 @@ import {
   retryOrderPayment,
   type OrderPaymentStatus,
 } from "@/lib/api/orders";
+import MessengerContactLink from "@/components/shared/MessengerContactLink";
 
 type CheckoutSummary = {
   result: CheckoutResponse;
@@ -173,6 +174,10 @@ function PaymentStatusContent() {
         <button className={styles.primaryBtn} onClick={retry} disabled={retrying}>{retrying ? "იტვირთება…" : "ხელახლა ცდა"}</button>
       </>}
       {retryError && <p className={styles.errorText}>{retryError}</p>}
+      <MessengerContactLink
+        className={styles.messengerContact}
+        context={{ type: "order", value: status.orderNumber }}
+      />
     </StatusCard>
   );
 }

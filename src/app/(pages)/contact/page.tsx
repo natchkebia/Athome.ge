@@ -1,6 +1,7 @@
 import Breadcrumb from "@/components/ breadcrumb/Breadcrumb";
 import styles from "./page.module.scss";
 import { headers } from "next/headers";
+import MessengerContactLink from "@/components/shared/MessengerContactLink";
 
 const contacts = [
   {
@@ -78,6 +79,17 @@ export default async function ContactPage() {
               </div>
             </article>
           ))}
+        </section>
+        <section className={styles.messengerSection}>
+          <div>
+            <h2>{locale === "en" ? "Message us" : "მოგვწერეთ"}</h2>
+            <p>
+              {locale === "en"
+                ? "Have a question about a product or an order? Contact our team on Messenger."
+                : "პროდუქტთან ან შეკვეთასთან დაკავშირებით კითხვა გაქვთ? მოგვწერეთ Messenger-ში."}
+            </p>
+          </div>
+          <MessengerContactLink locale={locale} />
         </section>
       </main>
     </>
