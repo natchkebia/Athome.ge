@@ -26,6 +26,7 @@ export default function BrandSlider() {
   const locale = useStorefrontLocale();
   const [brands, setBrands] = useState<StorefrontBrand[]>([]);
   const swiperRef = useRef<SwiperInstance | null>(null);
+  const autoplayRestartRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -42,6 +43,9 @@ export default function BrandSlider() {
 
     return () => {
       isMounted = false;
+      if (autoplayRestartRef.current) {
+        clearTimeout(autoplayRestartRef.current);
+      }
     };
   }, []);
 
@@ -60,13 +64,32 @@ export default function BrandSlider() {
     const swiper = swiperRef.current;
     if (!swiper?.autoplay) return;
 
+    if (autoplayRestartRef.current) {
+      clearTimeout(autoplayRestartRef.current);
+    }
+
+    // Continuous autoplay keeps a long CSS transition active. Freeze it at
+    // its current visual position first so an arrow click is never ignored.
+    const currentTranslate = swiper.getTranslate();
     swiper.autoplay.stop();
+    swiper.wrapperEl.style.transitionDuration = "0ms";
+    swiper.setTranslate(currentTranslate);
+    swiper.updateProgress();
+    swiper.animating = false;
     swiper.params.autoplay = {
       ...(typeof swiper.params.autoplay === "object" ? swiper.params.autoplay : {}),
       reverseDirection: reverse,
     };
-    reverse ? swiper.slidePrev(450) : swiper.slideNext(450);
-    swiper.autoplay.start();
+
+    if (reverse) {
+      swiper.slidePrev(450);
+    } else {
+      swiper.slideNext(450);
+    }
+
+    autoplayRestartRef.current = setTimeout(() => {
+      if (!swiper.destroyed) swiper.autoplay.start();
+    }, 500);
   };
 
   return (
