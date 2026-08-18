@@ -99,9 +99,6 @@
       }
     }
 
-    .messengerContact {
-      max-width: 320px;
-    }
   }
 
   .footer-menus {
@@ -160,5 +157,24 @@
     color: #3b3f42;
     font-size: 12px;
     padding-left: 20px;
+  }
+}
+
+.floatingChats {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+@media (max-width: 600px) {
+  .floatingChats {
+    right: 16px;
+    bottom: 16px;
+    gap: 10px;
   }
 }

@@ -82,11 +82,6 @@ export default function Footer() {
             </li>
           </ul>
 
-          <MessengerContactLink
-            className={styles.messengerContact}
-            locale={en ? "en" : "ka"}
-          />
-
           <div className={styles.socials}>
             <a
               href="https://www.facebook.com/athomege/"
@@ -157,6 +152,14 @@ export default function Footer() {
 
       <div className={styles["footer-bottom"]}>
         <p>{en ? "Terms of service © 2025 athome.ge. All rights reserved" : "სერვისის პირობები © 2025 athome.ge. ყველა უფლება დაცულია"}</p>
+      </div>
+
+      <div className={styles.floatingChats}>
+        <MessengerContactLink
+          locale={en ? "en" : "ka"}
+          variant="floating"
+          showHours={false}
+        />
       </div>
     </footer>
   );
