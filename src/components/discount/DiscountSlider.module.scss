@@ -72,16 +72,50 @@
     width: 330px;
     display: flex;
     justify-content: center;
+    position: relative;
+    z-index: 1;
+
+    &:hover {
+      // Keep the hovered card above neighbouring slides so its rounded
+      // shadow is rendered exactly like cards on product listing pages.
+      z-index: 3;
+    }
   }
 
   width: 100%;
-  overflow: hidden;
+  // The outer slider wrapper already clips the carousel at the section
+  // boundaries. Keeping Swiper itself hidden clips each card's rounded
+  // hover shadow to Swiper's rectangular viewport.
+  overflow: visible;
+  // Reserve space inside Swiper for the rounded hover shadow. Without this
+  // space the slider viewport clips the blur at the card edges and makes it
+  // look rectangular.
+  padding-block: 20px 32px;
+  margin-block: -20px -32px;
+}
+
+// Clip the carousel only on the left and right edges. The negative vertical
+// inset leaves enough room for the card's soft, rounded hover shadow, while
+// preventing a fifth desktop card from leaking into the section gutter.
+.swiperViewport {
+  width: 100%;
+  clip-path: inset(-20px 0 -32px 0);
+}
+
+@media (min-width: 1181px) {
+  .swiper {
+    :global(.swiper-slide) {
+      width: calc((100% - 72px) / 4);
+    }
+  }
 }
 
 .cardLink {
+  display: block;
   width: 100%;
   color: inherit;
   text-decoration: none;
+  border-radius: 18px;
 }
 
 @media (max-width: 1180px) and (min-width: 769px) {
@@ -115,7 +149,7 @@
   }
 
   .swiper {
-    overflow: hidden;
+    overflow: visible;
 
     :global(.swiper-slide) {
       width: calc((100vw - 48px) / 2);

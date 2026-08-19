@@ -14,7 +14,9 @@
   overflow: hidden;
 
   &:hover {
-    box-shadow: 0 10px 28px rgba(32, 78, 81, 0.1);
+    // Keep the shadow on the card box itself so it follows the rounded
+    // silhouette inside Swiper instead of exposing the slide rectangle.
+    box-shadow: 0 9px 18px rgba(32, 78, 81, 0.09);
 
     .productImage {
       transform: scale(1.04);
@@ -288,7 +290,7 @@
   transition: box-shadow 0.2s ease;
 
   &:hover {
-    box-shadow: 0 10px 24px rgba(32, 78, 81, 0.06);
+    box-shadow: 0 8px 16px rgba(32, 78, 81, 0.07);
   }
 }
 
