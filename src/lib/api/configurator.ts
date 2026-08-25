@@ -1,5 +1,6 @@
 import { apiRequest } from "./client";
 import { getStoredAuthTokens } from "@/lib/auth/tokens";
+import type { StorefrontCategoryFilter } from "./storefront";
 
 // Backend slot enum (system-unit only). Peripherals/OS are NOT supported by the
 // configurator backend yet — those slots stay on local data until backend adds them.
@@ -87,8 +88,17 @@ export type ConfiguratorProductsResponse = {
   pageSize: number;
   totalPages: number;
   brands: ConfiguratorBrandFacet[];
+  filters: StorefrontCategoryFilter[];
   hiddenByCompatibility: number;
+  hiddenByStock: number;
   unknownCount: number;
+};
+
+export type ConfiguratorSlotDefinition = {
+  slot: ConfiguratorSlot;
+  productCount: number;
+  isRecommended: boolean;
+  displayOrder: number;
 };
 
 export type ConfiguratorBuildSlot = {
@@ -139,6 +149,14 @@ export type ConfiguratorCheckResult = {
   }[];
   allIssues: ConfiguratorIssue[];
   summary: ConfiguratorBuildSummary;
+  power?: {
+    measuredCoreWatts: number;
+    estimatedTotalWatts: number;
+    recommendedPsuWatts: number;
+    psuRatedWatts: number;
+    loadPercent: number;
+    hasMeasuredCore: boolean;
+  } | null;
   errorMessage?: string | null;
 };
 
@@ -184,7 +202,17 @@ export type SlotProductsQuery = {
   page?: number;
   pageSize?: number;
   sortBy?: string;
+  attributes?: Record<string, string[]>;
+  ranges?: Record<string, number[]>;
+  inStockOnly?: boolean;
 };
+
+export function getConfiguratorSlots() {
+  return apiRequest<ConfiguratorSlotDefinition[]>(
+    "/api/storefront/configurator/slots",
+    { useProxy: true },
+  );
+}
 
 export function getConfiguratorSlotProducts(
   slot: ConfiguratorSlot,
@@ -203,6 +231,13 @@ export function getConfiguratorSlotProducts(
         page: params.page,
         pageSize: params.pageSize ?? 1000,
         sortBy: params.sortBy,
+        attr: Object.entries(params.attributes ?? {})
+          .filter(([, values]) => values.length > 0)
+          .map(([code, values]) => `${code}:${values.join("|")}`),
+        range: Object.entries(params.ranges ?? {})
+          .filter(([, bounds]) => bounds.length >= 2)
+          .map(([code, bounds]) => `${code}:${bounds[0] ?? ""}:${bounds[1] ?? ""}`),
+        inStockOnly: params.inStockOnly || undefined,
       },
       useProxy: true,
     }

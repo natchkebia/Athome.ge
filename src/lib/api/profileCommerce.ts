@@ -12,6 +12,9 @@ export type ProfileCartItem = {
   quantity: number;
   lineTotal: number;
   isInStock: boolean;
+  isConfigured?: boolean;
+  configuredParts?: { productId: number; name: string; quantity: number }[];
+  configurationJson?: string;
 };
 
 export type ProfileCart = {
@@ -50,10 +53,14 @@ export function clearProfileCart() {
   });
 }
 
-export function addProfileCartItem(productId: number, quantity = 1) {
+export function addProfileCartItem(
+  productId: number,
+  quantity = 1,
+  swaps?: { componentProductId: number }[],
+) {
   return authorizedProfileRequest<ProfileCart>("/api/profile/cart/items", {
     method: "POST",
-    body: JSON.stringify({ productId, quantity }),
+    body: JSON.stringify({ productId, quantity, ...(swaps?.length ? { swaps } : {}) }),
   });
 }
 

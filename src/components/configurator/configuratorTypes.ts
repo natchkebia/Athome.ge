@@ -22,6 +22,8 @@ export type ConfiguratorCategory = {
   key: ConfiguratorCategoryKey;
   title: string;
   icon: string;
+  isRecommended?: boolean;
+  productCount?: number;
 };
 
 export type ConfiguratorProduct = {
@@ -36,6 +38,8 @@ export type ConfiguratorProduct = {
   brandName?: string;
   brandSlug?: string;
   compatibilityStatus?: "compatible" | "unknown" | "unchecked";
+  priceDelta?: number;
+  configuredPrice?: number;
   specs: {
     label: string;
     value: string;

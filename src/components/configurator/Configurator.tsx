@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import styles from "./Configurator.module.scss";
 import {
+  ConfiguratorCategory,
   ConfiguratorCategoryKey,
   ConfiguratorProduct,
   SelectedConfiguratorProduct,
@@ -28,6 +29,7 @@ import {
   checkConfiguratorBuild,
   getCategoryProductsBySlugs,
   getConfiguratorBuild,
+  getConfiguratorSlots,
   getConfiguratorSlotProducts,
   saveConfiguratorBuild,
   type ConfiguratorBuildSlot,
@@ -36,7 +38,10 @@ import {
   type ConfiguratorIssue,
   type ConfiguratorProductCard,
   type ConfiguratorSlot,
+  type ConfiguratorSlotDefinition,
 } from "@/lib/api/configurator";
+import type { StorefrontCategoryFilter } from "@/lib/api/storefront";
+import type { DynamicFilterValues } from "../products/DynamicProductFilter";
 import { useStorefrontLocale } from "@/lib/i18n/useStorefrontLocale";
 
 function translateCompatibilityIssue(issue: ConfiguratorIssue, en: boolean) {
@@ -72,6 +77,20 @@ function translateCompatibilityIssue(issue: ConfiguratorIssue, en: boolean) {
       return en ? "The graphics card is too long for the selected case." : "ვიდეობარათის სიგრძე არჩეული ქეისისთვის ზედმეტად დიდია.";
     case "COOLER_HEIGHT_EXCEEDS_CASE":
       return en ? "The CPU cooler is too tall for the selected case." : "პროცესორის ქულერის სიმაღლე არჩეული ქეისისთვის ზედმეტად დიდია.";
+    case "RAM_SLOT_COUNT_EXCEEDED":
+      return en ? "The memory kit has more modules than the motherboard has slots." : "ოპერატიულის მოდულების რაოდენობა აღემატება დედაპლატის სლოტებს.";
+    case "STORAGE_M2_SLOT_MISSING":
+      return en ? "The motherboard has no M.2 slot." : "დედაპლატას M.2 სლოტი არ აქვს.";
+    case "STORAGE_SATA_PORT_MISSING":
+      return en ? "The motherboard has no SATA port." : "დედაპლატას SATA პორტი არ აქვს.";
+    case "RAM_CAPACITY_ABOVE_BOARD_MAX":
+      return en ? "The motherboard cannot use all of this memory capacity." : "დედაპლატა ამ მოცულობის სრულად ვერ გამოიყენებს.";
+    case "GPU_POWER_CONNECTOR_ADAPTER":
+      return en ? "The card needs 12VHPWR power and will work with the included adapter." : "ბარათს 12VHPWR კვება სჭირდება — იმუშავებს კომპლექტში შემავალი გადამყვანით.";
+    case "PSU_BELOW_SYSTEM_DRAW":
+      return en ? "The power supply cannot cover the system's measured core draw." : "კვების ბლოკის სიმძლავრე სისტემას არ ჰყოფნის.";
+    case "PSU_HEADROOM_LOW":
+      return en ? "The power supply has almost no capacity in reserve." : "კვების ბლოკს მარაგი თითქმის არ რჩება.";
     default:
       return en ? "This product is not compatible with the selected components." : "ეს პროდუქტი არჩეულ კომპონენტებთან თავსებადი არ არის.";
   }
@@ -103,6 +122,29 @@ const REQUIRED_SYSTEM_CATEGORIES: ConfiguratorCategoryKey[] = [
   "case",
   "storage",
 ];
+
+const EMPTY_FILTERS: DynamicFilterValues = {
+  price: [0, 0],
+  brandSlugs: [],
+  inStockOnly: false,
+  attributes: {},
+  ranges: {},
+};
+
+const BACKEND_SLOT_META: Record<string, Pick<ConfiguratorCategory, "key" | "title" | "icon">> = {
+  cpu: { key: "processor", title: "პროცესორი", icon: "/images/processor.svg" },
+  motherboard: { key: "motherboard", title: "დედა დაფა", icon: "/images/motherboard.svg" },
+  ram: { key: "ram", title: "ოპერატიული მეხსიერება", icon: "/images/ram.svg" },
+  gpu: { key: "gpu", title: "ვიდეობარათი", icon: "/images/gpu.svg" },
+  psu: { key: "psu", title: "კვების ბლოკი", icon: "/images/psu.svg" },
+  case: { key: "case", title: "ქეისი", icon: "/images/case.svg" },
+  cpucooler: { key: "cooler", title: "პროცესორის ქულერი", icon: "/images/cooler.svg" },
+  liquidcooler: { key: "cooler", title: "პროცესორის ქულერი", icon: "/images/cooler.svg" },
+  storagessd: { key: "storage", title: "SSD მეხსიერება", icon: "/images/ssd.svg" },
+  storagehdd: { key: "drive", title: "მყარი დისკი", icon: "/images/Harddrive.svg" },
+  storagedrive: { key: "storageDrive", title: "საცავი", icon: "/images/Harddrive.svg" },
+  casefan: { key: "caseFan", title: "ქეისის ქულერი", icon: "/images/fan.svg" },
+};
 
 const EN_CATEGORY_TITLES: Record<ConfiguratorCategoryKey, string> = {
   processor: "Processor", motherboard: "Motherboard", ram: "Memory", gpu: "Graphics card",
@@ -174,10 +216,13 @@ export default function Configurator() {
   const [modalProducts, setModalProducts] = useState<ConfiguratorProduct[]>([]);
   const [modalLoading, setModalLoading] = useState(false);
   const [modalBrands, setModalBrands] = useState<ConfiguratorBrandFacet[]>([]);
-  const [selectedBrandSlugs, setSelectedBrandSlugs] = useState<string[]>([]);
+  const [modalFilters, setModalFilters] = useState<StorefrontCategoryFilter[]>([]);
+  const [filterValues, setFilterValues] = useState<DynamicFilterValues>(EMPTY_FILTERS);
   const [hiddenByCompatibility, setHiddenByCompatibility] = useState(0);
+  const [hiddenByStock, setHiddenByStock] = useState(0);
   const [modalTotalCount, setModalTotalCount] = useState(0);
   const [compatibilityFilterEnabled, setCompatibilityFilterEnabled] = useState(true);
+  const [servedSlots, setServedSlots] = useState<ConfiguratorSlotDefinition[] | null>(null);
 
   const [checkResult, setCheckResult] = useState<ConfiguratorCheckResult | null>(
     null
@@ -201,9 +246,30 @@ export default function Configurator() {
     }
   }, []);
 
-  const visibleCategories = showPeripherals
-    ? peripheralCategories
-    : systemUnitCategories;
+  useEffect(() => {
+    let active = true;
+    getConfiguratorSlots()
+      .then((slots) => {
+        if (active) setServedSlots([...slots].sort((a, b) => a.displayOrder - b.displayOrder));
+      })
+      .catch(() => {
+        if (active) setServedSlots(null);
+      });
+    return () => { active = false; };
+  }, []);
+
+  const servedSystemCategories = useMemo(() => {
+    if (!servedSlots) return systemUnitCategories;
+    const seen = new Set<ConfiguratorCategoryKey>();
+    return servedSlots.flatMap((definition) => {
+      const meta = BACKEND_SLOT_META[String(definition.slot).toLowerCase()];
+      if (!meta || seen.has(meta.key)) return [];
+      seen.add(meta.key);
+      return [{ ...meta, isRecommended: definition.isRecommended, productCount: definition.productCount }];
+    });
+  }, [servedSlots]);
+
+  const visibleCategories = showPeripherals ? peripheralCategories : servedSystemCategories;
 
   // Load products for the opened slot — real data for backend-mapped slots,
   // local fallback for slots the backend doesn't support yet (os, peripherals).
@@ -235,7 +301,12 @@ export default function Configurator() {
     const request = backendSlot
       ? getConfiguratorSlotProducts(backendSlot, {
           selectedIds,
-          brandSlugs: selectedBrandSlugs,
+          brandSlugs: filterValues.brandSlugs,
+          attributes: filterValues.attributes,
+          ranges: filterValues.ranges,
+          inStockOnly: filterValues.inStockOnly,
+          minPrice: filterValues.price[1] > filterValues.price[0] ? filterValues.price[0] : undefined,
+          maxPrice: filterValues.price[1] > filterValues.price[0] ? filterValues.price[1] : undefined,
           pageSize: 1000,
         })
       : getCategoryProductsBySlugs(PERIPHERAL_PARENT_CATEGORY, [
@@ -248,11 +319,15 @@ export default function Configurator() {
         const items = Array.isArray(response) ? response : response.items;
         if (!Array.isArray(response)) {
           setModalBrands(response.brands ?? []);
+          setModalFilters(response.filters ?? []);
           setHiddenByCompatibility(response.hiddenByCompatibility ?? 0);
+          setHiddenByStock(response.hiddenByStock ?? 0);
           setModalTotalCount(response.totalCount ?? items.length);
         } else {
           setModalBrands([]);
+          setModalFilters([]);
           setHiddenByCompatibility(0);
+          setHiddenByStock(0);
           setModalTotalCount(items.length);
         }
         setModalProducts(
@@ -269,10 +344,10 @@ export default function Configurator() {
     return () => {
       active = false;
     };
-  }, [selectedCategory, selectedBrandSlugs, selectedProducts, compatibilityFilterEnabled]);
+  }, [selectedCategory, filterValues, selectedProducts, compatibilityFilterEnabled]);
 
   useEffect(() => {
-    setSelectedBrandSlugs([]);
+    setFilterValues(EMPTY_FILTERS);
     setCompatibilityFilterEnabled(true);
   }, [selectedCategory]);
 
@@ -373,6 +448,15 @@ export default function Configurator() {
   }, [searchParams]);
 
   const totalPrice = checkResult?.summary?.totalPrice ?? localTotalPrice;
+  const modalPriceBounds = useMemo<[number, number]>(() => {
+    if (modalProducts.length === 0) return [0, 0];
+    const prices = modalProducts.map((product) => product.price);
+    return [Math.floor(Math.min(...prices)), Math.ceil(Math.max(...prices))];
+  }, [modalProducts]);
+  const recommendedCategories = servedSystemCategories.filter((category) => category.isRecommended);
+  const recommendedFilled = recommendedCategories.filter(
+    (category) => (selectedProducts[category.key]?.length ?? 0) > 0,
+  ).length;
 
   const getSafeQuantity = (product: ConfiguratorProduct, quantity: number) => {
     return product.stock > 0
@@ -728,10 +812,46 @@ export default function Configurator() {
                   {checkResult.allIssues.length > 0 && (
                     <ul>
                       {checkResult.allIssues.slice(0, 5).map((issue, i) => (
-                        <li key={i}>{translateCompatibilityIssue(issue, en)}</li>
+                        <li key={i} data-severity={issue.severity?.toLowerCase()}>
+                          {issue.severity?.toLowerCase() === "warning" ? "⚠ " : "✕ "}
+                          {translateCompatibilityIssue(issue, en)}
+                        </li>
                       ))}
                     </ul>
                   )}
+                </div>
+              )}
+
+              {!showPeripherals && recommendedCategories.length > 0 && (
+                <div className={styles.buildProgress}>
+                  <span>{en ? "Recommended components" : "რეკომენდებული კომპონენტები"}</span>
+                  <div><i style={{ width: `${(recommendedFilled / recommendedCategories.length) * 100}%` }} /></div>
+                  <strong>{recommendedFilled}/{recommendedCategories.length}</strong>
+                </div>
+              )}
+
+              {checkResult?.power?.hasMeasuredCore && (
+                <div className={styles.powerWidget}>
+                  <div>
+                    <span>{en ? "Measured CPU + GPU" : "CPU + GPU გაზომილი მაჩვენებელი"}</span>
+                    <strong>{checkResult.power.measuredCoreWatts} W</strong>
+                  </div>
+                  <div>
+                    <span>{en ? "Estimated total draw" : "სავარაუდო სრული მოხმარება"}</span>
+                    <strong>≈ {checkResult.power.estimatedTotalWatts} W</strong>
+                  </div>
+                  <div>
+                    <span>{en ? "Recommended power supply" : "რეკომენდებული კვების ბლოკი"}</span>
+                    <strong>{checkResult.power.recommendedPsuWatts} W</strong>
+                  </div>
+                  {checkResult.power.psuRatedWatts > 0 && (
+                    <div className={styles.powerLoad}>
+                      <span>{en ? "PSU load" : "კვების ბლოკის დატვირთვა"} — {checkResult.power.loadPercent.toFixed(1)}%</span>
+                      <div><i style={{ width: `${Math.min(100, checkResult.power.loadPercent)}%` }} /></div>
+                      <small>{checkResult.power.psuRatedWatts} W PSU</small>
+                    </div>
+                  )}
+                  <p>{en ? "The total is an estimate based on typical supporting components; overclocking is not included." : "სრული მოხმარება მიახლოებითია, დამხმარე კომპონენტების ტიპურ ხარჯზე დაყრდნობით; ოვერქლოქინგი გათვალისწინებული არ არის."}</p>
                 </div>
               )}
 
@@ -774,9 +894,12 @@ export default function Configurator() {
             onSelect={handleSelectProduct}
             onUpdateQuantity={handleUpdateQuantity}
             brands={modalBrands}
-            selectedBrandSlugs={selectedBrandSlugs}
-            onBrandSlugsChange={setSelectedBrandSlugs}
+            filters={modalFilters}
+            filterValues={filterValues}
+            priceBounds={modalPriceBounds}
+            onFilterValuesChange={setFilterValues}
             hiddenByCompatibility={hiddenByCompatibility}
+            hiddenByStock={hiddenByStock}
             totalCount={modalTotalCount}
             onClearCompatibilityFilter={() => setCompatibilityFilterEnabled(false)}
           />

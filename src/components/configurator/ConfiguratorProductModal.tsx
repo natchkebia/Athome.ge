@@ -10,6 +10,8 @@ import {
 } from "./configuratorTypes";
 import { useStorefrontLocale } from "@/lib/i18n/useStorefrontLocale";
 import type { ConfiguratorBrandFacet } from "@/lib/api/configurator";
+import type { StorefrontCategoryFilter, StorefrontCategoryFilterSet } from "@/lib/api/storefront";
+import DynamicProductFilter, { type DynamicFilterValues } from "../products/DynamicProductFilter";
 
 type Props = {
   title: string;
@@ -23,9 +25,12 @@ type Props = {
   ) => Promise<ProductSelectionResult>;
   onUpdateQuantity: (product: ConfiguratorProduct, quantity: number) => void;
   brands?: ConfiguratorBrandFacet[];
-  selectedBrandSlugs?: string[];
-  onBrandSlugsChange?: (slugs: string[]) => void;
+  filters?: StorefrontCategoryFilter[];
+  filterValues: DynamicFilterValues;
+  priceBounds: [number, number];
+  onFilterValuesChange: (values: DynamicFilterValues) => void;
   hiddenByCompatibility?: number;
+  hiddenByStock?: number;
   totalCount?: number;
   onClearCompatibilityFilter?: () => void;
 };
@@ -54,9 +59,12 @@ export default function ConfiguratorProductModal({
   onSelect,
   onUpdateQuantity,
   brands = [],
-  selectedBrandSlugs = [],
-  onBrandSlugsChange,
+  filters = [],
+  filterValues,
+  priceBounds,
+  onFilterValuesChange,
   hiddenByCompatibility = 0,
+  hiddenByStock = 0,
   totalCount = 0,
   onClearCompatibilityFilter,
 }: Props) {
@@ -93,13 +101,21 @@ export default function ConfiguratorProductModal({
     });
   }, [products, searchValue]);
 
-  const toggleBrand = (slug: string) => {
-    onBrandSlugsChange?.(
-      selectedBrandSlugs.includes(slug)
-        ? selectedBrandSlugs.filter((item) => item !== slug)
-        : [...selectedBrandSlugs, slug],
-    );
-  };
+  const schema = useMemo<StorefrontCategoryFilterSet>(() => ({
+    categoryId: 0,
+    filterCount: filters.length,
+    totalProductCount: totalCount,
+    filters,
+    brands: brands.map((brand) => ({
+      brandId: brand.id,
+      slug: brand.slug,
+      name: brand.name,
+      productCount: brand.productCount,
+    })),
+  }), [brands, filters, totalCount]);
+  const effectiveFilterValues = filterValues.price[0] === 0 && filterValues.price[1] === 0
+    ? { ...filterValues, price: priceBounds }
+    : filterValues;
 
   const normalizeQuantity = (value: string, stock: number) => {
     const numericValue = Number(value) || 1;
@@ -195,25 +211,12 @@ export default function ConfiguratorProductModal({
               </svg>
             </div>
 
-            <ul>
-              <li
-                className={selectedBrandSlugs.length === 0 ? styles.activeFilter : ""}
-                onClick={() => onBrandSlugsChange?.([])}
-              >
-                <span>{en ? "All" : "ყველა"}</span>
-                <strong>{totalCount}</strong>
-              </li>
-              {brands.map((brand) => (
-                <li
-                  key={brand.slug}
-                  className={selectedBrandSlugs.includes(brand.slug) ? styles.activeFilter : ""}
-                  onClick={() => toggleBrand(brand.slug)}
-                >
-                  <span>{brand.name}</span>
-                  <strong>{brand.productCount}</strong>
-                </li>
-              ))}
-            </ul>
+            <DynamicProductFilter
+              schema={schema}
+              values={effectiveFilterValues}
+              priceBounds={priceBounds}
+              onChange={onFilterValuesChange}
+            />
           </aside>
 
           <div className={styles.productList}>
@@ -227,6 +230,13 @@ export default function ConfiguratorProductModal({
                 <button type="button" onClick={onClearCompatibilityFilter}>
                   {en ? "Clear filter" : "ფილტრის მოხსნა"}
                 </button>
+              </div>
+            )}
+            {hiddenByStock > 0 && (
+              <div className={styles.stockFilterNotice}>
+                {en
+                  ? `${hiddenByStock} products are hidden by the stock filter`
+                  : `მარაგის ფილტრით დამალულია ${hiddenByStock} პროდუქტი`}
               </div>
             )}
             {loading ? (
@@ -280,6 +290,15 @@ export default function ConfiguratorProductModal({
 
                     <div className={styles.productAction}>
                       <strong>{rowTotal} ₾</strong>
+
+                      {product.priceDelta != null && (
+                        <div className={product.priceDelta < 0 ? styles.negativeDelta : styles.positiveDelta}>
+                          {product.priceDelta > 0 ? "+" : ""}{product.priceDelta.toFixed(2)} ₾
+                          {product.configuredPrice != null && (
+                            <small>{en ? "New PC price" : "კომპიუტერის ახალი ფასი"}: {product.configuredPrice.toFixed(2)} ₾</small>
+                          )}
+                        </div>
+                      )}
 
                       <label>
                         {en ? "Quantity" : "რაოდენობა"}

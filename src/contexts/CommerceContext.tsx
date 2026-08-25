@@ -48,7 +48,7 @@ type CommerceContextValue = {
   refreshCommerce: () => Promise<void>;
   refreshCart: () => Promise<void>;
   refreshWishlist: () => Promise<void>;
-  addToCart: (productId: number, quantity?: number) => Promise<void>;
+  addToCart: (productId: number, quantity?: number, swaps?: { componentProductId: number }[]) => Promise<void>;
   updateCartQuantity: (productId: number, quantity: number) => Promise<void>;
   removeFromCart: (productId: number) => Promise<void>;
   clearCart: () => Promise<void>;
@@ -326,7 +326,7 @@ export function CommerceProvider({ children }: { children: React.ReactNode }) {
   }, [syncOnAuthChange]);
 
   const addToCart = useCallback(
-    async (productId: number, quantity = 1) => {
+    async (productId: number, quantity = 1, swaps?: { componentProductId: number }[]) => {
       // სტუმარი — localStorage კალათა (დარეგისტრირება არ სჭირდება).
       if (!hasAccessToken()) {
         const nextCart = addGuestCartItem(productId, quantity);
@@ -370,9 +370,11 @@ export function CommerceProvider({ children }: { children: React.ReactNode }) {
           // POST creates a row; PUT changes the absolute quantity of an
           // existing row. Serializing per product also prevents rapid clicks
           // from letting an older response overwrite a newer quantity.
-          const updatedCart = existingItem
-            ? await updateProfileCartItem(productId, targetQuantity)
-            : await addProfileCartItem(productId, quantity);
+          const updatedCart = swaps?.length
+            ? await addProfileCartItem(productId, quantity, swaps)
+            : existingItem
+              ? await updateProfileCartItem(productId, targetQuantity)
+              : await addProfileCartItem(productId, quantity);
           if (isProfileCart(updatedCart)) {
             const hydratedCart = await hydrateConfiguratorCart(updatedCart);
             cartRef.current = hydratedCart;

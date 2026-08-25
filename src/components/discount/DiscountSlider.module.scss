@@ -91,7 +91,10 @@
   // space the slider viewport clips the blur at the card edges and makes it
   // look rectangular.
   padding-block: 20px 32px;
-  margin-block: -20px -32px;
+  // Keep the lower shadow gutter in the layout. A negative bottom margin made
+  // the parent clip the blur on a straight line, creating a rectangular strip.
+  margin-top: -20px;
+  margin-bottom: 0;
 }
 
 // Clip the carousel only on the left and right edges. The negative vertical
@@ -99,7 +102,9 @@
 // preventing a fifth desktop card from leaking into the section gutter.
 .swiperViewport {
   width: 100%;
-  clip-path: inset(-20px 0 -32px 0);
+  // Let the first and last card shadows breathe into the section gutters.
+  // The outer .sliderWrapper still clips actual slides at the page boundary.
+  clip-path: inset(-20px -20px 0 -20px);
 }
 
 @media (min-width: 1181px) {

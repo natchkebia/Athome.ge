@@ -22,8 +22,8 @@ export type CartItem = {
   systemProducts?: {
     id: number;
     title: string;
-    image: string;
-    price: number;
+    image?: string;
+    price?: number;
     quantity: number;
   }[];
 };
@@ -41,6 +41,12 @@ export default function CartTab({ showSummary = true }: CartTabProps) {
       price: item.sellingPrice,
       oldPrice: item.oldPrice,
       quantity: item.quantity,
+      isSystem: item.isConfigured,
+      systemProducts: item.configuredParts?.map((part) => ({
+        id: part.productId,
+        title: part.name,
+        quantity: part.quantity,
+      })),
     }));
 
   const increase = (id: number) => {
@@ -105,10 +111,11 @@ export default function CartTab({ showSummary = true }: CartTabProps) {
                     <h5>{item.title}</h5>
 
                     {item.isSystem && (
-                      <p>
-                        {en ? "System components" : "სისტემის კომპონენტები"}:{" "}
-                        {item.systemProducts?.length || 0}
-                      </p>
+                      <div className={styles.configuredParts}>
+                        <strong>{en ? "Configured parts" : "შეცვლილი კონფიგურაცია"}</strong>
+                        <ul>{item.systemProducts?.map((part) => <li key={part.id}>{part.title} × {part.quantity}</li>)}</ul>
+                        <button type="button" onClick={() => router.push(`/prebuilt/${item.id}`)}>{en ? "Edit configuration" : "კონფიგურაციის რედაქტირება"}</button>
+                      </div>
                     )}
                   </div>
                 </div>

@@ -27,6 +27,7 @@ import { cacheProductInfo } from "@/lib/commerce/guestStore";
 import { flyToTarget } from "@/lib/ui/flyToCart";
 import { useStorefrontLocale } from "@/lib/i18n/useStorefrontLocale";
 import MessengerContactLink from "../shared/MessengerContactLink";
+import PrebuiltConfigurator from "./PrebuiltConfigurator";
 
 interface Spec {
   label: string;
@@ -137,6 +138,7 @@ export default function ProductDetail({
   const [activeInfoTab, setActiveInfoTab] =
     useState<ProductInfoTab>("additional");
   const [showFullShortDescription, setShowFullShortDescription] = useState(false);
+  const [configuredPrice, setConfiguredPrice] = useState<number | null>(null);
   const [isShortDescriptionOverflowing, setIsShortDescriptionOverflowing] =
     useState(false);
   const shortDescriptionRef = useRef<HTMLDivElement>(null);
@@ -383,7 +385,7 @@ export default function ProductDetail({
             <div className={styles.prices}>
               <div className={styles.priceContainer}>
                 <span className={styles.newPrice}>
-                  {product.pricing.effectivePrice.toFixed(2)} ₾
+                  {(configuredPrice ?? product.pricing.effectivePrice).toFixed(2)} ₾
                 </span>
                 {oldPrice && (
                   <span className={styles.oldPrice}>
@@ -391,15 +393,15 @@ export default function ProductDetail({
                   </span>
                 )}
               </div>
-              <button onClick={handleBuyNow} disabled={!isAvailable}>
-                {isAvailable ? (en ? "Buy now" : "ყიდვა") : (en ? "Out of stock" : "ამოწურულია")}
+              <button onClick={handleBuyNow} disabled={!isAvailable || configuredPrice != null}>
+                {configuredPrice != null ? (en ? "Use configured cart button" : "გამოიყენეთ კონფიგურაციის ღილაკი") : isAvailable ? (en ? "Buy now" : "ყიდვა") : (en ? "Out of stock" : "ამოწურულია")}
               </button>
             </div>
 
             <div className={styles.actions}>
-              <button className={styles.buyBtn} onClick={handleAddToCart} disabled={!isAvailable}>
+              <button className={styles.buyBtn} onClick={handleAddToCart} disabled={!isAvailable || configuredPrice != null}>
                 <img src="/icons/Cart.svg" alt="Cart.svg" />
-                <span>{isAvailable ? (en ? "Add to cart" : "დამატება") : (en ? "Out of stock" : "ამოწურულია")}</span>
+                <span>{configuredPrice != null ? (en ? "Configured below" : "კონფიგურაცია ქვემოთაა") : isAvailable ? (en ? "Add to cart" : "დამატება") : (en ? "Out of stock" : "ამოწურულია")}</span>
               </button>
               <button
                 className={`${styles.cartBtn} ${
@@ -448,6 +450,11 @@ export default function ProductDetail({
           </div>
         </div>
       </div>
+
+      <PrebuiltConfigurator
+        productId={product.id}
+        onConfiguredPrice={setConfiguredPrice}
+      />
 
       <section className={styles.productInfoTabs}>
         <div className={styles.tabList} role="tablist" aria-label={en ? "Product information" : "პროდუქტის ინფორმაცია"}>
