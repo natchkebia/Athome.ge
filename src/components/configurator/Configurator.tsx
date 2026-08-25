@@ -126,7 +126,7 @@ const REQUIRED_SYSTEM_CATEGORIES: ConfiguratorCategoryKey[] = [
 const EMPTY_FILTERS: DynamicFilterValues = {
   price: [0, 0],
   brandSlugs: [],
-  inStockOnly: false,
+  inStockOnly: true,
   attributes: {},
   ranges: {},
 };
@@ -880,6 +880,9 @@ export default function Configurator() {
               onOpenGuestBuild={(token) => router.push(`/configurator?build=${encodeURIComponent(token)}`)}
               onAddGuestBuildToCart={handleAddGuestBuildToCart}
               onDeleteGuestBuild={handleDeleteGuestBuild}
+              onOpenPrebuiltConfigurations={() => router.push(
+                "/products/computers/athomepc-amd-ryzen-7-9800x3d-desktop-processor-gigabyte-geforce-rtx-5060-windforce-oc-8g-patriot-viper-venom-rgb-32gb",
+              )}
             />
           </div>
         </div>

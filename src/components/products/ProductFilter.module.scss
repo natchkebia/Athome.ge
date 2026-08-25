@@ -10,6 +10,35 @@
     margin-top: 0;
   }
 }
+
+.compact {
+  width: 100%;
+  min-width: 0;
+  margin-top: 12px;
+
+  .filterBox {
+    width: 100%;
+  }
+
+  .rangeWrapper {
+    width: 100%;
+  }
+
+  .priceInputs {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+
+    input {
+      width: 100%;
+      min-width: 0;
+    }
+  }
+
+  .dropdownWraper {
+    width: calc(100% + 32px);
+    margin-left: -16px;
+  }
+}
 .header {
   display: flex;
   align-items: center;

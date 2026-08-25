@@ -485,14 +485,18 @@
 
 .modalContent {
   display: grid;
-  grid-template-columns: 256px minmax(0, 1fr);
+  grid-template-columns: 300px minmax(0, 1fr);
   gap: 16px;
   height: calc(100% - 52px);
   min-height: 0;
 }
 
 .modalFilters {
-  width: 256px;
+  width: 300px;
+  min-width: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  max-height: 100%;
   height: fit-content;
   border: 0;
   border-radius: 0;
@@ -544,7 +548,7 @@
 }
 
 .modalSearch {
-  width: 256px;
+  width: 100%;
   height: 46px;
   border: 1px solid #ecf2f6;
   border-radius: 9px;

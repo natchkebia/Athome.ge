@@ -63,7 +63,7 @@ function ProductsPageInner() {
   const [dynamicFilters, setDynamicFilters] = useState<DynamicFilterValues>({
     price: [0, 8500],
     brandSlugs: [],
-    inStockOnly: false,
+    inStockOnly: true,
     attributes: {},
     ranges: {},
   });
@@ -220,7 +220,7 @@ function ProductsPageInner() {
         setDynamicFilters({
           price: nextBounds,
           brandSlugs: [],
-          inStockOnly: false,
+          inStockOnly: true,
           attributes: {},
           ranges: {},
         });

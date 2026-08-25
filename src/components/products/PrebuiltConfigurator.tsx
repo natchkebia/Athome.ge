@@ -21,7 +21,7 @@ import {
 import { useStorefrontLocale } from "@/lib/i18n/useStorefrontLocale";
 import styles from "./ProductDetail.module.scss";
 
-const EMPTY_FILTERS: DynamicFilterValues = { price: [0, 0], brandSlugs: [], inStockOnly: false, attributes: {}, ranges: {} };
+const EMPTY_FILTERS: DynamicFilterValues = { price: [0, 0], brandSlugs: [], inStockOnly: true, attributes: {}, ranges: {} };
 const SLOT_CATEGORY: Record<string, ConfiguratorCategoryKey> = {
   Cpu: "processor", Motherboard: "motherboard", Ram: "ram", Gpu: "gpu", Psu: "psu",
   Case: "case", CpuCooler: "cooler", LiquidCooler: "cooler", StorageSsd: "storage",

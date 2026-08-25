@@ -19,6 +19,7 @@ type Props = {
   values: DynamicFilterValues;
   priceBounds: [number, number];
   onChange: (values: DynamicFilterValues) => void;
+  compact?: boolean;
 };
 
 export default function DynamicProductFilter({
@@ -26,6 +27,7 @@ export default function DynamicProductFilter({
   values,
   priceBounds,
   onChange,
+  compact = false,
 }: Props) {
   const en = useStorefrontLocale() === "en";
   const [open, setOpen] = useState<Record<string, boolean>>({});
@@ -70,7 +72,7 @@ export default function DynamicProductFilter({
   };
 
   const reset = () =>
-    onChange({ price: priceBounds, brandSlugs: [], inStockOnly: false, attributes: {}, ranges: {} });
+    onChange({ price: priceBounds, brandSlugs: [], inStockOnly: true, attributes: {}, ranges: {} });
 
   const sortedFilters = [...schema.filters].sort(
     (left, right) => left.sortOrder - right.sortOrder,
@@ -79,7 +81,7 @@ export default function DynamicProductFilter({
   const visibleBrands = showAllBrands ? brands : brands.slice(0, 8);
 
   return (
-    <div className={styles.wrapper}>
+    <div className={`${styles.wrapper} ${compact ? styles.compact : ""}`}>
       <div className={styles.header}>
         <h4 className={styles.title}>{en ? "Filter" : "ფილტრი"}</h4>
         <button className={styles.resetBtn} onClick={reset}>
@@ -92,10 +94,9 @@ export default function DynamicProductFilter({
         <label className={styles.brandItem}>
           <input
             type="checkbox"
-            checked={values.inStockOnly}
-            onChange={() =>
-              onChange({ ...values, inStockOnly: !values.inStockOnly })
-            }
+            checked
+            disabled
+            readOnly
           />
           <span>{en ? "In stock only" : "მხოლოდ მარაგში არსებული"}</span>
         </label>

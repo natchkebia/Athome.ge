@@ -237,7 +237,7 @@ export function getConfiguratorSlotProducts(
         range: Object.entries(params.ranges ?? {})
           .filter(([, bounds]) => bounds.length >= 2)
           .map(([code, bounds]) => `${code}:${bounds[0] ?? ""}:${bounds[1] ?? ""}`),
-        inStockOnly: params.inStockOnly || undefined,
+        inStockOnly: params.inStockOnly ?? true,
       },
       useProxy: true,
     }
@@ -251,6 +251,7 @@ export function getCategoryProductsBySlugs(
   limit?: number
 ) {
   const query: Record<string, string> = {};
+  query.InStockOnly = "true";
   // apiRequest only sets one value per key; for a single slug that's enough.
   if (slugs.length === 1) query.slugs = slugs[0];
   // ლიმიტის გარეშე backend default 24-ს აბრუნებს — ლისტინგ-გვერდი explicit limit-ს გადასცემს.

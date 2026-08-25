@@ -424,7 +424,7 @@ export function getStorefrontProducts(params: StorefrontProductsQuery = {}) {
         BrandSlugs: params.brandSlugs,
         MinPrice: params.minPrice,
         MaxPrice: params.maxPrice,
-        InStockOnly: params.inStockOnly,
+        InStockOnly: params.inStockOnly ?? true,
         FeaturedOnly: params.featuredOnly,
         NewArrivals: params.newArrivals,
         TopSellers: params.topSellers,
@@ -477,7 +477,7 @@ export function getStorefrontCategoryFilters(
         Range: params.range,
         BrandSlug: params.brandSlug,
         BrandSlugs: params.brandSlugs,
-        InStockOnly: params.inStockOnly,
+        InStockOnly: params.inStockOnly ?? true,
         MinPrice: params.minPrice,
         MaxPrice: params.maxPrice,
       },
@@ -493,7 +493,7 @@ export function getStorefrontProductsByCategory(
   return apiRequest<StorefrontProduct[]>(
     `/api/storefront/products/by-category/${encodeURIComponent(categorySlug)}`,
     {
-      query: { limit },
+      query: { limit, InStockOnly: true },
       useProxy: true,
     }
   );
@@ -508,7 +508,7 @@ export function getStorefrontCategoryProducts(
   return apiRequest<StorefrontProduct[]>(
     `/api/storefront/categories/${encodeURIComponent(categorySlug)}/products`,
     {
-      query: { limit },
+      query: { limit, InStockOnly: true },
       useProxy: true,
     }
   );
@@ -518,7 +518,7 @@ export function getStorefrontProductsByBrand(brandSlug: string, limit = 24) {
   return apiRequest<StorefrontProduct[]>(
     `/api/storefront/products/by-brand/${encodeURIComponent(brandSlug)}`,
     {
-      query: { limit },
+      query: { limit, InStockOnly: true },
       useProxy: true,
     }
   );
@@ -526,7 +526,7 @@ export function getStorefrontProductsByBrand(brandSlug: string, limit = 24) {
 
 export function getFeaturedStorefrontProducts(limit = 8) {
   return apiRequest<StorefrontProduct[]>("/api/storefront/products/featured", {
-    query: { limit },
+    query: { limit, InStockOnly: true },
     useProxy: true,
   });
 }
@@ -535,7 +535,7 @@ export function getNewArrivalStorefrontProducts(limit = 8) {
   return apiRequest<StorefrontProduct[]>(
     "/api/storefront/products/new-arrivals",
     {
-      query: { limit },
+      query: { limit, InStockOnly: true },
       useProxy: true,
     }
   );
@@ -545,7 +545,7 @@ export function getBestSellerStorefrontProducts(limit = 8) {
   return apiRequest<StorefrontProduct[]>(
     "/api/storefront/products/best-sellers",
     {
-      query: { limit },
+      query: { limit, InStockOnly: true },
       useProxy: true,
     }
   );
@@ -553,7 +553,7 @@ export function getBestSellerStorefrontProducts(limit = 8) {
 
 export function getDealStorefrontProducts(limit = 6) {
   return apiRequest<StorefrontProduct[]>("/api/storefront/products/deals", {
-    query: { limit },
+    query: { limit, InStockOnly: true },
     useProxy: true,
   });
 }
@@ -648,7 +648,7 @@ export function searchStorefrontProducts({
       CategorySlug: categorySlug,
       BrandSlug: brandSlug,
       BrandSlugs: brandSlugs,
-      InStockOnly: inStockOnly,
+      InStockOnly: inStockOnly ?? true,
       Attr: attr,
       Range: range,
       MinPrice: minPrice,
@@ -664,7 +664,7 @@ export async function getStorefrontVisibleCategorySlugs(): Promise<Set<string>> 
   const result = await apiRequest<StorefrontSearchResponse>(
     "/api/storefront/search",
     {
-      query: { PageSize: 1 },
+      query: { PageSize: 1, InStockOnly: true },
       useProxy: true,
     }
   );

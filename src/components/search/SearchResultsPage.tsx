@@ -42,7 +42,7 @@ export default function SearchResultsPage({
   const [filterValues, setFilterValues] = useState<DynamicFilterValues>({
     price: [0, 1],
     brandSlugs: initialBrandSlug ? [initialBrandSlug] : [],
-    inStockOnly: false,
+    inStockOnly: true,
     attributes: {},
     ranges: {},
   });

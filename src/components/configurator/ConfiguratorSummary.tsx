@@ -17,6 +17,7 @@ type Props = {
   onOpenGuestBuild?: (token: string) => void;
   onAddGuestBuildToCart?: (token: string) => void;
   onDeleteGuestBuild?: (token: string) => void;
+  onOpenPrebuiltConfigurations?: () => void;
 };
 
 export default function ConfiguratorSummary({
@@ -31,6 +32,7 @@ export default function ConfiguratorSummary({
   onOpenGuestBuild,
   onAddGuestBuildToCart,
   onDeleteGuestBuild,
+  onOpenPrebuiltConfigurations,
 }: Props) {
   const locale = useStorefrontLocale();
   const en = locale === "en";
@@ -108,11 +110,12 @@ export default function ConfiguratorSummary({
         </div>
 
         <div>
-          <button type="button">
+          <button type="button" onClick={onOpenPrebuiltConfigurations}>
             <img src="/images/conf4.svg" alt="configurator" />
             <span>{en ? "Ready-made configurations" : "მზა კონფიგურაციები"}</span>
           </button>
         </div>
+
       </div>
 
       {guestBuilds.length > 0 && (

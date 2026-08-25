@@ -44,7 +44,13 @@ export default function StorefrontCategoryProductSection({
           items.length > 0
             ? items
             : await getStorefrontProductsByCategory(categorySlug, limit);
-        if (isMounted) setProducts(list.map(mapStorefrontProductToCard));
+        if (isMounted) {
+          setProducts(
+            list
+              .filter((product) => product.isAvailable && product.stockStatus !== "OutOfStock")
+              .map(mapStorefrontProductToCard),
+          );
+        }
       })
       .catch(() => {
         if (isMounted) setProducts([]);

@@ -216,6 +216,7 @@ export default function ConfiguratorProductModal({
               values={effectiveFilterValues}
               priceBounds={priceBounds}
               onChange={onFilterValuesChange}
+              compact
             />
           </aside>
 
