@@ -1,3 +1,5 @@
+@use "@/styles/colors" as *;
+
 .card {
   width: 100%;
   max-width: 100%;
@@ -39,7 +41,7 @@
   position: absolute;
   top: 12px;
   left: 12px;
-  background: #f90446;
+  background: $red-normal;
   color: #fff;
   display: flex;
   align-items: center;

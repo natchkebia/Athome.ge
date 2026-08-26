@@ -277,7 +277,7 @@ export default function ConfiguratorProductModal({
 
                       {product.compatibilityStatus === "unknown" && (
                         <div className={styles.compatibilityUnknown}>
-                          {en ? "Compatibility is unconfirmed" : "თავსებადობა დაუდასტურებელია"}
+                          {en ? "Compatibility could not be checked" : "თავსებადობა ვერ შემოწმდა"}
                         </div>
                       )}
 
@@ -292,12 +292,11 @@ export default function ConfiguratorProductModal({
                     <div className={styles.productAction}>
                       <strong>{rowTotal} ₾</strong>
 
-                      {product.priceDelta != null && (
+                      {product.priceDelta != null && Math.abs(product.priceDelta) >= 0.005 && (
                         <div className={product.priceDelta < 0 ? styles.negativeDelta : styles.positiveDelta}>
-                          {product.priceDelta > 0 ? "+" : ""}{product.priceDelta.toFixed(2)} ₾
-                          {product.configuredPrice != null && (
-                            <small>{en ? "New PC price" : "კომპიუტერის ახალი ფასი"}: {product.configuredPrice.toFixed(2)} ₾</small>
-                          )}
+                          <span className={styles.deltaBadge}>
+                            {product.priceDelta > 0 ? "+" : "−"}{Math.abs(product.priceDelta).toFixed(2)} ₾
+                          </span>
                         </div>
                       )}
 
@@ -314,19 +313,16 @@ export default function ConfiguratorProductModal({
                         />
                       </label>
 
-                      <small>
-                        {product.stock <= 0
-                          ? (en ? "Out of stock" : "მარაგში არ არის")
-                          : product.stock <= 10
-                            ? (en ? `In stock: ${product.stock} units` : `მარაგშია: ${product.stock} ერთეული`)
-                            : (en ? "In stock" : "მარაგშია")}
-                      </small>
+                      <div className={styles.stockInfo}>
+                        <small>
+                          {product.stock <= 0
+                            ? (en ? "Out of stock" : "მარაგში არ არის")
+                            : product.stock <= 10
+                              ? (en ? `In stock: ${product.stock} units` : `მარაგშია: ${product.stock} ერთეული`)
+                              : (en ? "In stock" : "მარაგშია")}
+                        </small>
 
-                      {product.hasOwnStock && product.stock > 0 && (
-                        <span className={styles.ownStockBadge}>
-                          {en ? "In our stock" : "ჩვენს მარაგშია"}
-                        </span>
-                      )}
+                      </div>
 
                       <button
                         type="button"

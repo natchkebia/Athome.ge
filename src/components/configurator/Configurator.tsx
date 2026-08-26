@@ -138,24 +138,24 @@ const BACKEND_SLOT_META: Record<string, Pick<ConfiguratorCategory, "key" | "titl
   gpu: { key: "gpu", title: "ვიდეობარათი", icon: "/images/gpu.svg" },
   psu: { key: "psu", title: "კვების ბლოკი", icon: "/images/psu.svg" },
   case: { key: "case", title: "ქეისი", icon: "/images/case.svg" },
-  cpucooler: { key: "cooler", title: "პროცესორის ქულერი", icon: "/images/cooler.svg" },
-  liquidcooler: { key: "cooler", title: "პროცესორის ქულერი", icon: "/images/cooler.svg" },
+  cpucooler: { key: "cooler", title: "პროცესორის ქულერი (ჰაერის)", icon: "/images/cooler.svg" },
+  liquidcooler: { key: "liquidCooler", title: "თხევადი გაგრილება", icon: "/images/cooler.svg" },
   storagessd: { key: "storage", title: "SSD მეხსიერება", icon: "/images/ssd.svg" },
   storagehdd: { key: "drive", title: "მყარი დისკი", icon: "/images/Harddrive.svg" },
   storagedrive: { key: "storageDrive", title: "საცავი", icon: "/images/Harddrive.svg" },
   casefan: { key: "caseFan", title: "ქეისის ქულერი", icon: "/images/fan.svg" },
 };
 
-const EN_CATEGORY_TITLES: Record<ConfiguratorCategoryKey, string> = {
+const EN_CATEGORY_TITLES: Partial<Record<ConfiguratorCategoryKey, string>> = {
   processor: "Processor", motherboard: "Motherboard", ram: "Memory", gpu: "Graphics card",
-  psu: "Power supply", cooler: "CPU cooler", case: "Case", drive: "Hard drive",
+  psu: "Power supply", cooler: "Air CPU cooler", liquidCooler: "Liquid cooling", case: "Case", drive: "Hard drive",
   storage: "SSD storage", storageDrive: "Storage", caseFan: "Case fan", os: "System license", monitor: "Monitor",
   headphones: "Headset", keyboard: "Keyboard", mouse: "Mouse", microphone: "Microphone",
   speaker: "Speakers",
 };
 
 // backend slot -> a representative frontend key (for reconstructing a loaded build)
-const BACKEND_TO_FRONTEND_SLOT: Record<ConfiguratorSlot, ConfiguratorCategoryKey> =
+const BACKEND_TO_FRONTEND_SLOT: Partial<Record<ConfiguratorSlot, ConfiguratorCategoryKey>> =
   {
     cpu: "processor",
     motherboard: "motherboard",
@@ -164,12 +164,17 @@ const BACKEND_TO_FRONTEND_SLOT: Record<ConfiguratorSlot, ConfiguratorCategoryKey
     psu: "psu",
     case: "case",
     cpuCooler: "cooler",
-    liquidCooler: "cooler",
+    liquidCooler: "liquidCooler",
     storageDrive: "storageDrive",
     storageSsd: "storage",
     storageHdd: "drive",
     caseFan: "caseFan",
   };
+
+function backendSlotForCategory(category: ConfiguratorCategoryKey): ConfiguratorSlot | undefined {
+  if (category.startsWith("backend:")) return category.slice("backend:".length) as ConfiguratorSlot;
+  return FRONTEND_TO_BACKEND_SLOT[category];
+}
 
 // Adapt a backend product card to the shape the existing modal/cards expect.
 function adaptCard(
@@ -260,12 +265,14 @@ export default function Configurator() {
 
   const servedSystemCategories = useMemo(() => {
     if (!servedSlots) return systemUnitCategories;
-    const seen = new Set<ConfiguratorCategoryKey>();
-    return servedSlots.flatMap((definition) => {
+    return servedSlots.map((definition) => {
       const meta = BACKEND_SLOT_META[String(definition.slot).toLowerCase()];
-      if (!meta || seen.has(meta.key)) return [];
-      seen.add(meta.key);
-      return [{ ...meta, isRecommended: definition.isRecommended, productCount: definition.productCount }];
+      const fallback: Pick<ConfiguratorCategory, "key" | "title" | "icon"> = {
+        key: `backend:${definition.slot}`,
+        title: String(definition.slot),
+        icon: "/images/case.svg",
+      };
+      return { ...(meta ?? fallback), isRecommended: definition.isRecommended, productCount: definition.productCount };
     });
   }, [servedSlots]);
 
@@ -276,7 +283,7 @@ export default function Configurator() {
   useEffect(() => {
     if (!selectedCategory) return;
 
-    const backendSlot = FRONTEND_TO_BACKEND_SLOT[selectedCategory];
+    const backendSlot = backendSlotForCategory(selectedCategory);
     const isPeripheral = PERIPHERAL_SLUGS.has(selectedCategory);
 
     // slots the backend doesn't expose at all (e.g. os) → local fallback
@@ -295,7 +302,7 @@ export default function Configurator() {
     const selectedIds = compatibilityFilterEnabled
       ? (Object.keys(selectedProducts) as ConfiguratorCategoryKey[])
       // მიმდინარე სლოტის ძველი არჩევანი კანდიდატებს არ უნდა შეედაროს — ის ჩანაცვლდება.
-      .filter((key) => key !== selectedCategory && Boolean(FRONTEND_TO_BACKEND_SLOT[key]))
+      .filter((key) => key !== selectedCategory && Boolean(backendSlotForCategory(key)))
           .flatMap((key) => selectedProducts[key]?.map((item) => item.id) ?? [])
       : [];
     const request = backendSlot
@@ -353,12 +360,12 @@ export default function Configurator() {
 
   const activeCategoryTitle = useMemo(() => {
     if (!selectedCategory) return "";
-    const allCategories = [...systemUnitCategories, ...peripheralCategories];
+    const allCategories = [...servedSystemCategories, ...peripheralCategories];
     return (
       allCategories.find((category) => category.key === selectedCategory)
         ?.title || ""
     );
-  }, [selectedCategory]);
+  }, [selectedCategory, servedSystemCategories]);
 
   const allSelectedProducts = useMemo(() => {
     return Object.values(selectedProducts).flatMap(
@@ -383,7 +390,7 @@ export default function Configurator() {
     const seen = new Set<ConfiguratorSlot>();
     (Object.keys(selectedProducts) as ConfiguratorCategoryKey[]).forEach(
       (key) => {
-        const backendSlot = FRONTEND_TO_BACKEND_SLOT[key];
+        const backendSlot = backendSlotForCategory(key);
         const first = selectedProducts[key]?.[0];
         if (backendSlot && first && !seen.has(backendSlot)) {
           seen.add(backendSlot);
@@ -424,8 +431,7 @@ export default function Configurator() {
       .then((build) => {
         const restored: SelectedProducts = {};
         build.slots.forEach((slot) => {
-          const key = BACKEND_TO_FRONTEND_SLOT[slot.slot];
-          if (!key) return;
+          const key = BACKEND_TO_FRONTEND_SLOT[slot.slot] ?? `backend:${slot.slot}`;
           restored[key] = [
             {
               id: slot.productId,
@@ -484,7 +490,7 @@ export default function Configurator() {
 
     // უკვე არჩეულ პროდუქტზე დაჭერა წაშლაა და თავსებადობის შემოწმება არ სჭირდება.
     if (!alreadySelected) {
-      const candidateSlot = FRONTEND_TO_BACKEND_SLOT[product.category];
+      const candidateSlot = backendSlotForCategory(product.category);
 
       if (candidateSlot) {
         const candidateSlots = backendSlots.filter(
@@ -819,6 +825,11 @@ export default function Configurator() {
                       ))}
                     </ul>
                   )}
+                  {(selectedProducts.case?.length ?? 0) > 0 && checkResult.blockingCount > 0 && (
+                    <button type="button" onClick={() => setSelectedCategory("case")}>
+                      {en ? "Change case" : "ქეისის შეცვლა"}
+                    </button>
+                  )}
                 </div>
               )}
 
@@ -889,7 +900,7 @@ export default function Configurator() {
 
         {selectedCategory && (
           <ConfiguratorProductModal
-            title={selectedCategory && en ? EN_CATEGORY_TITLES[selectedCategory] : activeCategoryTitle || (en ? "Details" : "დეტალები")}
+            title={selectedCategory && en ? EN_CATEGORY_TITLES[selectedCategory] ?? activeCategoryTitle : activeCategoryTitle || (en ? "Details" : "დეტალები")}
             products={modalProducts}
             loading={modalLoading}
             selectedProducts={selectedProducts[selectedCategory] || []}

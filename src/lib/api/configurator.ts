@@ -27,6 +27,7 @@ export const FRONTEND_TO_BACKEND_SLOT: Record<string, ConfiguratorSlot> = {
   gpu: "gpu",
   psu: "psu",
   cooler: "cpuCooler",
+  liquidCooler: "liquidCooler",
   case: "case",
   drive: "storageHdd",
   storage: "storageSsd",

@@ -5,6 +5,7 @@ export type ConfiguratorCategoryKey =
   | "gpu"
   | "psu"
   | "cooler"
+  | "liquidCooler"
   | "case"
   | "drive"
   | "storage"
@@ -16,7 +17,8 @@ export type ConfiguratorCategoryKey =
   | "keyboard"
   | "mouse"
   | "microphone"
-  | "speaker";
+  | "speaker"
+  | `backend:${string}`;
 
 export type ConfiguratorCategory = {
   key: ConfiguratorCategoryKey;

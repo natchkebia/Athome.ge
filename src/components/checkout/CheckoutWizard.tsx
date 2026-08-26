@@ -157,6 +157,7 @@ export default function CheckoutWizard({ onStepChange, onDeliverySummaryChange }
       guestItems: cart.items.map((item) => ({
         productId: item.productId,
         quantity: item.quantity,
+        ...(item.swaps?.length ? { swaps: item.swaps } : {}),
       })),
     };
   }

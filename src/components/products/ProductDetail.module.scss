@@ -1,3 +1,5 @@
+@use "@/styles/colors" as *;
+
 .mainContainer {
   display: flex;
   flex-direction: column;
@@ -139,7 +141,7 @@
       max-width: 100%;
       padding: 8px 12px;
       border-radius: 999px;
-      background: #f90446;
+      background: $red-normal;
       color: #fff;
       font-size: 13px;
       font-weight: 590;

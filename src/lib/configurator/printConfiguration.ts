@@ -5,13 +5,14 @@ import type {
 import fontkit from "@pdf-lib/fontkit";
 import { PDFDocument, PDFFont, PDFPage, rgb } from "pdf-lib";
 
-const CATEGORY_NAMES: Record<ConfiguratorCategoryKey, { ka: string; en: string }> = {
+const CATEGORY_NAMES: Partial<Record<ConfiguratorCategoryKey, { ka: string; en: string }>> = {
   processor: { ka: "პროცესორი", en: "Processor" },
   motherboard: { ka: "დედა დაფა", en: "Motherboard" },
   ram: { ka: "ოპერატიული მეხსიერება", en: "Memory" },
   gpu: { ka: "ვიდეობარათი", en: "Graphics card" },
   psu: { ka: "კვების ბლოკი", en: "Power supply" },
   cooler: { ka: "პროცესორის გაგრილება", en: "CPU cooler" },
+  liquidCooler: { ka: "თხევადი გაგრილება", en: "Liquid cooling" },
   case: { ka: "ქეისი", en: "Case" },
   drive: { ka: "მყარი დისკი", en: "Hard drive" },
   storage: { ka: "SSD მეხსიერება", en: "SSD storage" },

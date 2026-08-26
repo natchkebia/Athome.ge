@@ -28,7 +28,12 @@ export const systemUnitCategories: ConfiguratorCategory[] = [
   },
   {
     key: "cooler",
-    title: "პროცესორის ქულერი",
+    title: "პროცესორის ქულერი (ჰაერის)",
+    icon: "/images/cooler.svg",
+  },
+  {
+    key: "liquidCooler",
+    title: "თხევადი გაგრილება",
     icon: "/images/cooler.svg",
   },
   {

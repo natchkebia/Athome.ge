@@ -1,13 +1,11 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
 import ConfiguratorProductModal, { type ProductSelectionResult } from "@/components/configurator/ConfiguratorProductModal";
 import type { ConfiguratorCategoryKey, ConfiguratorProduct } from "@/components/configurator/configuratorTypes";
 import type { DynamicFilterValues } from "@/components/products/DynamicProductFilter";
 import { useCommerce } from "@/contexts/CommerceContext";
-import { addProfileCartItem } from "@/lib/api/profileCommerce";
-import { getStoredAuthTokens } from "@/lib/auth/tokens";
+import { cacheProductInfo } from "@/lib/commerce/guestStore";
 import { normalizeMediaUrl } from "@/lib/storefront/products";
 import {
   getPrebuiltConfiguration,
@@ -24,7 +22,7 @@ import styles from "./ProductDetail.module.scss";
 const EMPTY_FILTERS: DynamicFilterValues = { price: [0, 0], brandSlugs: [], inStockOnly: true, attributes: {}, ranges: {} };
 const SLOT_CATEGORY: Record<string, ConfiguratorCategoryKey> = {
   Cpu: "processor", Motherboard: "motherboard", Ram: "ram", Gpu: "gpu", Psu: "psu",
-  Case: "case", CpuCooler: "cooler", LiquidCooler: "cooler", StorageSsd: "storage",
+  Case: "case", CpuCooler: "cooler", LiquidCooler: "liquidCooler", StorageSsd: "storage",
   StorageHdd: "drive", CaseFan: "caseFan",
 };
 
@@ -32,8 +30,7 @@ type Props = { productId: number; onConfiguredPrice?: (price: number | null) => 
 
 export default function PrebuiltConfigurator({ productId, onConfiguredPrice }: Props) {
   const en = useStorefrontLocale() === "en";
-  const router = useRouter();
-  const { cart, refreshCart } = useCommerce();
+  const { cart, addToCart, refreshCart } = useCommerce();
   const [base, setBase] = useState<PrebuiltConfiguration | null>(null);
   const [quote, setQuote] = useState<PrebuiltQuote | null>(null);
   const [swapsBySlot, setSwapsBySlot] = useState<Record<string, number>>({});
@@ -51,6 +48,17 @@ export default function PrebuiltConfigurator({ productId, onConfiguredPrice }: P
       if (!active) return;
       setBase(result);
       const configured = cart.items.find((item) => item.productId === productId && item.isConfigured);
+      if (configured?.swaps?.length) {
+        void quotePrebuiltConfiguration(productId, configured.swaps).then((savedQuote) => {
+          if (!active) return;
+          setQuote(savedQuote);
+          const baseIds = new Set(result.parts.map((part) => part.productId));
+          const next: Record<string, number> = {};
+          savedQuote.parts.forEach((part) => { if (!baseIds.has(part.productId)) next[part.slot] = part.productId; });
+          setSwapsBySlot(next);
+        });
+        return;
+      }
       if (configured?.configuredParts?.length) {
         const baseIds = new Set(result.parts.map((part) => part.productId));
         const existingSwaps = configured.configuredParts
@@ -79,11 +87,7 @@ export default function PrebuiltConfigurator({ productId, onConfiguredPrice }: P
   );
 
   const openOptions = async (part: PrebuiltPart) => {
-    if (!getStoredAuthTokens()?.accessToken) {
-      setMessage(en ? "Sign in to change parts in a prebuilt PC." : "მზა კომპიუტერში ნაწილის შესაცვლელად გაიარეთ ავტორიზაცია.");
-      router.push(`/authorization?returnUrl=${encodeURIComponent(window.location.pathname)}`);
-      return;
-    }
+    setMessage("");
     setOpenSlot(part.slot);
     setLoadingOptions(true);
     setOptions([]);
@@ -129,7 +133,13 @@ export default function PrebuiltConfigurator({ productId, onConfiguredPrice }: P
     if (existing && !window.confirm(en ? "This will replace the configuration already in your cart. Continue?" : "კალათაში არსებული ამ კომპიუტერის კონფიგურაცია ჩანაცვლდება. გავაგრძელოთ?")) return;
     setBusy(true);
     try {
-      await addProfileCartItem(productId, 1, swaps);
+      cacheProductInfo({
+        productId,
+        productName: quote?.parts.map((part) => part.productName).join(" / ") || base.name,
+        sellingPrice: quote?.price ?? base.basePrice,
+        isInStock: (quote?.buildableUnits ?? base.buildableUnits) > 0,
+      });
+      await addToCart(productId, 1, swaps);
       await refreshCart();
       setMessage(en ? "Configured PC added to cart." : "შეცვლილი კონფიგურაცია კალათაში დაემატა.");
     } catch (error) {

@@ -179,7 +179,7 @@ export default function DynamicProductFilter({
                         }}
                       />
                       <span>{brand.name}</span>
-                      <span className={styles.optionCount}>{brand.productCount}</span>
+                      <span className={styles.optionCount}>({brand.productCount})</span>
                     </label>
                   ))}
                   {brands.length > 8 && (

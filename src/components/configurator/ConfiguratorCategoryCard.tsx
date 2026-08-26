@@ -10,6 +10,7 @@ const EN_TITLES: Record<string, string> = {
   პროცესორი: "Processor", "დედა დაფა": "Motherboard", "ოპერატიული მეხსიერება": "Memory",
   ვიდეოკარტა: "Graphics card", ვიდეობარათი: "Graphics card", "კვების ბლოკი": "Power supply",
   "პროცესორის გამაგრილებელი": "CPU cooler", ქეისი: "Case", "მყარი დისკი": "Hard drive",
+  "პროცესორის ქულერი (ჰაერის)": "Air CPU cooler", "თხევადი გაგრილება": "Liquid cooling",
   "SSD მეხსიერება": "SSD storage", "ქეისის ქულერი": "Case fan", "სისტემის ლიცენზია": "System license",
   მონიტორი: "Monitor", ყურსასმენი: "Headset", კლავიატურა: "Keyboard", მაუსი: "Mouse",
   მიკროფონი: "Microphone", დინამიკი: "Speakers",

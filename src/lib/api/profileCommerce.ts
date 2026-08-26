@@ -15,6 +15,7 @@ export type ProfileCartItem = {
   isConfigured?: boolean;
   configuredParts?: { productId: number; name: string; quantity: number }[];
   configurationJson?: string;
+  swaps?: { componentProductId: number }[];
 };
 
 export type ProfileCart = {

@@ -56,7 +56,15 @@ function write(key: string, value: unknown) {
 export function cacheProductInfo(info: GuestProductInfo) {
   if (!info.productId) return;
   const map = read<Record<number, GuestProductInfo>>(INFO_KEY, {});
-  map[info.productId] = info;
+  const existing = map[info.productId];
+  map[info.productId] = {
+    ...existing,
+    ...info,
+    imageUrl: info.imageUrl ?? existing?.imageUrl,
+    slug: info.slug ?? existing?.slug,
+    oldPrice: info.oldPrice ?? existing?.oldPrice,
+    isInStock: info.isInStock ?? existing?.isInStock,
+  };
   write(INFO_KEY, map);
 }
 
@@ -82,7 +90,11 @@ export function getGuestCart(): ProfileCart {
   return read<ProfileCart>(CART_KEY, emptyCart);
 }
 
-export function addGuestCartItem(productId: number, quantity = 1): ProfileCart {
+export function addGuestCartItem(
+  productId: number,
+  quantity = 1,
+  swaps?: { componentProductId: number }[],
+): ProfileCart {
   const cart = getGuestCart();
   const info = getCachedInfo(productId);
   const items = [...cart.items];
@@ -100,6 +112,8 @@ export function addGuestCartItem(productId: number, quantity = 1): ProfileCart {
       sellingPrice: price,
       oldPrice: info?.oldPrice ?? items[index].oldPrice,
       isInStock: info?.isInStock ?? items[index].isInStock,
+      swaps: swaps?.length ? swaps : items[index].swaps,
+      isConfigured: swaps?.length ? true : items[index].isConfigured,
       quantity: newQty,
       lineTotal: price * newQty,
     };
@@ -116,6 +130,8 @@ export function addGuestCartItem(productId: number, quantity = 1): ProfileCart {
       quantity,
       lineTotal: price * quantity,
       isInStock: info?.isInStock ?? true,
+      swaps: swaps?.length ? swaps : undefined,
+      isConfigured: Boolean(swaps?.length),
     });
   }
 

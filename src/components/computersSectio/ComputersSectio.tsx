@@ -5,7 +5,7 @@ export default function ComputersSection() {
     <StorefrontCategoryProductSection
       icon="/icons/Computer.svg"
       title="კომპიუტერები"
-      categorySlug="computers"
+      categorySlug="geimingsarendero-kompiuterebi"
     />
   );
 }

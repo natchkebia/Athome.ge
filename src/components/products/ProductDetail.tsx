@@ -289,9 +289,9 @@ export default function ProductDetail({
       oldPrice,
     });
 
-    if (result === "added") showToast(en ? "Added to comparison" : "შედარების სიაში დაემატა");
-    else if (result === "removed") showToast(en ? "Removed from comparison" : "შედარების სიიდან ამოიშალა");
-    else showToast(en ? `You can compare up to ${maxItems} products` : `შედარებაში მაქსიმუმ ${maxItems} პროდუქტია`, "error");
+    if (result !== "added" && result !== "removed") {
+      showToast(en ? `You can compare up to ${maxItems} products` : `შედარებაში მაქსიმუმ ${maxItems} პროდუქტია`, "error");
+    }
   };
 
   return (

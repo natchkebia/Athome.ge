@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCompare } from "@/contexts/CompareContext";
@@ -12,12 +13,36 @@ export default function CompareBar() {
   const en = useStorefrontLocale() === "en";
   const { items, removeCompare, clearCompare } = useCompare();
   const pathname = usePathname();
+  const barRef = useRef<HTMLDivElement>(null);
+  const isVisible = items.length > 0 && pathname !== "/compare";
+
+  useEffect(() => {
+    const root = document.documentElement;
+    const bar = barRef.current;
+
+    if (!isVisible || !bar) {
+      root.style.removeProperty("--compare-bar-height");
+      return;
+    }
+
+    const updateHeight = () => {
+      root.style.setProperty("--compare-bar-height", `${bar.getBoundingClientRect().height}px`);
+    };
+    updateHeight();
+
+    const observer = new ResizeObserver(updateHeight);
+    observer.observe(bar);
+    return () => {
+      observer.disconnect();
+      root.style.removeProperty("--compare-bar-height");
+    };
+  }, [isVisible]);
 
   // ცარიელ სიაზე და თვითონ შედარების გვერდზე ბარი არ გვჭირდება.
-  if (items.length === 0 || pathname === "/compare") return null;
+  if (!isVisible) return null;
 
   return (
-    <div className={styles.bar}>
+    <div ref={barRef} className={styles.bar}>
       <div className={styles.inner}>
         <div className={styles.items}>
           {items.map((item) => (

@@ -11,6 +11,7 @@ export type SelectedBank = "bog" | "tbc" | "credo";
 export type CheckoutGuestItem = {
   productId: number;
   quantity: number;
+  swaps?: { componentProductId: number }[];
 };
 
 export type CheckoutPayload = {

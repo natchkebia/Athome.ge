@@ -299,7 +299,7 @@ export function CommerceProvider({ children }: { children: React.ReactNode }) {
       if (guestCart.items.length > 0 || guestWishlist.items.length > 0) {
         try {
           for (const item of guestCart.items) {
-            await addProfileCartItem(item.productId, item.quantity);
+            await addProfileCartItem(item.productId, item.quantity, item.swaps);
           }
           for (const item of guestWishlist.items) {
             await addProfileWishlistItem(item.productId);
@@ -329,7 +329,7 @@ export function CommerceProvider({ children }: { children: React.ReactNode }) {
     async (productId: number, quantity = 1, swaps?: { componentProductId: number }[]) => {
       // სტუმარი — localStorage კალათა (დარეგისტრირება არ სჭირდება).
       if (!hasAccessToken()) {
-        const nextCart = addGuestCartItem(productId, quantity);
+        const nextCart = addGuestCartItem(productId, quantity, swaps);
         cartRef.current = nextCart;
         setCart(nextCart);
         return;
