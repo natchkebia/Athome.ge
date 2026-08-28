@@ -1427,7 +1427,11 @@
   }
 
   .productAction {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: minmax(0, 1fr) auto;
+
+    &:has(.positiveDelta, .negativeDelta) > strong {
+      margin-top: 0;
+    }
 
     strong,
     label,
@@ -1442,23 +1446,46 @@
     }
 
     strong {
+      grid-column: 1;
+      grid-row: 1;
       text-align: left;
     }
 
     label {
+      grid-column: 2;
+      grid-row: 2;
       justify-content: flex-end;
     }
 
+    .positiveDelta,
+    .negativeDelta {
+      position: static;
+      grid-column: 2;
+      grid-row: 1;
+      align-self: center;
+      justify-self: end;
+      z-index: auto;
+
+      .deltaBadge {
+        min-height: 28px;
+        padding: 5px 10px;
+        font-size: 12px;
+      }
+    }
+
     .stockInfo {
-      grid-column: 1 / -1;
+      grid-column: 1;
+      grid-row: 2;
       width: 100%;
       min-height: 0;
       margin: 0;
       align-items: flex-start;
+      justify-content: center;
 
       small {
-        width: 100%;
+        width: auto;
         text-align: left;
+        white-space: nowrap;
       }
     }
 

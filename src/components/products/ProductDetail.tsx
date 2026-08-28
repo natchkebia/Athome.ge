@@ -147,6 +147,7 @@ export default function ProductDetail({
   const router = useRouter();
   const isCompared = compareIds.has(product.id);
   const isAvailable = product.isAvailable && product.stockStatus !== "OutOfStock";
+  const isAthomePrebuilt = product.brand?.slug?.toLocaleLowerCase() === "athomepc";
   const [fallbackRelatedProducts, setFallbackRelatedProducts] = useState<
     StorefrontProductCard[]
   >([]);
@@ -446,10 +447,12 @@ export default function ProductDetail({
         </div>
       </div>
 
-      <PrebuiltConfigurator
-        productId={product.id}
-        onConfiguredPrice={setConfiguredPrice}
-      />
+      {isAthomePrebuilt && (
+        <PrebuiltConfigurator
+          productId={product.id}
+          onConfiguredPrice={setConfiguredPrice}
+        />
+      )}
 
       <section className={styles.productInfoTabs}>
         <div className={styles.tabList} role="tablist" aria-label={en ? "Product information" : "პროდუქტის ინფორმაცია"}>

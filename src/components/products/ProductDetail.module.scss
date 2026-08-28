@@ -213,6 +213,10 @@
 }
 
 @media (max-width: 800px) {
+  .prebuiltConfigurator {
+    width: 100%;
+  }
+
   .prebuiltParts { grid-template-columns: 1fr; }
   .prebuiltHeader { align-items: flex-start; flex-direction: column; }
   .prebuiltPart { grid-template-columns: 52px minmax(0, 1fr); }
