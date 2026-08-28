@@ -38,6 +38,7 @@ import {
   toggleGuestWishlistItem,
   updateGuestCartItem,
 } from "@/lib/commerce/guestStore";
+import { getStorefrontProduct } from "@/lib/api/storefront";
 
 type CommerceContextValue = {
   cart: ProfileCart;
@@ -114,6 +115,7 @@ function hydrateCart(cart: ProfileCart): ProfileCart {
         oldPrice: item.oldPrice ?? cached.oldPrice,
         lineTotal: item.lineTotal || sellingPrice * item.quantity,
         isInStock: item.isInStock ?? cached.isInStock ?? true,
+        availableQuantity: item.availableQuantity ?? cached.availableQuantity,
       };
     }),
   };
@@ -142,33 +144,87 @@ async function hydrateConfiguratorCart(cart: ProfileCart): Promise<ProfileCart> 
       .map((item) => item.productId)
   );
 
-  if (missingIds.size === 0) return hydrated;
+  if (missingIds.size > 0) {
+    const results = await Promise.allSettled(
+      CONFIGURATOR_SLOTS.map((slot) =>
+        getConfiguratorSlotProducts(slot, { pageSize: 1000 })
+      )
+    );
 
-  const results = await Promise.allSettled(
-    CONFIGURATOR_SLOTS.map((slot) =>
-      getConfiguratorSlotProducts(slot, { pageSize: 1000 })
-    )
-  );
-
-  for (const result of results) {
-    if (result.status !== "fulfilled") continue;
-    for (const product of result.value.items) {
-      if (!missingIds.has(product.id)) continue;
-      cacheProductInfo({
-        productId: product.id,
-        productName: product.name || `პროდუქტი #${product.id}`,
-        imageUrl: product.thumbnailUrl || "",
-        slug: product.slug || "",
-        sellingPrice: product.effectivePrice,
-        oldPrice: product.oldPrice ?? undefined,
-        isInStock: !String(product.stockStatus ?? "").toLowerCase().includes("out"),
-      });
-      missingIds.delete(product.id);
+    for (const result of results) {
+      if (result.status !== "fulfilled") continue;
+      for (const product of result.value.items) {
+        if (!missingIds.has(product.id)) continue;
+        cacheProductInfo({
+          productId: product.id,
+          productName: product.name || `პროდუქტი #${product.id}`,
+          imageUrl: product.thumbnailUrl || "",
+          slug: product.slug || "",
+          sellingPrice: product.effectivePrice,
+          oldPrice: product.oldPrice ?? undefined,
+          isInStock: !String(product.stockStatus ?? "").toLowerCase().includes("out"),
+        });
+        missingIds.delete(product.id);
+      }
     }
+
+    hydrated = hydrateCart(hydrated);
   }
 
-  hydrated = hydrateCart(hydrated);
-  return hydrated;
+  const availability = await Promise.allSettled(
+    hydrated.items.map(async (item) => {
+      if (item.isConfigured || !item.slug) return item;
+      const product = await getStorefrontProduct(item.slug);
+      const availableQuantity = Math.max(0, product.totalEffectiveQuantity ?? 0);
+      cacheProductInfo({
+        productId: item.productId,
+        productName: item.productName,
+        imageUrl: item.imageUrl,
+        slug: item.slug,
+        sellingPrice: item.sellingPrice,
+        oldPrice: item.oldPrice,
+        isInStock: product.isAvailable && availableQuantity > 0,
+        availableQuantity,
+      });
+      return {
+        ...item,
+        isInStock: product.isAvailable && availableQuantity > 0,
+        availableQuantity,
+      };
+    })
+  );
+
+  return {
+    ...hydrated,
+    items: availability.map((result, index) =>
+      result.status === "fulfilled" ? result.value : hydrated.items[index]
+    ),
+  };
+}
+
+async function resolveAvailableQuantity(productId: number, slug?: string) {
+  const cached = getCachedInfo(productId);
+  if (cached?.availableQuantity != null) return cached.availableQuantity;
+  const productSlug = slug || cached?.slug;
+  if (!productSlug) return cached?.isInStock === false ? 0 : null;
+
+  try {
+    const product = await getStorefrontProduct(productSlug);
+    const availableQuantity = Math.max(0, product.totalEffectiveQuantity ?? 0);
+    cacheProductInfo({
+      productId,
+      productName: cached?.productName ?? product.name,
+      imageUrl: cached?.imageUrl,
+      slug: productSlug,
+      sellingPrice: cached?.sellingPrice ?? product.pricing.effectivePrice,
+      oldPrice: cached?.oldPrice,
+      isInStock: product.isAvailable && availableQuantity > 0,
+      availableQuantity,
+    });
+    return availableQuantity;
+  } catch {
+    return cached?.isInStock === false ? 0 : null;
+  }
 }
 
 // optimistic item — ბარათი add-ისას პროდუქტის ინფოს ქეშავს (getCachedInfo),
@@ -188,6 +244,7 @@ function optimisticCartItem(productId: number, quantity: number) {
     quantity,
     lineTotal: price * quantity,
     isInStock: info?.isInStock ?? true,
+    availableQuantity: info?.availableQuantity,
   };
 }
 
@@ -239,7 +296,7 @@ export function CommerceProvider({ children }: { children: React.ReactNode }) {
 
     if (!tokens?.accessToken) {
       // სტუმარი — კალათა/სურვილები localStorage-დან.
-      setCart(getGuestCart());
+      setCart(await hydrateConfiguratorCart(getGuestCart()));
       setWishlist(getGuestWishlist());
       return;
     }
@@ -264,7 +321,7 @@ export function CommerceProvider({ children }: { children: React.ReactNode }) {
 
   const refreshCart = useCallback(async () => {
     if (!hasAccessToken()) {
-      setCart(getGuestCart());
+      setCart(await hydrateConfiguratorCart(getGuestCart()));
       return;
     }
 
@@ -327,6 +384,25 @@ export function CommerceProvider({ children }: { children: React.ReactNode }) {
 
   const addToCart = useCallback(
     async (productId: number, quantity = 1, swaps?: { componentProductId: number }[]) => {
+      const cachedProduct = getCachedInfo(productId);
+      const currentItem = cartRef.current.items.find(
+        (item) => item.productId === productId
+      );
+      const availableQuantity = swaps?.length
+        ? null
+        : await resolveAvailableQuantity(productId, currentItem?.slug);
+      const requestedQuantity = (currentItem?.quantity ?? 0) + quantity;
+
+      // An unavailable product must not enter the cart (or have its existing
+      // quantity increased), regardless of which card triggered the action.
+      if (
+        cachedProduct?.isInStock === false ||
+        currentItem?.isInStock === false ||
+        (availableQuantity != null && requestedQuantity > availableQuantity)
+      ) {
+        return;
+      }
+
       // სტუმარი — localStorage კალათა (დარეგისტრირება არ სჭირდება).
       if (!hasAccessToken()) {
         const nextCart = addGuestCartItem(productId, quantity, swaps);
@@ -400,8 +476,23 @@ export function CommerceProvider({ children }: { children: React.ReactNode }) {
 
   const updateCartQuantity = useCallback(
     async (productId: number, quantity: number) => {
+      const currentItem = cartRef.current.items.find(
+        (item) => item.productId === productId
+      );
+      const availableQuantity = currentItem?.isConfigured
+        ? null
+        : await resolveAvailableQuantity(productId, currentItem?.slug);
+      if (
+        (availableQuantity != null && quantity > availableQuantity) ||
+        (currentItem?.isInStock === false && quantity > currentItem.quantity)
+      ) {
+        return;
+      }
+
       if (!hasAccessToken()) {
-        setCart(updateGuestCartItem(productId, quantity));
+        const nextCart = updateGuestCartItem(productId, quantity);
+        cartRef.current = nextCart;
+        setCart(nextCart);
         return;
       }
 
@@ -410,7 +501,11 @@ export function CommerceProvider({ children }: { children: React.ReactNode }) {
           quantity <= 0
             ? await removeProfileCartItem(productId)
             : await updateProfileCartItem(productId, quantity);
-        if (isProfileCart(updatedCart)) setCart(updatedCart);
+        if (isProfileCart(updatedCart)) {
+          const hydratedCart = hydrateCart(updatedCart);
+          cartRef.current = hydratedCart;
+          setCart(hydratedCart);
+        }
         else await refreshCart();
       } catch {
         await refreshCart();

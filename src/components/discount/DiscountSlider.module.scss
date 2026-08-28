@@ -13,8 +13,10 @@
   margin-top: 16px;
   margin-bottom: 32px;
   padding: 0;
+}
 
-  .swiper {
+@media (min-width: 769px) {
+  .compactSlider .swiper {
     :global(.swiper-slide) {
       width: calc((100% - 72px) / 4);
     }
@@ -138,8 +140,12 @@
   }
 
   .compactSlider {
-    margin-bottom: 24px;
+    margin-bottom: 0;
     padding: 0;
+
+    .swiper {
+      padding-bottom: 12px;
+    }
   }
 
   .topBar {
@@ -165,7 +171,7 @@
 @media (max-width: 540px) {
   .swiper {
     :global(.swiper-slide) {
-      width: min(330px, calc(100vw - 40px));
+      width: min(330px, calc(100vw - 72px));
     }
   }
 }
@@ -177,7 +183,7 @@
 
   .swiper {
     :global(.swiper-slide) {
-      width: calc(100vw - 40px);
+      width: calc(100vw - 72px);
     }
   }
 }

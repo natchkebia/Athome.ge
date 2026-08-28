@@ -615,6 +615,43 @@ export function submitStorefrontProductReview(
   );
 }
 
+const STOREFRONT_SEARCH_ALIASES: Array<[string, string]> = [
+  ["ნოუთბუქის ნაწილები", "laptop parts"],
+  ["კომპიუტერის ნაწილები", "computer parts"],
+  ["სავარძლები და მაგიდები", "chair desk"],
+  ["ნოუთბუქები", "laptop"],
+  ["ნოუთბუქი", "laptop"],
+  ["ლეპტოპები", "laptop"],
+  ["ლეპტოპი", "laptop"],
+  ["კომპიუტერები", "computer"],
+  ["კომპიუტერი", "computer"],
+  ["მონიტორები", "monitor"],
+  ["მონიტორი", "monitor"],
+  ["ტელევიზორები", "television"],
+  ["ტელევიზორი", "television"],
+  ["პროექტორები", "projector"],
+  ["პროექტორი", "projector"],
+  ["კლავიატურები", "keyboard"],
+  ["კლავიატურა", "keyboard"],
+  ["მაუსები", "mouse"],
+  ["მაუსი", "mouse"],
+  ["ყურსასმენები", "headset"],
+  ["ყურსასმენი", "headset"],
+  ["პრინტერები", "printer"],
+  ["პრინტერი", "printer"],
+  ["სავარძლები", "chair"],
+  ["სავარძელი", "chair"],
+  ["მაგიდები", "desk"],
+  ["მაგიდა", "desk"],
+];
+
+function normalizeStorefrontSearchQuery(query: string) {
+  return STOREFRONT_SEARCH_ALIASES.reduce(
+    (value, [alias, replacement]) => value.replaceAll(alias, replacement),
+    query.trim().toLocaleLowerCase("ka-GE"),
+  );
+}
+
 export function searchStorefrontProducts({
   query,
   page = 1,
@@ -642,7 +679,7 @@ export function searchStorefrontProducts({
 }) {
   return apiRequest<StorefrontSearchResponse>("/api/storefront/search", {
     query: {
-      Query: query,
+      Query: normalizeStorefrontSearchQuery(query),
       Page: page,
       PageSize: pageSize,
       CategorySlug: categorySlug,
@@ -677,9 +714,10 @@ export async function getStorefrontVisibleCategorySlugs(): Promise<Set<string>> 
 }
 
 export async function getStorefrontSearchSuggestions(query: string) {
+  const normalizedSearchQuery = normalizeStorefrontSearchQuery(query);
   const [suggestionsResult, productsResult] = await Promise.allSettled([
     apiRequest<StorefrontSearchSuggestion[]>("/api/storefront/search/suggest", {
-      query: { query },
+      query: { query: normalizedSearchQuery },
       useProxy: true,
     }),
     searchStorefrontProducts({ query, page: 1, pageSize: 8 }),

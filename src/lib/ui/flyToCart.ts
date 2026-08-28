@@ -3,9 +3,21 @@
 // წყარო: მთლიანად client-side, DOM-ზე დეტაჩ ელემენტით — React render-ს არ ეხება.
 
 const TARGET_IDS = {
-  cart: "nav-cart-icon",
-  wishlist: "nav-wishlist-icon",
+  cart: ["mobile-nav-cart-icon", "nav-cart-icon"],
+  wishlist: ["mobile-nav-wishlist-icon", "nav-wishlist-icon"],
 } as const;
+
+function findVisibleTarget(target: "cart" | "wishlist") {
+  for (const id of TARGET_IDS[target]) {
+    const element = document.getElementById(id);
+    if (!element) continue;
+
+    const rect = element.getBoundingClientRect();
+    if (rect.width > 0 && rect.height > 0) return element;
+  }
+
+  return null;
+}
 
 export function flyToTarget(
   source: HTMLElement | null,
@@ -14,7 +26,7 @@ export function flyToTarget(
 ) {
   if (typeof window === "undefined" || !source) return;
 
-  const targetEl = document.getElementById(TARGET_IDS[target]);
+  const targetEl = findVisibleTarget(target);
   if (!targetEl) return;
 
   // reduced-motion — მხოლოდ badge bump, ფრენის გარეშე.

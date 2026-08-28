@@ -181,8 +181,8 @@
 
 @media (max-width: 560px) {
   .sliderContainer {
-    height: 260px;
-    border-radius: 12px;
+    height: 224px;
+    border-radius: 16px;
   }
 
   .overlay {
@@ -190,8 +190,7 @@
   }
 
   .content {
-    max-width: calc(100% - 44px);
-    padding-left: 4px;
+    display: none;
 
     h1 {
       font-size: 23px;
@@ -211,10 +210,7 @@
   }
 
   .rightControls {
-    margin-right: 0;
-    max-width: 30px;
-    max-height: calc(100% - 24px);
-    gap: 12px;
+    display: none;
   }
 
   .range {

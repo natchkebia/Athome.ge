@@ -246,7 +246,7 @@ export default function AddressSelector({ onSelect, onCityChange, customerName, 
         <div className={`${styles.inputRow} ${styles.cityCombobox}`}>
           <input
             value={cityQuery}
-            placeholder={en ? "City or settlement" : "ქალაქი ან დასახლება"}
+            placeholder={en ? "Enter at least 2 characters" : "ჩაწერეთ მინიმუმ 2 სიმბოლო"}
             aria-label={en ? "Search city or settlement" : "ქალაქის ან დასახლების ძებნა"}
             role="combobox"
             aria-controls="settlement-options"
@@ -262,8 +262,7 @@ export default function AddressSelector({ onSelect, onCityChange, customerName, 
           />
           <button type="button" aria-label={en ? "Toggle settlements" : "ჩამონათვალის გახსნა"} onClick={() => setCityOpen((open) => !open)}><IoChevronDown /></button>
         </div>
-        {cityOpen && <div id="settlement-options" className={styles.dropdownList} role="listbox">
-          {cityQuery.trim().length < 2 && <div className={styles.lookupStatus}>{en ? "Enter at least 2 characters" : "ჩაწერეთ მინიმუმ 2 სიმბოლო"}</div>}
+        {cityOpen && cityQuery.trim().length >= 2 && <div id="settlement-options" className={styles.dropdownList} role="listbox">
           {citySearching && <div className={styles.lookupStatus}>{en ? "Searching..." : "იძებნება..."}</div>}
           {!citySearching && citySearchFailed && <div className={styles.lookupStatus}>{en ? "Search is temporarily unavailable" : "ძებნა დროებით მიუწვდომელია"}</div>}
           {!citySearching && !citySearchFailed && cityQuery.trim().length >= 2 && cityResults.length === 0 && <div className={styles.lookupStatus}>{en ? "No settlement found" : "დასახლება ვერ მოიძებნა"}</div>}

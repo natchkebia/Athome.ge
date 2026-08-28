@@ -256,6 +256,8 @@ export default function ProductDetail({
       slug: product.slug,
       sellingPrice: product.pricing.effectivePrice,
       oldPrice,
+      isInStock: isAvailable && product.totalEffectiveQuantity > 0,
+      availableQuantity: Math.max(0, product.totalEffectiveQuantity),
     });
 
   // "ყიდვა" — ამატებს კალათაში და გადაჰყავს კალათის გვერდზე (სტუმარსაც).
@@ -273,7 +275,6 @@ export default function ProductDetail({
     cacheInfo();
     flyToTarget(sourceEl, images[0], "cart");
     await addToCart(product.id);
-    showToast(en ? "Added to cart" : "კალათაში დაემატა");
   };
 
   // "შედარება" — შედარების სიაში ამატებს/ხსნის.
@@ -582,6 +583,49 @@ export default function ProductDetail({
           products={upsellProducts}
         />
       )}
+
+      <div className={styles.mobilePurchaseBar}>
+        <div className={styles.mobilePriceBlock}>
+          <div className={styles.mobilePrices}>
+            <span className={styles.mobileNewPrice}>
+              {(configuredPrice ?? product.pricing.effectivePrice).toFixed(2)} ₾
+            </span>
+            {oldPrice && (
+              <span className={styles.mobileOldPrice}>{oldPrice.toFixed(2)} ₾</span>
+            )}
+          </div>
+          <span className={styles.mobileMonthlyPrice}>
+            {en ? "from" : "თვეში:"} {Math.ceil((configuredPrice ?? product.pricing.effectivePrice) / 24)}₾ {en ? "/ month" : "-დან"}
+          </span>
+        </div>
+
+        <button
+          type="button"
+          className={`${styles.mobileRoundAction} ${isCompared ? styles.mobileRoundActionActive : ""}`}
+          onClick={handleCompare}
+          aria-label={en ? "Compare" : "შედარება"}
+          aria-pressed={isCompared}
+        >
+          <img src="/icons/Arrows.svg" alt="" />
+        </button>
+        <button
+          type="button"
+          className={styles.mobileRoundAction}
+          onClick={handleAddToCart}
+          disabled={!isAvailable || configuredPrice != null}
+          aria-label={en ? "Add to cart" : "კალათაში დამატება"}
+        >
+          <img src="/icons/Cart.svg" alt="" />
+        </button>
+        <button
+          type="button"
+          className={styles.mobileBuyButton}
+          onClick={handleBuyNow}
+          disabled={!isAvailable || configuredPrice != null}
+        >
+          {isAvailable ? (en ? "Buy" : "ყიდვა") : (en ? "Out of stock" : "ამოწურულია")}
+        </button>
+      </div>
     </div>
   );
 }

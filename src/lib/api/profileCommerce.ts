@@ -12,6 +12,7 @@ export type ProfileCartItem = {
   quantity: number;
   lineTotal: number;
   isInStock: boolean;
+  availableQuantity?: number;
   isConfigured?: boolean;
   configuredParts?: { productId: number; name: string; quantity: number }[];
   configurationJson?: string;

@@ -73,6 +73,19 @@
   }
 }
 
+@media (max-width: 540px) {
+  .filtersWrapper {
+    min-height: 24px;
+    flex-direction: row;
+    align-items: center;
+    padding: 0 16px;
+  }
+
+  .right {
+    display: none;
+  }
+}
+
 .emptyDeals {
   padding: 32px 0;
   text-align: center;

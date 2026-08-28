@@ -10,7 +10,7 @@
   border: none;
   font-size: 14px;
   color: rgba(59, 63, 66, 1);
-  font-weight: 510;
+  font-weight: 400;
   cursor: pointer;
   .firstButton {
     width: 24px;
@@ -28,6 +28,14 @@
   width: 140px;
   z-index: 50;
   animation: fadeIn 0.15s ease forwards;
+}
+
+@media (max-width: 992px) {
+  .menu {
+    left: 0;
+    right: auto;
+    z-index: 100;
+  }
 }
 
 .option {

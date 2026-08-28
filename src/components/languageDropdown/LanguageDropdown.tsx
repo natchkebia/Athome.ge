@@ -39,11 +39,11 @@ export default function LanguageDropdown() {
         <div className={styles.content}>
           <span>{selected.label}</span>
           <Image
-            src={open ? "/icons/Arrow-up.svg" : "/icons/Arrow-down.svg"}
+            src="/icons/language-chevron-large.svg"
             alt="arrow"
-            width={14}
-            height={14}
-            className={styles.arrow}
+            width={20}
+            height={20}
+            className={`${styles.arrow} ${open ? styles.open : ""}`}
           />
         </div>
       </button>

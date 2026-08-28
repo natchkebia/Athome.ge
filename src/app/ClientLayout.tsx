@@ -10,6 +10,7 @@ import Footer from "@/components/footer/Footer";
 import AtHomeLoader from "@/components/shared/AtHomeLoader";
 import CompareBar from "@/components/compare/CompareBar";
 import TestModeBadge from "@/components/shared/TestModeBadge";
+import MobileBottomNav from "@/components/mobileBottomNav/MobileBottomNav";
 import { CommerceProvider } from "@/contexts/CommerceContext";
 import { CompareProvider } from "@/contexts/CompareContext";
 import { LoadingProvider } from "@/contexts/LoadingContext";
@@ -26,6 +27,8 @@ export default function ClientLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const isAuthorizationPage =
+    pathname === "/authorization" || pathname.startsWith("/authorization/");
   const isInnerPage = pathname !== "/";
   const previousPathname = useRef(pathname);
   const [hideTopBar, setHideTopBar] = useState(false);
@@ -187,9 +190,19 @@ export default function ClientLayout({
           >
             {children}
           </main>
-          <Footer />
-          <CompareBar />
-          <TestModeBadge />
+          {pathname === "/" && <Footer />}
+          {pathname !== "/" && !isAuthorizationPage && (
+            <div className="mobile-inner-footer">
+              <Footer />
+            </div>
+          )}
+          <MobileBottomNav />
+          {!isAuthorizationPage && (
+            <>
+              <CompareBar />
+              <TestModeBadge />
+            </>
+          )}
           </LoadingProvider>
         </CompareProvider>
       </ToastProvider>

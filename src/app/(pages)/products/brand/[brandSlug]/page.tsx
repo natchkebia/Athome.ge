@@ -35,6 +35,7 @@ export default function BrandProductsPage() {
   const [products, setProducts] = useState<StorefrontProductCard[]>([]);
   const [loading, setLoading] = useState(true);
   const [filtersActive, setFiltersActive] = useState(false);
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [visibleCount, setVisibleCount] = useState(9);
   const { wishlistProductIds, toggleWishlist, addToCart } = useCommerce();
 
@@ -138,18 +139,33 @@ export default function BrandProductsPage() {
     <>
       <Breadcrumb items={breadcrumbs} />
       <div className={`${styles.container} site-wrapper`}>
-        <div className={styles.sidebar}>
+        <div className={`${styles.sidebar} ${styles.desktopSidebar}`}>
           <ProductFilter filters={filters} onChange={handleUpdateFilters} />
         </div>
 
         <div className={styles.content}>
           <div className={styles.sortbarWrapper}>
             <ProductSortBar filters={filters} onChange={handleUpdateFilters} />
+            <button
+              type="button"
+              className={`${styles.mobileFilterButton} ${mobileFiltersOpen ? styles.mobileFilterButtonActive : ""}`}
+              onClick={() => setMobileFiltersOpen((open) => !open)}
+              aria-label="ფილტრების გახსნა"
+              aria-expanded={mobileFiltersOpen}
+            >
+              <img src="/icons/Frame 165292.svg" alt="" />
+            </button>
             <div className={styles.iconsWrapper}>
               <img src="/icons/formater1.svg" alt="formater" />
               <img src="/icons/formater2.svg" alt="formater" />
             </div>
           </div>
+
+          {mobileFiltersOpen && (
+            <div className={styles.mobileFilterPanel}>
+              <ProductFilter filters={filters} onChange={handleUpdateFilters} />
+            </div>
+          )}
 
           {visibleProducts.length === 0 ? (
             <EmptyState />

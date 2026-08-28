@@ -59,6 +59,10 @@ body {
   padding-inline: 0;
 }
 
+.page-content--standalone {
+  margin-top: 0;
+}
+
 .fixed-header.scrolled + .page-content {
   margin-top: 158px;
 }
@@ -73,6 +77,10 @@ html {
 
 footer {
   flex-shrink: 0;
+}
+
+.mobile-inner-footer {
+  display: none;
 }
 
 img {
@@ -133,5 +141,21 @@ img {
   .site-wrapper {
     padding-inline: var(--site-gutter);
     gap: 12px;
+  }
+}
+
+@media (max-width: 560px) {
+  .mobile-inner-footer {
+    display: block;
+  }
+
+  body {
+    padding-bottom: calc(76px + env(safe-area-inset-bottom));
+  }
+
+  .fixed-header {
+    position: relative;
+    box-shadow: none;
+    border-bottom: 0;
   }
 }

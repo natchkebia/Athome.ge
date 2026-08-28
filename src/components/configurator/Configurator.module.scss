@@ -13,7 +13,7 @@
 .breadcrumbWrap {
   width: min(var(--site-max-width), 100%);
   margin: 0 auto;
-  padding: 0 var(--site-gutter);
+  padding: 0;
 }
 
 .layout {
@@ -489,6 +489,10 @@
   gap: 16px;
   height: calc(100% - 52px);
   min-height: 0;
+}
+
+.mobileModalFilterBar {
+  display: none;
 }
 
 .modalFilters {
@@ -1176,7 +1180,7 @@
   }
 
   .breadcrumbWrap {
-    padding: 0 12px;
+    padding: 0;
   }
 
   .layout {
@@ -1252,11 +1256,46 @@
   }
 
   .modalContent {
+    display: flex;
+    flex-direction: column;
     gap: 12px;
     height: calc(100% - 42px);
   }
 
+  .mobileModalFilterBar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 40px;
+    padding: 0 8px;
+
+    span {
+      color: $darker;
+      font-size: 16px;
+      font-weight: 500;
+    }
+  }
+
+  .mobileModalFilterToggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    padding: 8px;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+
+    img {
+      display: block;
+      width: 24px;
+      height: 24px;
+    }
+  }
+
   .modalFilters {
+    display: none;
     border-radius: 14px;
     padding: 12px;
 
@@ -1272,7 +1311,28 @@
     }
   }
 
+  .modalFiltersOpen {
+    display: block;
+    width: 100%;
+    max-height: none;
+    height: auto;
+    overflow: visible;
+  }
+
+  .modalContentFiltersOpen {
+    overflow-x: hidden;
+    overflow-y: auto;
+
+    .productList {
+      flex: 0 0 auto;
+      max-height: none;
+      overflow: visible;
+      padding-right: 0;
+    }
+  }
+
   .productList {
+    flex: 1 1 auto;
     gap: 12px;
     padding-right: 8px;
   }
@@ -1377,8 +1437,29 @@
     }
 
     strong,
-    small {
-      text-align: center;
+    label {
+      width: 100%;
+    }
+
+    strong {
+      text-align: left;
+    }
+
+    label {
+      justify-content: flex-end;
+    }
+
+    .stockInfo {
+      grid-column: 1 / -1;
+      width: 100%;
+      min-height: 0;
+      margin: 0;
+      align-items: flex-start;
+
+      small {
+        width: 100%;
+        text-align: left;
+      }
     }
 
     button {

@@ -23,7 +23,7 @@
 .input,
 .select {
   padding: 16px 20px;
-  border-radius: 14px;
+  border-radius: 8px;
   border: 1px solid rgba(236, 242, 246, 1);
   font-size: 16px;
   background: rgba(255, 255, 255, 1);
@@ -38,6 +38,12 @@
 }
 .select {
   width: 100%;
+  appearance: none;
+  padding-right: 48px;
+  background-image: url("/icons/Arrow-down.svg");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 24px 24px;
 }
 .input {
   width: 100%;

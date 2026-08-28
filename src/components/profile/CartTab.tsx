@@ -18,6 +18,8 @@ export type CartItem = {
   price: number;
   oldPrice?: number;
   quantity: number;
+  isInStock: boolean;
+  availableQuantity?: number;
   isSystem?: boolean;
   systemProducts?: {
     id: number;
@@ -41,6 +43,8 @@ export default function CartTab({ showSummary = true }: CartTabProps) {
       price: item.sellingPrice,
       oldPrice: item.oldPrice,
       quantity: item.quantity,
+      isInStock: item.isInStock !== false,
+      availableQuantity: item.availableQuantity,
       isSystem: item.isConfigured,
       systemProducts: item.configuredParts?.map((part) => ({
         id: part.productId,
@@ -66,6 +70,10 @@ export default function CartTab({ showSummary = true }: CartTabProps) {
   const total = cartItems.reduce(
     (sum, item) => sum + item.price * item.quantity,
     0
+  );
+  const hasUnavailableItems = cartItems.some(
+    (item) => !item.isInStock ||
+      (item.availableQuantity != null && item.quantity > item.availableQuantity)
   );
 
   const handleContinue = () => {
@@ -128,7 +136,19 @@ export default function CartTab({ showSummary = true }: CartTabProps) {
 
                     <span>{item.quantity}</span>
 
-                    <button type="button" onClick={() => increase(item.id)}>
+                    <button
+                      type="button"
+                      onClick={() => increase(item.id)}
+                      disabled={
+                        !item.isInStock ||
+                        (item.availableQuantity != null && item.quantity >= item.availableQuantity)
+                      }
+                      aria-label={
+                        item.isInStock
+                          ? (en ? "Increase quantity" : "რაოდენობის გაზრდა")
+                          : (en ? "Out of stock" : "მარაგში არ არის")
+                      }
+                    >
                       +
                     </button>
                   </div>
@@ -168,10 +188,14 @@ export default function CartTab({ showSummary = true }: CartTabProps) {
                   isContinuing ? styles.loading : ""
                 }`}
                 onClick={handleContinue}
-                disabled={isContinuing}
+                disabled={isContinuing || hasUnavailableItems}
               >
                 {isContinuing && <span className={styles.spinner} />}
-                <span>{en ? "Proceed to checkout" : "შეკვეთის გაფორმება"}</span>
+                <span>
+                  {hasUnavailableItems
+                    ? (en ? "Some items are out of stock" : "ზოგი პროდუქტი მარაგში არ არის")
+                    : (en ? "Proceed to checkout" : "შეკვეთის გაფორმება")}
+                </span>
               </button>
             </div>
           )}

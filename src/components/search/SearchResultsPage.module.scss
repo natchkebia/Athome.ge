@@ -86,3 +86,154 @@
   display: flex;
   gap: 8px;
 }
+
+.mobileResults {
+  display: none;
+}
+
+@media (max-width: 560px) {
+  .desktopResults {
+    display: none !important;
+  }
+
+  .mobileResults {
+    display: block;
+    width: 100%;
+    padding: 0 12px 28px;
+  }
+
+  .mobileHistoryHeader,
+  .mobileFoundHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+
+  .mobileHistoryHeader {
+    margin-top: 4px;
+
+    strong {
+      color: #3b3f42;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    button {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      color: #3b3f42;
+      font-size: 13px;
+
+      img {
+        width: 20px;
+        height: 20px;
+      }
+    }
+  }
+
+  .mobileSearchChips {
+    display: flex;
+    gap: 10px;
+    margin: 14px 0 30px;
+    overflow-x: auto;
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+
+    button,
+    a {
+      flex: 0 0 auto;
+      min-height: 38px;
+      padding: 8px 10px 8px 16px;
+      border: 0;
+      border-radius: 999px;
+      background: #f6f8fb;
+      color: #3b3f42;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+      text-decoration: none;
+
+      span {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: #fff;
+        display: grid;
+        place-items: center;
+        font-size: 17px;
+      }
+    }
+  }
+
+  .mobileFoundHeader {
+    margin-bottom: 14px;
+
+    strong {
+      color: #3b3f42;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    span {
+      color: #10b5c0;
+      font-size: 13px;
+    }
+  }
+
+  .mobileProductList {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+
+    a {
+      min-height: 82px;
+      padding: 10px 14px;
+      border-radius: 12px;
+      background: #f6f8fb;
+      display: grid;
+      grid-template-columns: 76px minmax(0, 1fr);
+      align-items: center;
+      gap: 14px;
+      color: #3b3f42;
+      text-decoration: none;
+    }
+
+    img {
+      width: 68px;
+      height: 62px;
+      object-fit: contain;
+      mix-blend-mode: multiply;
+    }
+
+    span {
+      display: -webkit-box;
+      overflow: hidden;
+      font-size: 13px;
+      font-weight: 500;
+      line-height: 1.35;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 2;
+    }
+  }
+
+  .mobileShowMore {
+    width: 100%;
+    height: 46px;
+    margin-top: 18px;
+    border: 0;
+    border-radius: 9px;
+    background: #10b5c0;
+    color: #fff;
+    font-size: 15px;
+    font-weight: 600;
+  }
+}

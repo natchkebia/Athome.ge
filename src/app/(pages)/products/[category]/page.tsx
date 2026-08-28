@@ -55,6 +55,7 @@ function ProductsPageInner() {
     screen: [] as string[],
     sort: "default",
   });
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
   const [products, setProducts] = useState<StorefrontProductCard[]>([]);
   const [filterSchema, setFilterSchema] =
@@ -517,7 +518,7 @@ function ProductsPageInner() {
     <>
       <Breadcrumb items={breadcrumbs} />
       <div className={`${styles.container} site-wrapper`}>
-        <div className={styles.sidebar}>
+        <div className={`${styles.sidebar} ${styles.desktopSidebar}`}>
           {filterSchema && (
             <DynamicProductFilter
               schema={filterSchema}
@@ -534,6 +535,19 @@ function ProductsPageInner() {
         <div className={styles.content}>
           <div className={styles.sortbarWrapper}>
             <ProductSortBar filters={filters} onChange={handleUpdateFilters} />
+            {filterSchema && (
+              <button
+                type="button"
+                className={`${styles.mobileFilterButton} ${
+                  mobileFiltersOpen ? styles.mobileFilterButtonActive : ""
+                }`}
+                onClick={() => setMobileFiltersOpen((current) => !current)}
+                aria-label="ფილტრების გახსნა"
+                aria-expanded={mobileFiltersOpen}
+              >
+                <img src="/icons/Frame 165292.svg" alt="" />
+              </button>
+            )}
             <div className={styles.iconsWrapper}>
               <button
                 className={`${styles.viewBtn} ${
@@ -557,6 +571,21 @@ function ProductsPageInner() {
               </button>
             </div>
           </div>
+
+          {filterSchema && mobileFiltersOpen && (
+            <div className={styles.mobileFilterPanel}>
+              <DynamicProductFilter
+                schema={filterSchema}
+                values={dynamicFilters}
+                priceBounds={priceBounds}
+                compact
+                onChange={(values) => {
+                  setDynamicFilters(values);
+                  setDynamicFiltersActive(true);
+                }}
+              />
+            </div>
+          )}
 
           {allActiveFilters.length > 0 && (
             <div className={styles.activeFilters}>

@@ -13,6 +13,10 @@ export default function CompareBar() {
   const en = useStorefrontLocale() === "en";
   const { items, removeCompare, clearCompare } = useCompare();
   const pathname = usePathname();
+  const isProductDetailPage =
+    pathname.startsWith("/products/") &&
+    !pathname.startsWith("/products/brand/") &&
+    pathname.split("/").filter(Boolean).length >= 3;
   const barRef = useRef<HTMLDivElement>(null);
   const isVisible = items.length > 0 && pathname !== "/compare";
 
@@ -42,7 +46,12 @@ export default function CompareBar() {
   if (!isVisible) return null;
 
   return (
-    <div ref={barRef} className={styles.bar}>
+    <div
+      ref={barRef}
+      className={`${styles.bar} ${
+        isProductDetailPage ? styles.productDetailOffset : ""
+      }`}
+    >
       <div className={styles.inner}>
         <div className={styles.items}>
           {items.map((item) => (
@@ -74,6 +83,7 @@ export default function CompareBar() {
 
         <div className={styles.actions}>
           <Link href="/compare" className={styles.compareBtn}>
+            <img src="/icons/Arrows.svg" alt="" />
             {en ? "Compare" : "შედარება"}
           </Link>
           <button className={styles.clear} onClick={clearCompare}>

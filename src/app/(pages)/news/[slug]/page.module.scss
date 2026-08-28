@@ -65,9 +65,17 @@
   font-weight: 800;
 }
 
+.metaRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  min-width: 0;
+}
+
 .share {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: center;
   gap: 12px;
   font-size: 13px;
@@ -333,8 +341,10 @@
   }
 
   .share {
+    margin-left: auto;
+
     i {
-      flex: 1 1 32px;
+      flex: 0 1 80px;
       min-width: 32px;
       max-width: 80px;
     }

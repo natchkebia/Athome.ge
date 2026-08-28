@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import Breadcrumb from "@/components/ breadcrumb/Breadcrumb";
 import DiscountCard from "@/components/discount/DiscountCard";
 import EmptyState from "@/components/products/EmptyState";
@@ -35,6 +36,7 @@ export default function SearchResultsPage({
   initialBrandSlug,
 }: Props) {
   const query = initialQuery.trim();
+  const router = useRouter();
   const initializedFor = useRef("");
   const [data, setData] = useState<StorefrontSearchResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -53,8 +55,25 @@ export default function SearchResultsPage({
     sort: "default",
   });
   const [visibleCount, setVisibleCount] = useState(9);
+  const [mobileVisibleCount, setMobileVisibleCount] = useState(4);
   const [view, setView] = useState<"grid" | "list">("grid");
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  const [recentSearches, setRecentSearches] = useState<string[]>([]);
   const { wishlistProductIds, toggleWishlist, addToCart } = useCommerce();
+
+  useEffect(() => {
+    try {
+      const stored = JSON.parse(localStorage.getItem("athome-recent-searches") ?? "[]") as string[];
+      setRecentSearches(stored.filter((item) => item && item !== query).slice(0, 3));
+    } catch {
+      setRecentSearches([]);
+    }
+  }, [query]);
+
+  const clearRecentSearches = () => {
+    localStorage.removeItem("athome-recent-searches");
+    setRecentSearches([]);
+  };
 
   useEffect(() => {
     let active = true;
@@ -91,6 +110,7 @@ export default function SearchResultsPage({
 
     setLoading(true);
     setVisibleCount(9);
+    setMobileVisibleCount(4);
     request(1)
       .then(async (first) => {
         const pages = Math.min(first.totalPages || 1, MAX_PAGES);
@@ -144,6 +164,8 @@ export default function SearchResultsPage({
   }, [data, sortFilters.sort]);
   const visibleProducts = products.slice(0, visibleCount);
   const hasMore = visibleCount < products.length;
+  const mobileVisibleProducts = products.slice(0, mobileVisibleCount);
+  const mobileHasMore = mobileVisibleCount < products.length;
   const breadcrumbs = [{ label: "მთავარი გვერდი", href: "/" }, { label: "ძებნა" }];
 
   if (loading && !data) return <AtHomeLoader variant="page" />;
@@ -152,8 +174,66 @@ export default function SearchResultsPage({
   return (
     <>
       <Breadcrumb items={breadcrumbs} />
-      <div className={`${layout.container} site-wrapper`}>
-        <div className={layout.sidebar}>
+      <section className={styles.mobileResults}>
+        <div className={styles.mobileHistoryHeader}>
+          <strong>მოძებნილი</strong>
+          <button type="button" onClick={clearRecentSearches}>
+            <img src="/icons/ArrowClockwise.svg" alt="" />
+            გასუფთავება
+          </button>
+        </div>
+
+        <div className={styles.mobileSearchChips}>
+          {recentSearches.map((recentQuery) => (
+            <button
+              key={recentQuery}
+              type="button"
+              onClick={() => router.push(`/search?query=${encodeURIComponent(recentQuery)}`)}
+            >
+              {recentQuery}
+              <span
+                role="button"
+                tabIndex={0}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  const next = recentSearches.filter((item) => item !== recentQuery);
+                  setRecentSearches(next);
+                  localStorage.setItem("athome-recent-searches", JSON.stringify(next));
+                }}
+              >×</span>
+            </button>
+          ))}
+        </div>
+
+        <div className={styles.mobileFoundHeader}>
+          <strong>ნაპოვნი პროდუქტი</strong>
+          <span>{data.totalCount} პროდუქტი</span>
+        </div>
+
+        {loading ? (
+          <AtHomeLoader variant="section" />
+        ) : visibleProducts.length === 0 ? (
+          <EmptyState />
+        ) : (
+          <div className={styles.mobileProductList}>
+            {mobileVisibleProducts.map((item) => (
+              <Link key={`${item.slug}-${item.id}`} href={`/products/search/${item.slug}`}>
+                <img src={item.image} alt={item.title} />
+                <span>{item.title}</span>
+              </Link>
+            ))}
+          </div>
+        )}
+
+        {mobileHasMore && (
+          <button className={styles.mobileShowMore} onClick={() => setMobileVisibleCount((count) => count + 4)}>
+            მეტის ნახვა
+          </button>
+        )}
+      </section>
+
+      <div className={`${layout.container} site-wrapper ${styles.desktopResults}`}>
+        <div className={`${layout.sidebar} ${layout.desktopSidebar}`}>
           {schema && (
             <DynamicProductFilter
               schema={schema}
@@ -177,11 +257,31 @@ export default function SearchResultsPage({
           )}
           <div className={styles.sortbar}>
             <ProductSortBar filters={sortFilters} onChange={(next) => setSortFilters((current) => ({ ...current, ...next }))} />
+            <button
+              type="button"
+              className={`${layout.mobileFilterButton} ${mobileFiltersOpen ? layout.mobileFilterButtonActive : ""}`}
+              onClick={() => setMobileFiltersOpen((open) => !open)}
+              aria-label="ფილტრების გახსნა"
+              aria-expanded={mobileFiltersOpen}
+            >
+              <img src="/icons/Frame 165292.svg" alt="" />
+            </button>
             <div className={styles.icons}>
               <button className={`${layout.viewBtn} ${view === "grid" ? layout.viewBtnActive : ""}`} onClick={() => setView("grid")} aria-label="ბადით ჩვენება" aria-pressed={view === "grid"}><span className={`${layout.viewIcon} ${layout.viewIconGrid}`} /></button>
               <button className={`${layout.viewBtn} ${view === "list" ? layout.viewBtnActive : ""}`} onClick={() => setView("list")} aria-label="სიად ჩვენება" aria-pressed={view === "list"}><span className={`${layout.viewIcon} ${layout.viewIconList}`} /></button>
             </div>
           </div>
+          {schema && mobileFiltersOpen && (
+            <div className={layout.mobileFilterPanel}>
+              <DynamicProductFilter
+                schema={schema}
+                values={filterValues}
+                priceBounds={priceBounds}
+                compact
+                onChange={setFilterValues}
+              />
+            </div>
+          )}
           {loading ? <AtHomeLoader variant="section" /> : visibleProducts.length === 0 ? <EmptyState /> : (
             <div className={`${layout.grid} ${view === "list" ? layout.gridListView : ""}`}>
               {visibleProducts.map((item) => (

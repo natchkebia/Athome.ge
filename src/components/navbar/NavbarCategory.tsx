@@ -10,11 +10,23 @@ import {
 } from "@/lib/api/storefront";
 import { useStorefrontLocale } from "@/lib/i18n/useStorefrontLocale";
 
-const CATEGORY_ICONS: Record<string, string> = {
+export const CATEGORY_ICONS: Record<string, string> = {
   computers: "/icons/Computer-black.svg",
   "computer-parts": "/icons/Computer-parts.svg",
   peripherials: "/icons/Mouse-black.svg",
+  peripherals: "/icons/Mouse-black.svg",
   "monitors-and-screens": "/icons/Monitor-black.svg",
+  monitors: "/icons/Monitor-black.svg",
+  televisions: "/icons/Tv.svg",
+  tvs: "/icons/Tv.svg",
+  tv: "/icons/Tv.svg",
+  projectors: "/icons/Projector.svg",
+  "chairs-and-tables": "/icons/Table-black.svg",
+  "tables-and-chairs": "/icons/Table-black.svg",
+  laptops: "/icons/Laptop.svg",
+  notebooks: "/icons/Laptop.svg",
+  "laptop-parts": "/icons/LaptopParts.svg",
+  "notebook-parts": "/icons/LaptopParts.svg",
   "gaming-accessories": "/icons/Headphone.svg",
   "networking-devices": "/icons/Network.svg",
   mobiletablet: "/icons/Phone.svg",
@@ -28,12 +40,12 @@ const CATEGORY_ICONS: Record<string, string> = {
 const DEFAULT_ICON = "/icons/Setting.svg";
 
 // ლოკალური fallback იკონი (თუ ბექის iconUrl ცარიელია ან ვერ ჩაიტვირთა).
-function localCategoryIcon(slug: string) {
+export function localCategoryIcon(slug: string) {
   return CATEGORY_ICONS[slug] || DEFAULT_ICON;
 }
 
 // ბექის iconUrl-ს ვანიჭებთ პრიორიტეტს, თორემ ლოკალურ იკონს.
-function categoryIcon(cat: StorefrontCategory) {
+export function categoryIcon(cat: StorefrontCategory) {
   return cat.iconUrl || localCategoryIcon(cat.slug);
 }
 

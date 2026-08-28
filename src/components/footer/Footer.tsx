@@ -19,10 +19,20 @@ const categoryFallback = [
   { slug: "cables-and-adapters", ka: "კაბელები და ადაპტერები", en: "Cables and adapters" },
 ];
 
+const serviceLinks = [
+  { href: "/configurator", ka: "კონფიგურატორი", en: "Configurator" },
+  { href: "/discounts", ka: "ფასდაკლებები", en: "Discounts" },
+  { href: "/delivery-info", ka: "მიწოდება", en: "Delivery" },
+  { href: "/news", ka: "სიახლეები", en: "News" },
+  { href: "/services", ka: "სერვისი", en: "Service" },
+  { href: "/contact", ka: "კონტაქტი", en: "Contact" },
+];
+
 export default function Footer() {
   const locale = useStorefrontLocale();
   const en = locale === "en";
   const [footerCategories, setFooterCategories] = useState<StorefrontCategory[]>([]);
+  const [openMenu, setOpenMenu] = useState<number | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -112,7 +122,26 @@ export default function Footer() {
 
         {/* მენიუები */}
         <div className={styles["footer-menus"]}>
-          <div className={styles["menu-column"]}>
+          <div className={`${styles["menu-column"]} ${openMenu === 0 ? styles.open : ""}`}>
+            <button className={styles["menu-toggle"]} onClick={() => setOpenMenu(openMenu === 0 ? null : 0)} aria-expanded={openMenu === 0}>
+              <span>{en ? "Services" : "სერვისები"}</span>
+              <img src="/icons/language-chevron-large.svg" alt="" />
+            </button>
+            <h4>{en ? "Services" : "სერვისები"}</h4>
+            <ul>
+              {serviceLinks.map((item) => (
+                <li key={item.href}>
+                  <Link href={item.href}>{en ? item.en : item.ka}</Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div className={`${styles["menu-column"]} ${openMenu === 1 ? styles.open : ""}`}>
+            <button className={styles["menu-toggle"]} onClick={() => setOpenMenu(openMenu === 1 ? null : 1)} aria-expanded={openMenu === 1}>
+              <span>{en ? "Categories" : "კატეგორიები"}</span>
+              <img src="/icons/language-chevron-large.svg" alt="" />
+            </button>
             <h4>{en ? "Categories" : "კატეგორიები"}</h4>
             <ul>
               {footerCategories.length > 0
@@ -131,14 +160,22 @@ export default function Footer() {
             </ul>
           </div>
 
-          <div className={styles["menu-column"]}>
+          <div className={`${styles["menu-column"]} ${openMenu === 2 ? styles.open : ""}`}>
+            <button className={styles["menu-toggle"]} onClick={() => setOpenMenu(openMenu === 2 ? null : 2)} aria-expanded={openMenu === 2}>
+              <span>{en ? "About us" : "ჩვენ შესახებ"}</span>
+              <img src="/icons/language-chevron-large.svg" alt="" />
+            </button>
             <h4>{en ? "About us" : "ჩვენ შესახებ"}</h4>
             <ul>
               <li><Link href="/about-us">{en ? "Who we are" : "ვინ ვართ ჩვენ"}</Link></li>
             </ul>
           </div>
 
-          <div className={styles["menu-column"]}>
+          <div className={`${styles["menu-column"]} ${openMenu === 3 ? styles.open : ""}`}>
+            <button className={styles["menu-toggle"]} onClick={() => setOpenMenu(openMenu === 3 ? null : 3)} aria-expanded={openMenu === 3}>
+              <span>{en ? "Terms and conditions" : "წესები და პირობები"}</span>
+              <img src="/icons/language-chevron-large.svg" alt="" />
+            </button>
             <h4>{en ? "Terms and conditions" : "წესები და პირობები"}</h4>
             <ul>
               <li><Link href="/terms-and-conditions">{en ? "Terms and conditions" : "წესები და პირობები"}</Link></li>

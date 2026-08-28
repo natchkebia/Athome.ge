@@ -70,6 +70,7 @@ export default function ConfiguratorProductModal({
 }: Props) {
   const en = useStorefrontLocale() === "en";
   const [searchValue, setSearchValue] = useState("");
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [checkingProductId, setCheckingProductId] = useState<number | null>(null);
   const [compatibilityErrors, setCompatibilityErrors] = useState<
     Record<number, string>
@@ -193,8 +194,29 @@ export default function ConfiguratorProductModal({
 
         <h2>{title}</h2>
 
-        <div className={styles.modalContent}>
-          <aside className={styles.modalFilters}>
+        <div
+          className={`${styles.modalContent} ${
+            mobileFiltersOpen ? styles.modalContentFiltersOpen : ""
+          }`}
+        >
+          <div className={styles.mobileModalFilterBar}>
+            <span>{en ? "Products" : "პროდუქტები"}</span>
+            <button
+              type="button"
+              className={styles.mobileModalFilterToggle}
+              onClick={() => setMobileFiltersOpen((open) => !open)}
+              aria-label={en ? "Toggle filters" : "ფილტრების გახსნა ან დახურვა"}
+              aria-expanded={mobileFiltersOpen}
+            >
+              <img src="/icons/Frame 165292.svg" alt="" aria-hidden="true" />
+            </button>
+          </div>
+
+          <aside
+            className={`${styles.modalFilters} ${
+              mobileFiltersOpen ? styles.modalFiltersOpen : ""
+            }`}
+          >
             <div className={styles.modalSearch}>
               <input
                 value={searchValue}
@@ -317,9 +339,7 @@ export default function ConfiguratorProductModal({
                         <small>
                           {product.stock <= 0
                             ? (en ? "Out of stock" : "მარაგში არ არის")
-                            : product.stock <= 10
-                              ? (en ? `In stock: ${product.stock} units` : `მარაგშია: ${product.stock} ერთეული`)
-                              : (en ? "In stock" : "მარაგშია")}
+                            : (en ? `In stock: ${product.stock} units` : `მარაგშია: ${product.stock} ერთეული`)}
                         </small>
 
                       </div>

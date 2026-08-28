@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { type CSSProperties, useEffect, useState } from "react";
 import Link from "next/link";
 import Breadcrumb from "@/components/ breadcrumb/Breadcrumb";
 import AtHomeLoader from "@/components/shared/AtHomeLoader";
@@ -184,8 +184,39 @@ export default function ComparePage() {
 
         {loading && <AtHomeLoader variant="inline" />}
 
+        <div
+          className={styles.mobileProductHeader}
+          style={{ "--compare-columns": items.length } as CSSProperties}
+        >
+          {items.map((item) => (
+            <div key={item.id} className={styles.mobileProductCard}>
+              <button
+                className={styles.mobileRemoveBtn}
+                onClick={() => removeCompare(item.id)}
+                aria-label={en ? "Remove" : "წაშლა"}
+              >
+                ×
+              </button>
+              {item.slug && item.category ? (
+                <Link href={`/products/${item.category}/${item.slug}`}>
+                  <img src={img(normalizeMediaUrl(item.image), 200)} alt={item.title} />
+                  <span>{item.title}</span>
+                </Link>
+              ) : (
+                <div>
+                  <img src={img(normalizeMediaUrl(item.image), 200)} alt={item.title} />
+                  <span>{item.title}</span>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+
         <div className={styles.tableScroll}>
-          <table className={styles.table}>
+          <table
+            className={styles.table}
+            style={{ "--compare-columns": items.length } as CSSProperties}
+          >
             <tbody>
               {/* პროდუქტების header რიგი */}
               <tr className={styles.productRow}>
@@ -251,6 +282,30 @@ export default function ComparePage() {
                     >
                       <img src="/icons/CartWhite.svg" alt="cart" />
                       {en ? "Add to cart" : "დამატება"}
+                    </button>
+                  </td>
+                ))}
+              </tr>
+
+              <tr className={styles.mobilePriceRow}>
+                <th className={styles.rowLabel}>{en ? "Price" : "ფასი"}</th>
+                {items.map((item) => (
+                  <td key={item.id} className={styles.specCell}>
+                    <div className={styles.mobilePriceBox}>
+                      {item.newPrice !== undefined && (
+                        <span className={styles.newPrice}>{item.newPrice.toFixed(2)} ₾</span>
+                      )}
+                      {item.oldPrice !== undefined && (
+                        <span className={styles.oldPrice}>{item.oldPrice.toFixed(2)} ₾</span>
+                      )}
+                    </div>
+                    <button
+                      className={styles.mobileAddBtn}
+                      onClick={(event) =>
+                        handleAddToCart(item.id, event.currentTarget, normalizeMediaUrl(item.image))
+                      }
+                    >
+                      {en ? "Add" : "დამატება"}
                     </button>
                   </td>
                 ))}

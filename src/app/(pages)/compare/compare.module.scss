@@ -22,7 +22,7 @@
 .clearBtn {
   background: transparent;
   border: 1px solid rgba(233, 235, 248, 1);
-  color: #f90446;
+  color: #c83255;
   border-radius: 8px;
   padding: 10px 16px;
   font-size: 14px;
@@ -42,6 +42,11 @@
   overflow-x: auto;
   overflow-y: hidden;
   box-sizing: border-box;
+}
+
+.mobileProductHeader,
+.mobilePriceRow {
+  display: none;
 }
 
 .table {
@@ -94,7 +99,7 @@
   cursor: pointer;
 
   &:hover {
-    background: #f90446;
+    background: #c83255;
     color: #ffffff;
   }
 }
@@ -247,5 +252,187 @@
 
   &:hover {
     background: #0fa1ab;
+  }
+}
+
+@media (max-width: 600px) {
+  .container {
+    padding: 8px 12px 36px;
+  }
+
+  .head {
+    margin: 4px 0 14px;
+  }
+
+  .title {
+    font-size: 19px;
+  }
+
+  .clearBtn {
+    padding: 8px 10px;
+    font-size: 12px;
+  }
+
+  .mobileProductHeader {
+    --column-width: 150px;
+    position: sticky;
+    top: 0;
+    z-index: 120;
+    display: grid;
+    grid-template-columns: repeat(var(--compare-columns), var(--column-width));
+    width: 100%;
+    border: 1px solid rgba(16, 181, 192, 0.14);
+    border-bottom: 3px solid rgba(16, 181, 192, 0.18);
+    border-radius: 14px 14px 0 0;
+    background: #fff;
+    overflow-x: auto;
+    overflow-y: hidden;
+    box-shadow: 0 8px 20px rgba(32, 78, 81, 0.1);
+  }
+
+  .mobileProductCard {
+    position: relative;
+    min-width: 0;
+    padding: 10px 8px 9px;
+    border-right: 1px solid #ecf2f6;
+
+    a,
+    > div {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+      color: #3b3f42;
+      text-decoration: none;
+    }
+
+    img {
+      width: 86px;
+      height: 74px;
+      object-fit: contain;
+      mix-blend-mode: multiply;
+    }
+
+    span {
+      width: 100%;
+      overflow: hidden;
+      color: #3b3f42;
+      font-size: 12px;
+      font-weight: 600;
+      line-height: 1.25;
+      text-align: center;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+
+  .mobileRemoveBtn {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    z-index: 2;
+    width: 22px;
+    height: 22px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: #f6f8fb;
+    color: #69706e;
+    font-size: 16px;
+    line-height: 22px;
+  }
+
+  .tableScroll {
+    border: 0;
+    border-radius: 0 0 14px 14px;
+    overflow-x: auto;
+  }
+
+  .table {
+    display: block;
+    width: max-content;
+    min-width: 100%;
+    border: 0;
+
+    tbody {
+      display: block;
+    }
+
+    tr:not(.productRow) {
+      display: grid;
+      grid-template-columns: repeat(var(--compare-columns), 150px);
+      margin-top: 10px;
+    }
+
+    th,
+    td {
+      padding: 12px 10px;
+    }
+  }
+
+  .productRow {
+    display: none;
+  }
+
+  .mobilePriceRow {
+    display: grid;
+  }
+
+  .rowLabel {
+    grid-column: 1 / -1;
+    width: auto;
+    min-width: 0;
+    padding: 10px 8px !important;
+    border: 0 !important;
+    border-radius: 8px 8px 0 0;
+    background: rgba(16, 181, 192, 0.09);
+    color: #3b3f42;
+    font-size: 13px;
+  }
+
+  .specCell {
+    min-height: 62px;
+    border-color: #fff !important;
+    background: rgba(16, 181, 192, 0.045);
+    text-align: center !important;
+    vertical-align: middle;
+  }
+
+  .diffRow {
+    .rowLabel {
+      color: #3b3f42;
+    }
+
+    .specCell {
+      background: rgba(16, 181, 192, 0.085);
+    }
+  }
+
+  .mobilePriceBox {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 5px;
+    white-space: nowrap;
+
+    .newPrice {
+      font-size: 14px;
+    }
+
+    .oldPrice {
+      font-size: 11px;
+    }
+  }
+
+  .mobileAddBtn {
+    width: 100%;
+    height: 32px;
+    margin-top: 8px;
+    border: 0;
+    border-radius: 7px;
+    background: #10b5c0;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 600;
   }
 }

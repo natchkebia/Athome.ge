@@ -43,6 +43,16 @@ export default function SearchBar() {
   const executeSearch = () => {
     if (!trimmedQuery && !selectedCategory) return;
 
+    if (trimmedQuery) {
+      try {
+        const stored = JSON.parse(localStorage.getItem("athome-recent-searches") ?? "[]") as string[];
+        const next = [trimmedQuery, ...stored.filter((item) => item !== trimmedQuery)].slice(0, 6);
+        localStorage.setItem("athome-recent-searches", JSON.stringify(next));
+      } catch {
+        localStorage.setItem("athome-recent-searches", JSON.stringify([trimmedQuery]));
+      }
+    }
+
     setSuggestionsSuppressed(true);
     setSuggestionsOpen(false);
     router.push(searchUrl);
@@ -90,6 +100,15 @@ export default function SearchBar() {
   }, []);
 
   useEffect(() => {
+    if (pathname === "/search") {
+      const params = new URLSearchParams(window.location.search);
+      setQuery(params.get("query") ?? "");
+      setSuggestions([]);
+      setSuggestionsOpen(false);
+      setSuggestionsSuppressed(true);
+      return;
+    }
+
     if (pathname !== "/") return;
 
     setQuery("");
@@ -186,11 +205,22 @@ export default function SearchBar() {
       />
 
       <button className={styles.searchBtn} onClick={executeSearch}>
-        {locale === "en" ? "Search" : "ძებნა"}
+        <span>{locale === "en" ? "Search" : "ძებნა"}</span>
+        <img src="/icons/Frame-163477.svg" alt="" />
       </button>
 
       {suggestionsOpen && suggestions.length > 0 && (
         <div className={styles.suggestions}>
+          <div className={styles.mobileSearchedBlock}>
+            <strong>{locale === "en" ? "Searched" : "მოძებნილი"}</strong>
+            <span>{trimmedQuery}</span>
+          </div>
+          <div className={styles.mobileResultsHeader}>
+            <strong>{locale === "en" ? "Found products" : "ნაპოვნი პროდუქტი"}</strong>
+            <button type="button" onClick={executeSearch}>
+              {locale === "en" ? "See all" : "ყველას ნახვა"}
+            </button>
+          </div>
           {suggestions.map((suggestion) => (
             <button
               key={`${suggestion.type}-${suggestion.slug}`}

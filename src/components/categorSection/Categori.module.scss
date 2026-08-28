@@ -34,7 +34,35 @@
 }
 
 @media (max-width: 560px) {
+  .categoriesSection {
+    padding: 18px 0 32px;
+    overflow: hidden;
+
+    > div {
+      padding-inline: 16px;
+      gap: 18px;
+    }
+  }
+
+  .title {
+    margin: 0;
+  }
+
   .grid {
-    grid-template-columns: 1fr;
+    display: flex;
+    gap: 16px;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
+    padding-right: 16px;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+
+    > * {
+      flex: 0 0 330px;
+      scroll-snap-align: start;
+    }
   }
 }

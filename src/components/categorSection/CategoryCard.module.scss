@@ -17,6 +17,27 @@
   }
 }
 
+@media (max-width: 560px) {
+  .cardLink {
+    flex: 0 0 330px;
+  }
+
+  .card {
+    height: 224px;
+    padding: 22px 16px 18px;
+    border-radius: 16px;
+  }
+
+  .image {
+    margin-bottom: 8px;
+  }
+
+  .label {
+    margin: 0;
+    font-size: 15px;
+  }
+}
+
 // სურათი ბარათს ავსებს — იზრდება ხელმისაწვდომ სივრცეზე, label ბოლოში რჩება.
 // mix-blend-mode: multiply — პროდუქტის ფოტოს თეთრი ფონი ბარათის ღია ფერში ერწყმის (თეთრი ქრება).
 .image {

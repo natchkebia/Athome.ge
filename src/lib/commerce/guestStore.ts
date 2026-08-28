@@ -21,6 +21,7 @@ export type GuestProductInfo = {
   sellingPrice: number;
   oldPrice?: number;
   isInStock?: boolean;
+  availableQuantity?: number;
 };
 
 const emptyCart: ProfileCart = {
@@ -64,6 +65,7 @@ export function cacheProductInfo(info: GuestProductInfo) {
     slug: info.slug ?? existing?.slug,
     oldPrice: info.oldPrice ?? existing?.oldPrice,
     isInStock: info.isInStock ?? existing?.isInStock,
+    availableQuantity: info.availableQuantity ?? existing?.availableQuantity,
   };
   write(INFO_KEY, map);
 }
@@ -97,6 +99,12 @@ export function addGuestCartItem(
 ): ProfileCart {
   const cart = getGuestCart();
   const info = getCachedInfo(productId);
+  const existing = cart.items.find((item) => item.productId === productId);
+  if (info?.isInStock === false || existing?.isInStock === false) return cart;
+  if (
+    info?.availableQuantity != null &&
+    (existing?.quantity ?? 0) + quantity > info.availableQuantity
+  ) return cart;
   const items = [...cart.items];
   const index = items.findIndex((item) => item.productId === productId);
 
@@ -112,6 +120,7 @@ export function addGuestCartItem(
       sellingPrice: price,
       oldPrice: info?.oldPrice ?? items[index].oldPrice,
       isInStock: info?.isInStock ?? items[index].isInStock,
+      availableQuantity: info?.availableQuantity ?? items[index].availableQuantity,
       swaps: swaps?.length ? swaps : items[index].swaps,
       isConfigured: swaps?.length ? true : items[index].isConfigured,
       quantity: newQty,
@@ -130,6 +139,7 @@ export function addGuestCartItem(
       quantity,
       lineTotal: price * quantity,
       isInStock: info?.isInStock ?? true,
+      availableQuantity: info?.availableQuantity,
       swaps: swaps?.length ? swaps : undefined,
       isConfigured: Boolean(swaps?.length),
     });
@@ -145,6 +155,13 @@ export function updateGuestCartItem(
   quantity: number
 ): ProfileCart {
   const cart = getGuestCart();
+  const currentItem = cart.items.find((item) => item.productId === productId);
+  if (
+    quantity > (currentItem?.availableQuantity ?? Number.POSITIVE_INFINITY)
+    || (currentItem?.isInStock === false && quantity > currentItem.quantity)
+  ) {
+    return cart;
+  }
 
   const items =
     quantity <= 0

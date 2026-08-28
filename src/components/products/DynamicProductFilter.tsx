@@ -91,7 +91,7 @@ export default function DynamicProductFilter({
       </div>
 
       <div className={styles.filterBox}>
-        <label className={styles.brandItem}>
+        <label className={`${styles.brandItem} ${styles.stockOnly}`}>
           <input
             type="checkbox"
             checked

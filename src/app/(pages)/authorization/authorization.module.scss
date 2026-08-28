@@ -200,26 +200,27 @@
   }
   .socials {
     display: flex;
-    gap: 20px;
+    flex-direction: column;
+    gap: 12px;
 
     button {
       display: flex;
       align-items: center;
-      justify-content: flex-start;
+      justify-content: center;
       gap: 8px;
-      flex: 1 1 0;
+      flex: none;
+      width: 100%;
       min-width: 0;
-      height: 56px;
-      padding: 0 10px;
+      height: 48px;
+      padding: 0 32px;
       border: 1px solid #ecf2f6;
-      border-radius: 10px;
-      font-size: 11px;
+      border-radius: 8px;
+      font-size: 14px;
       font-weight: 400;
       cursor: pointer;
       background-color: #fff;
       color: #4d5069;
-      transition: border-color 0.2s ease, background-color 0.2s ease,
-        transform 0.2s ease;
+      transition: background-color 0.2s ease, border-color 0.2s ease;
       white-space: nowrap;
 
       img {
@@ -231,7 +232,11 @@
       &:hover {
         background-color: #f8fbfc;
         border-color: #dce9ef;
-        transform: translateY(-1px);
+      }
+
+      &:disabled {
+        cursor: default;
+        opacity: 0.65;
       }
     }
   }
@@ -515,6 +520,9 @@
   .authWrapper {
     min-height: auto;
     max-width: 520px;
+    background: transparent;
+    border-radius: 0;
+    box-shadow: none;
   }
 
   .leftSide {
@@ -529,7 +537,7 @@
 
 @media (max-width: 560px) {
   .authWrapper {
-    border-radius: 16px;
+    border-radius: 0;
   }
 
   .rightSide {

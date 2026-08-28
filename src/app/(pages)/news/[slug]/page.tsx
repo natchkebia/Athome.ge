@@ -62,14 +62,16 @@ export default async function NewsDetailPage({ params }: Props) {
           <div className={styles.heroInfo}>
             <h1>{blog.title}</h1>
 
-            <span className={styles.dateBadge}>
-              {formatBlogDate(blog.publishedAt)}
-            </span>
+            <div className={styles.metaRow}>
+              <span className={styles.dateBadge}>
+                {formatBlogDate(blog.publishedAt)}
+              </span>
 
-            <div className={styles.share}>
-              <span>გაზიარება</span>
-              <i></i>
-              <button>f</button>
+              <div className={styles.share}>
+                <span>გაზიარება</span>
+                <i></i>
+                <button>f</button>
+              </div>
             </div>
           </div>
 

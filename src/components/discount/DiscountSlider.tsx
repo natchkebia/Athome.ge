@@ -90,22 +90,18 @@ export default function DiscountSlider({
               spaceBetween: 12,
             },
             541: {
-              slidesPerView: 2,
               spaceBetween: 12,
             },
             640: {
-              slidesPerView: 2,
               spaceBetween: 16,
             },
             769: {
-              slidesPerView: 3,
               spaceBetween: 16,
             },
             1024: {
               spaceBetween: 24,
             },
             1181: {
-              slidesPerView: 4,
               spaceBetween: 24,
             },
           }}

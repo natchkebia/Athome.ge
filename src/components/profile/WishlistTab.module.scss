@@ -29,9 +29,14 @@
 
 .titleWrapper {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: 16px;
+  margin-bottom: 16px;
+
+  .title {
+    margin-bottom: 0;
+  }
 }
 
 .removeBtn {
@@ -44,8 +49,7 @@
 }
 
 .summary {
-  margin-top: 50px;
-  border-top: 1px solid rgba(227, 237, 243, 1);
+  margin-top: 24px;
   display: flex;
   justify-content: flex-end;
 }
@@ -60,7 +64,7 @@
   font-size: 14px;
   cursor: pointer;
   transition: 0.2s ease;
-  margin-top: 30px;
+  margin-top: 0;
 
   &:hover {
     background: rgba(15, 161, 171, 1);
@@ -79,6 +83,7 @@
 .pageVariant .grid {
   margin: 0 auto;
   max-width: 1392px;
+  justify-items: center;
   // გვერდის ვარიანტზე — ზუსტად 4 ქარდი ერთ რიგში
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
@@ -116,7 +121,7 @@
 
   .summary {
     justify-content: center;
-    margin-top: 32px;
+    margin-top: 24px;
   }
 
   .orderBtn {

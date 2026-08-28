@@ -24,6 +24,12 @@
 
 @media (max-width: 560px) {
   .hero {
-    padding: 20px var(--site-gutter);
+    display: block;
+    padding: 0 16px 18px;
+    background: #fff;
+
+    > :nth-child(2) {
+      display: none;
+    }
   }
 }

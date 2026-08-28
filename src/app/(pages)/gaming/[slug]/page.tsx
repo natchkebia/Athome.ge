@@ -71,6 +71,7 @@ function GamingResultsInner() {
   const [filtersActive, setFiltersActive] = useState(false);
   const [visibleCount, setVisibleCount] = useState(9);
   const [view, setView] = useState<"grid" | "list">("grid");
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -208,13 +209,22 @@ function GamingResultsInner() {
     <>
       <Breadcrumb items={breadcrumbs} />
       <div className={`${styles.container} site-wrapper`}>
-        <div className={styles.sidebar}>
+        <div className={`${styles.sidebar} ${styles.desktopSidebar}`}>
           <ProductFilter filters={filters} onChange={handleUpdateFilters} />
         </div>
 
         <div className={styles.content}>
           <div className={styles.sortbarWrapper}>
             <ProductSortBar filters={filters} onChange={handleUpdateFilters} />
+            <button
+              type="button"
+              className={`${styles.mobileFilterButton} ${mobileFiltersOpen ? styles.mobileFilterButtonActive : ""}`}
+              onClick={() => setMobileFiltersOpen((open) => !open)}
+              aria-label="ფილტრების გახსნა"
+              aria-expanded={mobileFiltersOpen}
+            >
+              <img src="/icons/Frame 165292.svg" alt="" />
+            </button>
             <div className={styles.iconsWrapper}>
               <button
                 className={`${styles.viewBtn} ${
@@ -238,6 +248,12 @@ function GamingResultsInner() {
               </button>
             </div>
           </div>
+
+          {mobileFiltersOpen && (
+            <div className={styles.mobileFilterPanel}>
+              <ProductFilter filters={filters} onChange={handleUpdateFilters} />
+            </div>
+          )}
 
           {allActiveFilters.length > 0 && (
             <div className={styles.activeFilters}>
