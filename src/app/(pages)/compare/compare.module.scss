@@ -44,8 +44,7 @@
   box-sizing: border-box;
 }
 
-.mobileProductHeader,
-.mobilePriceRow {
+.mobileProductHeader {
   display: none;
 }
 
@@ -67,7 +66,7 @@
 .rowLabel {
   width: 200px;
   min-width: 160px;
-  background: rgba(16, 181, 192, 0.06);
+  background: rgba(16, 181, 192, 0.09);
   font-size: 13px;
   font-weight: 600;
   color: rgba(59, 63, 66, 1);
@@ -144,7 +143,8 @@
   text-overflow: ellipsis;
 }
 
-.priceBox {
+.priceBox,
+.mobilePriceBox {
   display: flex;
   align-items: baseline;
   gap: 8px;
@@ -186,19 +186,28 @@
 }
 
 .specCell {
-  background: rgba(16, 181, 192, 0.06);
+  background: #f8fafc;
   font-size: 13px;
   color: rgba(59, 63, 66, 1);
+}
+
+.mobilePriceRow {
+  display: none;
 }
 
 // რიგი, სადაც პროდუქტებს განსხვავებული მნიშვნელობა აქვთ.
 .diffRow {
   .specCell {
     font-weight: 600;
+    background: #dff6f8;
+    border-top-color: rgba(16, 181, 192, 0.42);
+    border-bottom-color: rgba(16, 181, 192, 0.42);
   }
 
   .rowLabel {
-    color: rgba(16, 181, 192, 1);
+    background: #10b5c0;
+    color: #fff;
+    border-color: #10b5c0;
   }
 }
 
@@ -255,7 +264,7 @@
   }
 }
 
-@media (max-width: 600px) {
+@media (max-width: 768px) {
   .container {
     padding: 8px 12px 36px;
   }
@@ -274,27 +283,33 @@
   }
 
   .mobileProductHeader {
-    --column-width: 150px;
-    position: sticky;
+    position: fixed;
     top: 0;
+    left: 0;
+    right: 0;
     z-index: 120;
     display: grid;
-    grid-template-columns: repeat(var(--compare-columns), var(--column-width));
-    width: 100%;
-    border: 1px solid rgba(16, 181, 192, 0.14);
-    border-bottom: 3px solid rgba(16, 181, 192, 0.18);
-    border-radius: 14px 14px 0 0;
-    background: #fff;
-    overflow-x: auto;
+    grid-template-columns: repeat(var(--compare-columns), minmax(0, 1fr));
+    gap: 6px;
+    width: auto;
+    padding: 8px 10px;
+    border: 0;
+    border-bottom: 3px solid #079ca6;
+    border-radius: 0;
+    background: #10b5c0;
+    overflow-x: hidden;
     overflow-y: hidden;
-    box-shadow: 0 8px 20px rgba(32, 78, 81, 0.1);
+    box-shadow: 0 10px 26px rgba(17, 78, 82, 0.24);
+    animation: compareHeaderIn 180ms ease-out both;
   }
 
   .mobileProductCard {
     position: relative;
     min-width: 0;
-    padding: 10px 8px 9px;
-    border-right: 1px solid #ecf2f6;
+    padding: 7px 5px 6px;
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    border-radius: 10px;
+    background: #fff;
 
     a,
     > div {
@@ -307,8 +322,8 @@
     }
 
     img {
-      width: 86px;
-      height: 74px;
+      width: 62px;
+      height: 58px;
       object-fit: contain;
       mix-blend-mode: multiply;
     }
@@ -317,7 +332,7 @@
       width: 100%;
       overflow: hidden;
       color: #3b3f42;
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 600;
       line-height: 1.25;
       text-align: center;
@@ -328,8 +343,8 @@
 
   .mobileRemoveBtn {
     position: absolute;
-    top: 5px;
-    right: 5px;
+    top: 3px;
+    right: 3px;
     z-index: 2;
     width: 22px;
     height: 22px;
@@ -350,7 +365,7 @@
 
   .table {
     display: block;
-    width: max-content;
+    width: 100%;
     min-width: 100%;
     border: 0;
 
@@ -358,9 +373,9 @@
       display: block;
     }
 
-    tr:not(.productRow) {
+    tr {
       display: grid;
-      grid-template-columns: repeat(var(--compare-columns), 150px);
+      grid-template-columns: repeat(var(--compare-columns), minmax(0, 1fr));
       margin-top: 10px;
     }
 
@@ -371,7 +386,31 @@
   }
 
   .productRow {
-    display: none;
+    display: grid;
+
+    .rowLabel {
+      display: none;
+    }
+
+    .productCell {
+      min-width: 0;
+      padding: 8px 5px;
+      border-color: #ecf2f6;
+    }
+
+    .productTitle {
+      order: -1;
+      font-size: 11px;
+    }
+
+    .imageBox {
+      height: 82px;
+    }
+
+    .priceBox,
+    .addBtn {
+      display: none;
+    }
   }
 
   .mobilePriceRow {
@@ -391,6 +430,9 @@
   }
 
   .specCell {
+    display: flex;
+    align-items: center;
+    justify-content: center;
     min-height: 62px;
     border-color: #fff !important;
     background: rgba(16, 181, 192, 0.045);
@@ -400,11 +442,11 @@
 
   .diffRow {
     .rowLabel {
-      color: #3b3f42;
+      color: #fff;
     }
 
     .specCell {
-      background: rgba(16, 181, 192, 0.085);
+      background: #dff6f8;
     }
   }
 
@@ -434,5 +476,16 @@
     color: #fff;
     font-size: 12px;
     font-weight: 600;
+  }
+}
+
+@keyframes compareHeaderIn {
+  from {
+    opacity: 0;
+    transform: translateY(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }

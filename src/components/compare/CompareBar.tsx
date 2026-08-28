@@ -46,13 +46,15 @@ export default function CompareBar() {
   if (!isVisible) return null;
 
   return (
-    <div
-      ref={barRef}
-      className={`${styles.bar} ${
-        isProductDetailPage ? styles.productDetailOffset : ""
-      }`}
-    >
-      <div className={styles.inner}>
+    <>
+      <div className={styles.pageSpacer} aria-hidden="true" />
+      <div
+        ref={barRef}
+        className={`${styles.bar} ${
+          isProductDetailPage ? styles.productDetailOffset : ""
+        }`}
+      >
+        <div className={styles.inner}>
         <div className={styles.items}>
           {items.map((item) => (
             <div key={item.id} className={styles.chip}>
@@ -90,7 +92,8 @@ export default function CompareBar() {
             {en ? "Remove all products" : "ყველა პროდუქტის წაშლა"}
           </button>
         </div>
+        </div>
       </div>
-    </div>
+    </>
   );
 }

@@ -61,7 +61,9 @@ function readStored(): CompareItem[] {
     if (!raw) return [];
 
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed.filter(isValidItem) : [];
+    return Array.isArray(parsed)
+      ? parsed.filter(isValidItem).slice(0, COMPARE_MAX_ITEMS)
+      : [];
   } catch {
     return [];
   }

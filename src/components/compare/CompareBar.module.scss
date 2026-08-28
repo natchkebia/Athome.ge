@@ -1,5 +1,13 @@
 @use "@/styles/colors" as *;
 
+.pageSpacer {
+  width: 100%;
+  height: var(--compare-bar-height, 0px);
+  min-height: var(--compare-bar-height, 0px);
+  flex: 0 0 var(--compare-bar-height, 0px);
+  pointer-events: none;
+}
+
 .bar {
   position: fixed;
   left: 0;

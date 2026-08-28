@@ -1,6 +1,6 @@
 "use client";
 
-import { type CSSProperties, useEffect, useState } from "react";
+import { type CSSProperties, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Breadcrumb from "@/components/ breadcrumb/Breadcrumb";
 import AtHomeLoader from "@/components/shared/AtHomeLoader";
@@ -56,6 +56,28 @@ export default function ComparePage() {
     Record<number, StorefrontProductDetail>
   >({});
   const [loading, setLoading] = useState(false);
+  const [showMobileStickyHeader, setShowMobileStickyHeader] = useState(false);
+  const productHeaderRef = useRef<HTMLTableRowElement>(null);
+
+  useEffect(() => {
+    const updateStickyHeader = () => {
+      if (!window.matchMedia("(max-width: 768px)").matches) {
+        setShowMobileStickyHeader(false);
+        return;
+      }
+
+      const header = productHeaderRef.current;
+      setShowMobileStickyHeader(Boolean(header && header.getBoundingClientRect().bottom <= 0));
+    };
+
+    updateStickyHeader();
+    window.addEventListener("scroll", updateStickyHeader, { passive: true });
+    window.addEventListener("resize", updateStickyHeader);
+    return () => {
+      window.removeEventListener("scroll", updateStickyHeader);
+      window.removeEventListener("resize", updateStickyHeader);
+    };
+  }, [items.length]);
 
   useEffect(() => {
     let active = true;
@@ -184,7 +206,7 @@ export default function ComparePage() {
 
         {loading && <AtHomeLoader variant="inline" />}
 
-        <div
+        {showMobileStickyHeader && <div
           className={styles.mobileProductHeader}
           style={{ "--compare-columns": items.length } as CSSProperties}
         >
@@ -210,7 +232,7 @@ export default function ComparePage() {
               )}
             </div>
           ))}
-        </div>
+        </div>}
 
         <div className={styles.tableScroll}>
           <table
@@ -219,7 +241,7 @@ export default function ComparePage() {
           >
             <tbody>
               {/* პროდუქტების header რიგი */}
-              <tr className={styles.productRow}>
+              <tr ref={productHeaderRef} className={styles.productRow}>
                 <th className={styles.rowLabel} />
                 {items.map((item) => (
                   <td key={item.id} className={styles.productCell}>
@@ -260,27 +282,19 @@ export default function ComparePage() {
                     )}
                     <div className={styles.priceBox}>
                       {item.newPrice !== undefined && (
-                        <span className={styles.newPrice}>
-                          {item.newPrice.toFixed(2)} ₾
-                        </span>
+                        <span className={styles.newPrice}>{item.newPrice.toFixed(2)} ₾</span>
                       )}
                       {item.oldPrice !== undefined && (
-                        <span className={styles.oldPrice}>
-                          {item.oldPrice.toFixed(2)} ₾
-                        </span>
+                        <span className={styles.oldPrice}>{item.oldPrice.toFixed(2)} ₾</span>
                       )}
                     </div>
                     <button
                       className={styles.addBtn}
-                      onClick={(e) =>
-                        handleAddToCart(
-                          item.id,
-                          e.currentTarget,
-                          normalizeMediaUrl(item.image)
-                        )
+                      onClick={(event) =>
+                        handleAddToCart(item.id, event.currentTarget, normalizeMediaUrl(item.image))
                       }
                     >
-                      <img src="/icons/CartWhite.svg" alt="cart" />
+                      <img src="/icons/CartWhite.svg" alt="" />
                       {en ? "Add to cart" : "დამატება"}
                     </button>
                   </td>
@@ -299,14 +313,6 @@ export default function ComparePage() {
                         <span className={styles.oldPrice}>{item.oldPrice.toFixed(2)} ₾</span>
                       )}
                     </div>
-                    <button
-                      className={styles.mobileAddBtn}
-                      onClick={(event) =>
-                        handleAddToCart(item.id, event.currentTarget, normalizeMediaUrl(item.image))
-                      }
-                    >
-                      {en ? "Add" : "დამატება"}
-                    </button>
                   </td>
                 ))}
               </tr>
