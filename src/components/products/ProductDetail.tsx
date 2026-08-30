@@ -170,7 +170,12 @@ export default function ProductDetail({
     .filter((group) => Boolean(group.name) && group.fields.length > 0);
   const specifications = specGroups.flatMap((group) => group.fields);
 
-  const keyFeatures = product.keyFeatures ?? [];
+  const technicalOverviewItems = Array.isArray(product.technicalOverview)
+    ? product.technicalOverview
+    : product.technicalOverview
+      ? [product.technicalOverview]
+      : product.keyFeatures ?? [];
+  const technicalOverviewHtml = product.technicalOverviewHtml?.trim() ?? "";
   const boxContents = product.boxContents ?? [];
   const alternativeProducts = (product.alternativeProducts ?? []).map(
     mapStorefrontProductToCard
@@ -518,13 +523,27 @@ export default function ProductDetail({
               {product.descriptionHtml && (
                 <div className={styles.richText} dangerouslySetInnerHTML={{ __html: sanitizeRichText(product.descriptionHtml) }} />
               )}
-              {(keyFeatures.length > 0 || boxContents.length > 0) && (
+              {(technicalOverviewHtml || technicalOverviewItems.length > 0 || boxContents.length > 0) && (
                 <div className={styles.infoBlocks}>
-                  {keyFeatures.length > 0 && <div className={styles.infoCard}><h4>Technical Overview</h4><ul>{keyFeatures.map((item, i) => <li key={`kf-${i}`}>{item}</li>)}</ul></div>}
+                  {(technicalOverviewHtml || technicalOverviewItems.length > 0) && (
+                    <div className={styles.infoCard}>
+                      <h4>Technical Overview</h4>
+                      {technicalOverviewHtml ? (
+                        <div
+                          className={styles.richText}
+                          dangerouslySetInnerHTML={{
+                            __html: sanitizeRichText(technicalOverviewHtml),
+                          }}
+                        />
+                      ) : (
+                        <ul>{technicalOverviewItems.map((item, i) => <li key={`to-${i}`}>{item}</li>)}</ul>
+                      )}
+                    </div>
+                  )}
                   {boxContents.length > 0 && <div className={styles.infoCard}><h4>{en ? "What's in the box" : "შეფუთვის შემადგენლობა"}</h4><ul>{boxContents.map((item, i) => <li key={`bc-${i}`}>{item}</li>)}</ul></div>}
                 </div>
               )}
-              {!product.descriptionHtml && keyFeatures.length === 0 && boxContents.length === 0 && (
+              {!product.descriptionHtml && !technicalOverviewHtml && technicalOverviewItems.length === 0 && boxContents.length === 0 && (
                 <p className={styles.emptyTab}>{en ? "Product details are not available." : "პროდუქტის დეტალები არ არის დამატებული."}</p>
               )}
             </div>

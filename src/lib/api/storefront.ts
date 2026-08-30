@@ -159,6 +159,8 @@ export type StorefrontProductDetail = Omit<
   videos: unknown[];
   descriptionHtml?: string;
   shortDescription?: string;
+  technicalOverview?: string[] | string | null;
+  technicalOverviewHtml?: string | null;
   keyFeatures: string[];
   boxContents: string[];
   subCategory?: {
