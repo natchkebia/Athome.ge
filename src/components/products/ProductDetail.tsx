@@ -170,10 +170,14 @@ export default function ProductDetail({
     .filter((group) => Boolean(group.name) && group.fields.length > 0);
   const specifications = specGroups.flatMap((group) => group.fields);
 
-  const technicalOverviewItems = Array.isArray(product.technicalOverview)
-    ? product.technicalOverview
-    : product.technicalOverview
+  const backendTechnicalOverview = Array.isArray(product.technicalOverview)
+    ? product.technicalOverview.filter((item) => item.trim().length > 0)
+    : product.technicalOverview?.trim()
       ? [product.technicalOverview]
+      : [];
+  const technicalOverviewItems =
+    backendTechnicalOverview.length > 0
+      ? backendTechnicalOverview
       : product.keyFeatures ?? [];
   const technicalOverviewHtml = product.technicalOverviewHtml?.trim() ?? "";
   const boxContents = product.boxContents ?? [];

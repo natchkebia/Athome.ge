@@ -9,6 +9,7 @@ import {
   type StorefrontCategory,
 } from "@/lib/api/storefront";
 import MessengerContactLink from "../shared/MessengerContactLink";
+import WhatsAppContactLink from "../shared/WhatsAppContactLink";
 
 const categoryFallback = [
   { slug: "computers", ka: "კომპიუტერები", en: "Computers" },
@@ -192,6 +193,7 @@ export default function Footer() {
       </div>
 
       <div className={styles.floatingChats}>
+        <WhatsAppContactLink locale={en ? "en" : "ka"} />
         <MessengerContactLink
           locale={en ? "en" : "ka"}
           variant="floating"
