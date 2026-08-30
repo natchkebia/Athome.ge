@@ -120,6 +120,17 @@ function sanitizeRichText(html: string) {
   });
 }
 
+function isBlankRichText(html?: string | null) {
+  return (
+    !html ||
+    html
+      .replace(/<[^>]*>/g, "")
+      .replace(/&nbsp;|&#160;/gi, " ")
+      .replace(/\u00a0/g, " ")
+      .trim() === ""
+  );
+}
+
 export interface ProductDetailProps {
   product: StorefrontProductDetail;
   routeCategory?: string;
@@ -170,16 +181,9 @@ export default function ProductDetail({
     .filter((group) => Boolean(group.name) && group.fields.length > 0);
   const specifications = specGroups.flatMap((group) => group.fields);
 
-  const backendTechnicalOverview = Array.isArray(product.technicalOverview)
-    ? product.technicalOverview.filter((item) => item.trim().length > 0)
-    : product.technicalOverview?.trim()
-      ? [product.technicalOverview]
-      : [];
-  const technicalOverviewItems =
-    backendTechnicalOverview.length > 0
-      ? backendTechnicalOverview
-      : product.keyFeatures ?? [];
-  const technicalOverviewHtml = product.technicalOverviewHtml?.trim() ?? "";
+  const technicalOverviewHtml = isBlankRichText(product.technicalOverview)
+    ? ""
+    : sanitizeRichText(product.technicalOverview as string);
   const boxContents = product.boxContents ?? [];
   const alternativeProducts = (product.alternativeProducts ?? []).map(
     mapStorefrontProductToCard
@@ -527,27 +531,21 @@ export default function ProductDetail({
               {product.descriptionHtml && (
                 <div className={styles.richText} dangerouslySetInnerHTML={{ __html: sanitizeRichText(product.descriptionHtml) }} />
               )}
-              {(technicalOverviewHtml || technicalOverviewItems.length > 0 || boxContents.length > 0) && (
+              {(technicalOverviewHtml || boxContents.length > 0) && (
                 <div className={styles.infoBlocks}>
-                  {(technicalOverviewHtml || technicalOverviewItems.length > 0) && (
+                  {technicalOverviewHtml && (
                     <div className={styles.infoCard}>
-                      <h4>Technical Overview</h4>
-                      {technicalOverviewHtml ? (
-                        <div
-                          className={styles.richText}
-                          dangerouslySetInnerHTML={{
-                            __html: sanitizeRichText(technicalOverviewHtml),
-                          }}
-                        />
-                      ) : (
-                        <ul>{technicalOverviewItems.map((item, i) => <li key={`to-${i}`}>{item}</li>)}</ul>
-                      )}
+                      <h4>{en ? "Technical overview" : "ტექნიკური მიმოხილვა"}</h4>
+                      <div
+                        className={styles.richText}
+                        dangerouslySetInnerHTML={{ __html: technicalOverviewHtml }}
+                      />
                     </div>
                   )}
                   {boxContents.length > 0 && <div className={styles.infoCard}><h4>{en ? "What's in the box" : "შეფუთვის შემადგენლობა"}</h4><ul>{boxContents.map((item, i) => <li key={`bc-${i}`}>{item}</li>)}</ul></div>}
                 </div>
               )}
-              {!product.descriptionHtml && !technicalOverviewHtml && technicalOverviewItems.length === 0 && boxContents.length === 0 && (
+              {!product.descriptionHtml && !technicalOverviewHtml && boxContents.length === 0 && (
                 <p className={styles.emptyTab}>{en ? "Product details are not available." : "პროდუქტის დეტალები არ არის დამატებული."}</p>
               )}
             </div>

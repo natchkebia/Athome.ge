@@ -1,4 +1,4 @@
-const DEFAULT_WHATSAPP_NUMBER = "995599093209";
+const DEFAULT_WHATSAPP_NUMBER = "995595094209";
 
 function whatsappNumber() {
   const configuredNumber =
