@@ -21,17 +21,6 @@ const bgColors = [
   "#F7F7FC",
 ];
 
-const fallbackImages = [
-  "/images/pc.png",
-  "/images/keyboard.svg",
-  "/images/monitor.png",
-  "/images/gaming-console.png",
-  "/images/gaming-chair.png",
-  "/images/laptop.png",
-  "/images/headphones.svg",
-  "/images/mouse.svg",
-];
-
 export default function Categories() {
   const locale = useStorefrontLocale();
   const [storefrontCategories, setStorefrontCategories] = useState<
@@ -69,9 +58,7 @@ export default function Categories() {
             .map((category, index) => ({
               title: category.name,
               slug: category.slug,
-              image:
-                normalizeMediaUrl(category.imageUrl, "") ||
-                fallbackImages[index % fallbackImages.length],
+              image: normalizeMediaUrl(category.imageUrl, ""),
               bgColor: bgColors[index % bgColors.length],
             }))
         : [],

@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import styles from "./CategoryCard.module.scss";
 
@@ -19,11 +19,22 @@ export default function CategoryCard({
   slug,
   count,
 }: CategoryCardProps) {
+  const [imageFailed, setImageFailed] = useState(false);
+
+  useEffect(() => {
+    setImageFailed(false);
+  }, [image]);
+
   return (
     <Link href={`/products/${slug}`} className={styles.cardLink}>
       <div className={styles.card} style={{ backgroundColor: bgColor }}>
-        {image ? (
-          <img src={image} alt={title} className={styles.image} />
+        {image && !imageFailed ? (
+          <img
+            src={image}
+            alt={title}
+            className={styles.image}
+            onError={() => setImageFailed(true)}
+          />
         ) : (
           <span className={styles.placeholder} aria-hidden="true">
             {title.slice(0, 1)}

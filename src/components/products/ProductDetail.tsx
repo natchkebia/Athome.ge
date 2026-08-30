@@ -520,7 +520,7 @@ export default function ProductDetail({
               )}
               {(keyFeatures.length > 0 || boxContents.length > 0) && (
                 <div className={styles.infoBlocks}>
-                  {keyFeatures.length > 0 && <div className={styles.infoCard}><h4>{en ? "Key features" : "ძირითადი მახასიათებლები"}</h4><ul>{keyFeatures.map((item, i) => <li key={`kf-${i}`}>{item}</li>)}</ul></div>}
+                  {keyFeatures.length > 0 && <div className={styles.infoCard}><h4>Technical Overview</h4><ul>{keyFeatures.map((item, i) => <li key={`kf-${i}`}>{item}</li>)}</ul></div>}
                   {boxContents.length > 0 && <div className={styles.infoCard}><h4>{en ? "What's in the box" : "შეფუთვის შემადგენლობა"}</h4><ul>{boxContents.map((item, i) => <li key={`bc-${i}`}>{item}</li>)}</ul></div>}
                 </div>
               )}
