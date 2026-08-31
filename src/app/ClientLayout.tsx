@@ -10,6 +10,7 @@ import Footer from "@/components/footer/Footer";
 import AtHomeLoader from "@/components/shared/AtHomeLoader";
 import CompareBar from "@/components/compare/CompareBar";
 import TestModeBadge from "@/components/shared/TestModeBadge";
+import FloatingContactButtons from "@/components/shared/FloatingContactButtons";
 import MobileBottomNav from "@/components/mobileBottomNav/MobileBottomNav";
 import { CommerceProvider } from "@/contexts/CommerceContext";
 import { CompareProvider } from "@/contexts/CompareContext";
@@ -197,6 +198,7 @@ export default function ClientLayout({
             </div>
           )}
           <MobileBottomNav />
+          <FloatingContactButtons />
           {!isAuthorizationPage && (
             <>
               <CompareBar />

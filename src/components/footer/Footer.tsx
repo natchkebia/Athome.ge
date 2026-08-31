@@ -8,8 +8,6 @@ import {
   getStorefrontCategories,
   type StorefrontCategory,
 } from "@/lib/api/storefront";
-import MessengerContactLink from "../shared/MessengerContactLink";
-import WhatsAppContactLink from "../shared/WhatsAppContactLink";
 
 const categoryFallback = [
   { slug: "computers", ka: "კომპიუტერები", en: "Computers" },
@@ -192,14 +190,6 @@ export default function Footer() {
         <p>{en ? "Terms of service © 2025 athome.ge. All rights reserved" : "სერვისის პირობები © 2025 athome.ge. ყველა უფლება დაცულია"}</p>
       </div>
 
-      <div className={styles.floatingChats}>
-        <WhatsAppContactLink locale={en ? "en" : "ka"} />
-        <MessengerContactLink
-          locale={en ? "en" : "ka"}
-          variant="floating"
-          showHours={false}
-        />
-      </div>
     </footer>
   );
 }
