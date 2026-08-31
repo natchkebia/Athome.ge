@@ -39,7 +39,7 @@ export default function Footer() {
     getStorefrontCategories()
       .then((categories) => {
         if (!active) return;
-        setFooterCategories(categories.filter((category) => category.productCount > 0).slice(0, 6));
+        setFooterCategories(categories.filter((category) => category.productCount > 0));
       })
       .catch(() => {
         if (active) setFooterCategories([]);

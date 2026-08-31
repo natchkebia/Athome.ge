@@ -39,7 +39,6 @@ export default function Categories() {
         setStorefrontCategories(
           [...items]
             .sort((a, b) => a.sortOrder - b.sortOrder)
-            .slice(0, 8)
         );
       })
       .catch(() => {

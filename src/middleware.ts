@@ -6,17 +6,38 @@ import { LOCALE_COOKIE } from "@/lib/i18n/locale";
  * listener; it is therefore not a valid source for the public scheme.
  */
 function publicOrigin(request: NextRequest): string {
-  if (process.env.NEXT_PUBLIC_SITE_URL) return process.env.NEXT_PUBLIC_SITE_URL;
-
   const host = request.headers.get("x-forwarded-host") ?? request.headers.get("host");
+  const isLocal = host?.startsWith("localhost") || host?.startsWith("127.");
+  if (host && isLocal) return `http://${host}`;
+  if (process.env.NEXT_PUBLIC_SITE_URL) return process.env.NEXT_PUBLIC_SITE_URL;
   if (!host) return request.nextUrl.origin;
 
-  const isLocal = host.startsWith("localhost") || host.startsWith("127.");
-  return `${isLocal ? "http" : "https"}://${host}`;
+  return `https://${host}`;
 }
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
+
+  // Flitt returns the shopper with an HTML form POST. App Router pages only
+  // render GET requests, so turn that browser POST into a safe PRG redirect
+  // before routing. The submitted payment status is deliberately ignored:
+  // the result page verifies the authoritative state through our API.
+  if (
+    request.method === "POST" &&
+    (pathname === "/payment/result" || pathname === "/en/payment/result")
+  ) {
+    const target = new URL(pathname, publicOrigin(request));
+    try {
+      const form = await request.formData();
+      const flittOrderId = form.get("order_id");
+      if (typeof flittOrderId === "string" && flittOrderId.trim()) {
+        target.searchParams.set("flittOrderId", flittOrderId.trim());
+      }
+    } catch {
+      // A malformed/empty body must still reach the neutral result screen.
+    }
+    return NextResponse.redirect(target, 303);
+  }
 
   // Georgian is represented by an unprefixed URL. Canonicalize stale/malformed
   // locale paths such as /ka and /en/ka instead of trying to render them.

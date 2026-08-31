@@ -9,18 +9,11 @@ import "swiper/css";
 import styles from "./BrandSlider.module.scss";
 import BrandCard from "./BrandCard";
 import {
-  getFeaturedStorefrontBrands,
+  getAllStorefrontBrands,
   StorefrontBrand,
 } from "@/lib/api/storefront";
 import { useStorefrontLocale } from "@/lib/i18n/useStorefrontLocale";
-
-function normalizeLogoUrl(logoUrl: string) {
-  if (logoUrl.startsWith("/media/http")) {
-    return logoUrl.replace("/media/", "");
-  }
-
-  return logoUrl;
-}
+import { normalizeMediaUrl } from "@/lib/storefront/products";
 
 export default function BrandSlider() {
   const locale = useStorefrontLocale();
@@ -31,7 +24,7 @@ export default function BrandSlider() {
   useEffect(() => {
     let isMounted = true;
 
-    getFeaturedStorefrontBrands()
+    getAllStorefrontBrands({ featured: true })
       .then((items) => {
         if (!isMounted) return;
 
@@ -54,7 +47,7 @@ export default function BrandSlider() {
       brands.map((brand) => ({
             slug: brand.slug,
             name: brand.name,
-            logoUrl: normalizeLogoUrl(brand.logoUrl),
+            logoUrl: normalizeMediaUrl(brand.logoUrl),
           })),
     [brands]
   );
@@ -94,7 +87,7 @@ export default function BrandSlider() {
 
   return (
     <div className={styles.sliderWrapper}>
-      <h2 className={styles.title}>{locale === "en" ? "Brands" : "ბრენდები"}</h2>
+      <Link href="/brands" className={styles.title}>{locale === "en" ? "Brands" : "ბრენდები"}</Link>
 
       <div className={styles.sliderShell}>
         <button

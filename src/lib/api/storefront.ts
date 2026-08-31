@@ -5,9 +5,9 @@ export type StorefrontBanner = {
   id: number;
   title: string;
   subtitle: string;
-  imageUrl: string;
-  mobileImageUrl: string;
-  linkUrl: string;
+  imageUrl?: string;
+  mobileImageUrl?: string;
+  linkUrl?: string;
   ctaLabel: string;
   sortOrder: number;
 };
@@ -28,11 +28,28 @@ export type StorefrontBrand = {
   id?: number;
   name: string;
   slug: string;
-  logoUrl: string;
-  description: string;
-  website: string;
+  logoUrl?: string;
+  description?: string;
+  website?: string;
   productCount: number;
   displayOrder: number;
+  isFeatured: boolean;
+};
+
+export type StorefrontBrandCategoryFacet = {
+  name: string;
+  slug: string;
+  count: number;
+  subCategories: { name: string; slug: string; count: number }[];
+};
+
+export type StorefrontBrandFilterSet = {
+  brandSlug: string;
+  brandName: string;
+  totalProductCount: number;
+  minPrice: number;
+  maxPrice: number;
+  categories: StorefrontBrandCategoryFacet[];
 };
 
 export type StorefrontCategory = {
@@ -79,7 +96,7 @@ export type StorefrontProduct = {
     discountType: number;
     discountValue: number;
   } | null;
-  thumbnailUrl: string;
+  thumbnailUrl?: string;
   brand: {
     name: string;
     slug: string;
@@ -230,7 +247,7 @@ export type StorefrontSearchProduct = {
   slug: string;
   name: string;
   sku: string;
-  thumbnailUrl: string;
+  thumbnailUrl?: string;
   effectivePrice: number;
   oldPrice?: number;
   currencyCode: string;
@@ -374,11 +391,44 @@ export function getStorefrontHome() {
   });
 }
 
-export function getFeaturedStorefrontBrands(limit = 12) {
-  return apiRequest<StorefrontBrand[]>("/api/storefront/brands/featured", {
-    query: { limit },
-    useProxy: true,
-  });
+export function getStorefrontBrands(params: {
+  page?: number;
+  pageSize?: number;
+  search?: string;
+  featured?: boolean;
+  sortBy?: "name" | "productCount";
+} = {}) {
+  return apiRequest<StorefrontPagedResult<StorefrontBrand>>(
+    "/api/storefront/brands",
+    { query: params, useProxy: true }
+  );
+}
+
+export async function getAllStorefrontBrands(params: {
+  search?: string;
+  featured?: boolean;
+  sortBy?: "name" | "productCount";
+} = {}) {
+  const first = await getStorefrontBrands({ ...params, page: 1, pageSize: 100 });
+  const totalPages = Math.ceil(first.totalCount / first.pageSize);
+  if (totalPages <= 1) return first.items;
+
+  const rest = await Promise.all(
+    Array.from({ length: totalPages - 1 }, (_, index) =>
+      getStorefrontBrands({ ...params, page: index + 2, pageSize: 100 })
+    )
+  );
+  return [first, ...rest].flatMap((page) => page.items);
+}
+
+export function getStorefrontBrandFilters(
+  slug: string,
+  params: { minPrice?: number; maxPrice?: number; inStockOnly?: boolean } = {}
+) {
+  return apiRequest<StorefrontBrandFilterSet>(
+    `/api/storefront/brands/${encodeURIComponent(slug)}/filters`,
+    { query: params, useProxy: true }
+  );
 }
 
 export function getStorefrontCategories() {

@@ -9,16 +9,13 @@ import ProductSortBar from "@/components/products/ProductSortBar";
 import EmptyState from "@/components/products/EmptyState";
 import Breadcrumb from "@/components/ breadcrumb/Breadcrumb";
 import AtHomeLoader from "@/components/shared/AtHomeLoader";
-import { getDealStorefrontProducts } from "@/lib/api/storefront";
+import { getAllStorefrontProducts } from "@/lib/api/storefront";
 import {
   mapStorefrontProductToCard,
   StorefrontProductCard,
 } from "@/lib/storefront/products";
 import { useCommerce } from "@/contexts/CommerceContext";
 import { useStorefrontLocale } from "@/lib/i18n/useStorefrontLocale";
-
-// ყველა ფასდაკლებული პროდუქტი ჩაიტვირთოს (endpoint limit-ს არ ჭრის).
-const DEALS_LIMIT = 1000;
 
 export default function DiscountsPage() {
   const en = useStorefrontLocale() === "en";
@@ -48,7 +45,7 @@ export default function DiscountsPage() {
     setLoading(true);
     setVisibleCount(9);
 
-    getDealStorefrontProducts(DEALS_LIMIT)
+    getAllStorefrontProducts({ dealsOnly: true })
       .then((items) => {
         if (!active) return;
         setProducts(items.map(mapStorefrontProductToCard));

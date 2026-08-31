@@ -193,12 +193,7 @@ export default function ClientLayout({
           >
             {children}
           </main>
-          {pathname === "/" && <Footer />}
-          {pathname !== "/" && !isAuthorizationPage && (
-            <div className="mobile-inner-footer">
-              <Footer />
-            </div>
-          )}
+          <Footer />
           <MobileBottomNav />
           <FloatingContactButtons />
           {!isAuthorizationPage && (

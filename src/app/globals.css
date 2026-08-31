@@ -79,10 +79,6 @@ footer {
   flex-shrink: 0;
 }
 
-.mobile-inner-footer {
-  display: none;
-}
-
 img {
   max-width: 100%;
 }
@@ -145,10 +141,6 @@ img {
 }
 
 @media (max-width: 560px) {
-  .mobile-inner-footer {
-    display: block;
-  }
-
   body {
     padding-bottom: calc(76px + env(safe-area-inset-bottom));
   }

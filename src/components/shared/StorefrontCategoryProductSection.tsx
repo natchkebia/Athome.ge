@@ -36,14 +36,11 @@ export default function StorefrontCategoryProductSection({
 
     setLoading(true);
 
-    // მთავარი კატეგორიებზე — /categories/{slug}/products (სრული კონტენტი).
-    // ცარიელზე fallback by-category/{slug} (exact-level slug-ებისთვის).
     getStorefrontCategoryProducts(categorySlug, limit)
       .then(async (items) => {
-        const list =
-          items.length > 0
-            ? items
-            : await getStorefrontProductsByCategory(categorySlug, limit);
+        const list = items.length > 0
+          ? items
+          : await getStorefrontProductsByCategory(categorySlug, limit);
         if (isMounted) {
           setProducts(
             list
