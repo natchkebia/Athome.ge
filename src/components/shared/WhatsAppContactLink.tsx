@@ -4,16 +4,20 @@ import styles from "./WhatsAppContactLink.module.scss";
 
 type Props = {
   locale?: "ka" | "en";
+  message?: string;
 };
 
-export default function WhatsAppContactLink({ locale = "ka" }: Props) {
+export default function WhatsAppContactLink({
+  locale = "ka",
+  message,
+}: Props) {
   const label =
     locale === "en" ? "Message us on WhatsApp" : "დაგვიკავშირდით WhatsApp-ით";
 
   return (
     <a
       className={styles.link}
-      href={buildWhatsAppUrl()}
+      href={buildWhatsAppUrl(message)}
       target="_blank"
       rel="noopener noreferrer"
       aria-label={label}

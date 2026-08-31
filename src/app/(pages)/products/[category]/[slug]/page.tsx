@@ -10,6 +10,7 @@ import {
 import EmptyState from "@/components/products/EmptyState";
 import AtHomeLoader from "@/components/shared/AtHomeLoader";
 import Breadcrumb from "@/components/ breadcrumb/Breadcrumb";
+import { useContactProduct } from "@/components/shared/ContactProductContext";
 
 type Params = {
   category: string;
@@ -20,6 +21,13 @@ export default function ProductDetailPage() {
   const { category, slug } = useParams<Params>();
   const [product, setProduct] = useState<StorefrontProductDetail | null>(null);
   const [loading, setLoading] = useState(true);
+  const { setProductSku } = useContactProduct();
+
+  useEffect(() => {
+    setProductSku(product?.sku || null);
+
+    return () => setProductSku(null);
+  }, [product?.sku, setProductSku]);
 
   useEffect(() => {
     let isMounted = true;

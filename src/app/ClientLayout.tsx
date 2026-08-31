@@ -11,6 +11,7 @@ import AtHomeLoader from "@/components/shared/AtHomeLoader";
 import CompareBar from "@/components/compare/CompareBar";
 import TestModeBadge from "@/components/shared/TestModeBadge";
 import FloatingContactButtons from "@/components/shared/FloatingContactButtons";
+import { ContactProductProvider } from "@/components/shared/ContactProductContext";
 import MobileBottomNav from "@/components/mobileBottomNav/MobileBottomNav";
 import { CommerceProvider } from "@/contexts/CommerceContext";
 import { CompareProvider } from "@/contexts/CompareContext";
@@ -170,6 +171,7 @@ export default function ClientLayout({
   }, []);
 
   return (
+    <ContactProductProvider>
     <CommerceProvider>
       <ToastProvider>
         <CompareProvider>
@@ -209,5 +211,6 @@ export default function ClientLayout({
         </CompareProvider>
       </ToastProvider>
     </CommerceProvider>
+    </ContactProductProvider>
   );
 }
