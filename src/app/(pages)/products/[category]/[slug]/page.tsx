@@ -21,13 +21,21 @@ export default function ProductDetailPage() {
   const { category, slug } = useParams<Params>();
   const [product, setProduct] = useState<StorefrontProductDetail | null>(null);
   const [loading, setLoading] = useState(true);
-  const { setProductSku } = useContactProduct();
+  const { setProduct: setContactProduct } = useContactProduct();
 
   useEffect(() => {
-    setProductSku(product?.sku || null);
+    if (!product?.sku) {
+      setContactProduct(null);
+      return;
+    }
 
-    return () => setProductSku(null);
-  }, [product?.sku, setProductSku]);
+    const url = new URL(window.location.href);
+    url.search = "";
+    url.hash = "";
+    setContactProduct({ name: product.name, sku: product.sku, url: url.toString() });
+
+    return () => setContactProduct(null);
+  }, [product?.name, product?.sku, setContactProduct]);
 
   useEffect(() => {
     let isMounted = true;

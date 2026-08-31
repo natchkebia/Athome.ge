@@ -8,11 +8,11 @@ import styles from "./FloatingContactButtons.module.scss";
 
 export default function FloatingContactButtons() {
   const locale = useStorefrontLocale();
-  const { productSku } = useContactProduct();
-  const whatsappMessage = productSku
+  const { product } = useContactProduct();
+  const whatsappMessage = product
     ? locale === "en"
-      ? `Hello, I am interested in this product. SKU: ${productSku}`
-      : `გამარჯობა, მაინტერესებს ეს პროდუქტი. SKU: ${productSku}`
+      ? `Hello, I am interested in this product:\n${product.name}\nSKU: ${product.sku}\n${product.url}`
+      : `გამარჯობა, მაინტერესებს ეს პროდუქტი:\n${product.name}\nSKU: ${product.sku}\n${product.url}`
     : undefined;
 
   return (
@@ -20,7 +20,7 @@ export default function FloatingContactButtons() {
       <WhatsAppContactLink locale={locale} message={whatsappMessage} />
       <MessengerContactLink
         context={
-          productSku ? { type: "product", value: productSku } : undefined
+          product ? { type: "product", value: product.sku } : undefined
         }
         locale={locale}
         variant="floating"

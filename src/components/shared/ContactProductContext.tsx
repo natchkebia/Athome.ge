@@ -8,9 +8,15 @@ import {
   type ReactNode,
 } from "react";
 
+export type ContactProduct = {
+  name: string;
+  sku: string;
+  url: string;
+};
+
 type ContactProductContextValue = {
-  productSku: string | null;
-  setProductSku: (sku: string | null) => void;
+  product: ContactProduct | null;
+  setProduct: (product: ContactProduct | null) => void;
 };
 
 const ContactProductContext = createContext<ContactProductContextValue | null>(
@@ -18,10 +24,10 @@ const ContactProductContext = createContext<ContactProductContextValue | null>(
 );
 
 export function ContactProductProvider({ children }: { children: ReactNode }) {
-  const [productSku, setProductSku] = useState<string | null>(null);
+  const [product, setProduct] = useState<ContactProduct | null>(null);
   const value = useMemo(
-    () => ({ productSku, setProductSku }),
-    [productSku],
+    () => ({ product, setProduct }),
+    [product],
   );
 
   return (
