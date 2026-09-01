@@ -32,21 +32,31 @@ export type StorefrontBrand = {
   description?: string;
   website?: string;
   productCount: number;
+  inStockCount: number;
   displayOrder: number;
   isFeatured: boolean;
+};
+
+export type StorefrontBrandSubCategoryFacet = {
+  name: string;
+  slug: string;
+  count: number;
+  inStockCount: number;
 };
 
 export type StorefrontBrandCategoryFacet = {
   name: string;
   slug: string;
   count: number;
-  subCategories: { name: string; slug: string; count: number }[];
+  inStockCount: number;
+  subCategories: StorefrontBrandSubCategoryFacet[];
 };
 
 export type StorefrontBrandFilterSet = {
   brandSlug: string;
   brandName: string;
   totalProductCount: number;
+  totalInStockCount: number;
   minPrice: number;
   maxPrice: number;
   categories: StorefrontBrandCategoryFacet[];

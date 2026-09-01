@@ -191,24 +191,24 @@ export default function ProfilePage() {
     {
       id: "info",
       label: "პერსონალური ინფორმაცია",
-      icon: "/icons/profile1.svg",
+      icon: "/icons/profile-menu-1.svg",
     },
     {
       id: "orders",
       label: "ჩემი შეკვეთები",
-      icon: "/icons/profile2.svg",
+      icon: "/icons/profile-menu-3.svg",
       badge: ordersCount,
     },
     {
       id: "cart",
       label: "ჩემი კალათა",
-      icon: "/icons/profile3.svg",
+      icon: "/icons/profile-menu-2.svg",
       badge: cart.totalItems,
     },
     {
       id: "wishlist",
       label: "სურვილების სია",
-      icon: "/icons/profile4.svg",
+      icon: "/icons/profile-menu-4.svg",
       badge: wishlist.totalItems,
     },
     {

@@ -1,6 +1,7 @@
 "use client";
 
 import { type CSSProperties, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import Breadcrumb from "@/components/ breadcrumb/Breadcrumb";
 import AtHomeLoader from "@/components/shared/AtHomeLoader";
@@ -11,7 +12,9 @@ import { cacheProductInfo } from "@/lib/commerce/guestStore";
 import { flyToTarget } from "@/lib/ui/flyToCart";
 import {
   getStorefrontProduct,
+  searchStorefrontProducts,
   StorefrontProductDetail,
+  StorefrontSearchProduct,
 } from "@/lib/api/storefront";
 import { normalizeMediaUrl } from "@/lib/storefront/products";
 import { img } from "@/lib/media/img";
@@ -48,7 +51,7 @@ function buildSpecMap(detail: StorefrontProductDetail, en: boolean): Map<string,
 
 export default function ComparePage() {
   const en = useStorefrontLocale() === "en";
-  const { items, removeCompare, clearCompare } = useCompare();
+  const { items, removeCompare, clearCompare, toggleCompare, isFull, maxItems } = useCompare();
   const { addToCart } = useCommerce();
   const { showToast } = useToast();
 
@@ -57,6 +60,11 @@ export default function ComparePage() {
   >({});
   const [loading, setLoading] = useState(false);
   const [showMobileStickyHeader, setShowMobileStickyHeader] = useState(false);
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [pickerQuery, setPickerQuery] = useState("");
+  const [pickerProducts, setPickerProducts] = useState<StorefrontSearchProduct[]>([]);
+  const [pickerLoading, setPickerLoading] = useState(false);
+  const [addingPickerSlug, setAddingPickerSlug] = useState<string | null>(null);
   const productHeaderRef = useRef<HTMLTableRowElement>(null);
 
   useEffect(() => {
@@ -116,6 +124,43 @@ export default function ComparePage() {
     };
   }, [items]);
 
+  useEffect(() => {
+    if (!pickerOpen || pickerQuery.trim().length < 2) {
+      setPickerProducts([]);
+      setPickerLoading(false);
+      return;
+    }
+
+    let active = true;
+    const timer = window.setTimeout(() => {
+      setPickerLoading(true);
+      searchStorefrontProducts({ query: pickerQuery, page: 1, pageSize: 12 })
+        .then((result) => {
+          if (active) setPickerProducts(result.products);
+        })
+        .catch(() => {
+          if (active) setPickerProducts([]);
+        })
+        .finally(() => {
+          if (active) setPickerLoading(false);
+        });
+    }, 250);
+
+    return () => {
+      active = false;
+      window.clearTimeout(timer);
+    };
+  }, [pickerOpen, pickerQuery]);
+
+  useEffect(() => {
+    if (!pickerOpen) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [pickerOpen]);
+
   const breadcrumbs = [
     { label: en ? "Home" : "მთავარი გვერდი", href: "/" },
     { label: en ? "Compare" : "შედარება" },
@@ -128,12 +173,37 @@ export default function ComparePage() {
     if (detail) specMaps[item.id] = buildSpecMap(detail, en);
   });
 
-  // ყველა პროდუქტის მახასიათებლების გაერთიანებული სია (თანმიმდევრობის შენარჩუნებით).
-  const specRows: string[] = [];
+  // Figma-ს ცხრილის სტრუქტურა: ძირითადი ველები, შემდეგ backend-ის ჯგუფები
+  // საკუთარი სათაურებით და ბოლოს ჯგუფს გარეთ დარჩენილი attributes.
+  type SpecLayoutRow = { type: "group" | "spec"; label: string };
+  const specLayout: SpecLayoutRow[] = [];
+  const addedSpecs = new Set<string>();
+  const addedGroups = new Set<string>();
+  const addSpec = (label: string) => {
+    if (!addedSpecs.has(label)) {
+      addedSpecs.add(label);
+      specLayout.push({ type: "spec", label });
+    }
+  };
+
+  ["SKU", en ? "Brand" : "ბრენდი", en ? "Model" : "მოდელი"].forEach((label) => {
+    if (items.some((item) => specMaps[item.id]?.has(label))) addSpec(label);
+  });
+
   items.forEach((item) => {
-    specMaps[item.id]?.forEach((_value, label) => {
-      if (!specRows.includes(label)) specRows.push(label);
+    details[item.id]?.specifications?.forEach((group) => {
+      if (group.name && !addedGroups.has(group.name)) {
+        addedGroups.add(group.name);
+        specLayout.push({ type: "group", label: group.name });
+      }
+      group.fields?.forEach((field) => {
+        if (field.label) addSpec(field.label);
+      });
     });
+  });
+
+  items.forEach((item) => {
+    specMaps[item.id]?.forEach((_value, label) => addSpec(label));
   });
 
   const getSpecValue = (productId: number, label: string): string => {
@@ -172,11 +242,73 @@ export default function ComparePage() {
     showToast(en ? "Added to cart" : "კალათაში დაემატა");
   };
 
+  const handleAddProduct = async (product: StorefrontSearchProduct) => {
+    setAddingPickerSlug(product.slug);
+    let detail: StorefrontProductDetail;
+    try {
+      detail = await getStorefrontProduct(product.slug);
+    } catch {
+      showToast(en ? "The product could not be added" : "პროდუქტის დამატება ვერ მოხერხდა", "error");
+      setAddingPickerSlug(null);
+      return;
+    }
+
+    const result = toggleCompare({
+      id: detail.id,
+      slug: detail.slug,
+      category: detail.category.slug,
+      title: detail.name,
+      image: normalizeMediaUrl(detail.images.find((image) => image.isMain)?.url ?? detail.images[0]?.url ?? product.thumbnailUrl),
+      newPrice: detail.pricing.effectivePrice,
+      oldPrice: detail.pricing.sellingPrice > detail.pricing.effectivePrice ? detail.pricing.sellingPrice : undefined,
+    });
+    setAddingPickerSlug(null);
+
+    if (result === "full") {
+      showToast(en ? `You can compare up to ${maxItems} products` : `შედარებაში მაქსიმუმ ${maxItems} პროდუქტია`, "error");
+      return;
+    }
+
+    if (result === "added") {
+      showToast(en ? "Product added to comparison" : "პროდუქტი შედარებაში დაემატა");
+      setPickerOpen(false);
+      setPickerQuery("");
+    }
+  };
+
+  const pickerDialog = pickerOpen ? <div className={styles.pickerOverlay} role="presentation" onMouseDown={() => setPickerOpen(false)}>
+    <section className={styles.picker} role="dialog" aria-modal="true" aria-labelledby="compare-picker-title" onMouseDown={(event) => event.stopPropagation()}>
+      <div className={styles.pickerHead}>
+        <h2 id="compare-picker-title">{en ? "Add a product" : "პროდუქტის დამატება"}</h2>
+        <button type="button" onClick={() => setPickerOpen(false)} aria-label={en ? "Close" : "დახურვა"}>×</button>
+      </div>
+      <input autoFocus type="search" value={pickerQuery} onChange={(event) => setPickerQuery(event.target.value)} placeholder={en ? "Search by name or code" : "მოძებნე სახელით ან კოდით"} />
+      <div className={styles.pickerResults}>
+        {pickerLoading && <AtHomeLoader variant="inline" />}
+        {!pickerLoading && pickerQuery.trim().length < 2 && <p>{en ? "Enter at least 2 characters" : "ჩაწერე მინიმუმ 2 სიმბოლო"}</p>}
+        {!pickerLoading && pickerQuery.trim().length >= 2 && pickerProducts.length === 0 && <p>{en ? "No products found" : "პროდუქტი ვერ მოიძებნა"}</p>}
+        {!pickerLoading && pickerProducts.map((product) => {
+          const selected = items.some((item) => item.slug === product.slug);
+          const adding = addingPickerSlug === product.slug;
+          return <button type="button" key={product.slug} className={styles.pickerProduct} disabled={selected || adding} onClick={() => void handleAddProduct(product)}>
+            <img src={img(normalizeMediaUrl(product.thumbnailUrl), 160)} alt="" />
+            <span><strong>{product.name}</strong><small>{product.effectivePrice.toFixed(2)} ₾</small></span>
+            <b className={selected ? styles.pickerSelected : undefined}>{selected ? (en ? "Added" : "დამატებულია") : adding ? "…" : "+"}</b>
+          </button>;
+        })}
+      </div>
+    </section>
+  </div> : null;
+  const pickerPortal = pickerDialog && typeof document !== "undefined"
+    ? createPortal(pickerDialog, document.body)
+    : null;
+
   if (items.length === 0) {
     return (
       <>
         <Breadcrumb items={breadcrumbs} />
         <div className={styles.container}>
+          {pickerPortal}
           <div className={styles.empty}>
             <h2>{en ? "Your comparison list is empty" : "შესადარებელი სია ცარიელია"}</h2>
             <p>
@@ -184,9 +316,9 @@ export default function ComparePage() {
               <img src="/icons/Arrows.svg" alt="compare" />
               {en ? " and compare them side by side." : " და ერთმანეთს გვერდიგვერდ შეადარე."}
             </p>
-            <Link href="/" className={styles.emptyBtn}>
-              {en ? "Return to home" : "მთავარ გვერდზე დაბრუნება"}
-            </Link>
+            <button type="button" className={styles.emptyBtn} onClick={() => setPickerOpen(true)}>
+              {en ? "Add a product" : "პროდუქტის დამატება"}
+            </button>
           </div>
         </div>
       </>
@@ -205,6 +337,8 @@ export default function ComparePage() {
         </div>
 
         {loading && <AtHomeLoader variant="inline" />}
+
+        {pickerPortal}
 
         {showMobileStickyHeader && <div
           className={styles.mobileProductHeader}
@@ -242,7 +376,12 @@ export default function ComparePage() {
             <tbody>
               {/* პროდუქტების header რიგი */}
               <tr ref={productHeaderRef} className={styles.productRow}>
-                <th className={styles.rowLabel} />
+                <th className={`${styles.rowLabel} ${styles.addProductCell}`}>
+                  <button type="button" className={styles.addProductTile} disabled={isFull} onClick={() => setPickerOpen(true)}>
+                    <span>+</span>
+                    <small>{isFull ? (en ? "Comparison is full" : "შედარების სია შევსებულია") : (en ? "Add a product to compare" : "დაამატე პროდუქტი შესადარებლად")}</small>
+                  </button>
+                </th>
                 {items.map((item) => (
                   <td key={item.id} className={styles.productCell}>
                     <button
@@ -318,7 +457,14 @@ export default function ComparePage() {
               </tr>
 
               {/* მახასიათებლების რიგები — განსხვავებული მნიშვნელობები გამოიყოფა */}
-              {specRows.map((label) => {
+              {specLayout.map((row) => {
+                if (row.type === "group") {
+                  return <tr key={`group-${row.label}`} className={styles.sectionRow}>
+                    <th colSpan={items.length + 1}>{row.label}</th>
+                  </tr>;
+                }
+
+                const label = row.label;
                 const values = items.map((item) =>
                   getSpecValue(item.id, label)
                 );
@@ -341,7 +487,7 @@ export default function ComparePage() {
                 );
               })}
 
-              {!loading && specRows.length === 0 && (
+              {!loading && specLayout.length === 0 && (
                 <tr>
                   <td
                     className={styles.noSpecs}

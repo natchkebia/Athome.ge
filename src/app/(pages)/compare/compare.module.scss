@@ -10,7 +10,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  margin: 12px 0 24px;
+  margin: 12px 0 72px;
 }
 
 .title {
@@ -37,7 +37,7 @@
 
 .tableScroll {
   width: 100%;
-  border: 1px solid rgba(233, 235, 248, 1);
+  border: 1px solid #e9ebf8;
   border-radius: 18px;
   overflow-x: auto;
   overflow-y: hidden;
@@ -56,7 +56,7 @@
 
   th,
   td {
-    border: 1px solid rgba(233, 235, 248, 1);
+    border: 1px solid #e9ebf8;
     padding: 14px 16px;
     text-align: left;
     vertical-align: top;
@@ -64,22 +64,87 @@
 }
 
 .rowLabel {
-  width: 200px;
-  min-width: 160px;
-  background: rgba(16, 181, 192, 0.09);
+  width: 25%;
+  min-width: 220px;
+  background: #f6f8fb;
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 400;
   color: rgba(59, 63, 66, 1);
 }
 
-.productRow td {
-  vertical-align: top;
+.productRow {
+  height: 270px;
+
+  > th,
+  > td {
+    height: 270px;
+    box-sizing: border-box;
+  }
+
+  td {
+    vertical-align: top;
+  }
+}
+
+.addProductCell {
+  padding: 12px !important;
+  background: #fff;
+  vertical-align: middle !important;
+  text-align: center !important;
+}
+
+.addProductTile {
+  width: 305px;
+  max-width: 100%;
+  height: 222px;
+  min-height: 222px;
+  padding: 20px;
+  margin: 0 auto;
+  border: 1px dashed #e8ebf0;
+  border-radius: 12px;
+  background: #f6f8fb;
+  color: #3b3f42;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  cursor: pointer;
+
+  span {
+    width: 24px;
+    height: 24px;
+    border: 1.5px solid currentColor;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    font-size: 22px;
+    font-weight: 300;
+    line-height: 1;
+  }
+
+  small {
+    max-width: 150px;
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 1.4;
+    text-align: center;
+  }
+
+  &:disabled {
+    border-color: #dce5e9;
+    color: #98a3a8;
+    cursor: default;
+  }
 }
 
 .productCell {
   position: relative;
   background: #ffffff;
   width: auto;
+  height: 270px;
+  box-sizing: border-box;
+  padding: 18px 16px !important;
   overflow: hidden;
 }
 
@@ -96,11 +161,18 @@
   font-size: 18px;
   line-height: 1;
   cursor: pointer;
+  opacity: 0;
+  transition: opacity .15s ease, background .15s ease, color .15s ease;
 
   &:hover {
     background: #c83255;
     color: #ffffff;
   }
+}
+
+.productCell:hover .removeBtn,
+.productCell:focus-within .removeBtn {
+  opacity: 1;
 }
 
 .productLink {
@@ -109,14 +181,14 @@
   align-items: center;
   text-decoration: none;
   color: inherit;
-  gap: 10px;
+  gap: 14px;
   min-width: 0;
   width: 100%;
 }
 
 .imageBox {
   width: 100%;
-  height: 140px;
+  height: 139px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -134,7 +206,7 @@
   width: 100%;
   min-width: 0;
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 400;
   color: rgba(59, 63, 66, 1);
   text-align: center;
   line-height: 1.4;
@@ -153,6 +225,10 @@
   white-space: nowrap;
 }
 
+.priceBox {
+  display: none;
+}
+
 .newPrice {
   font-size: 18px;
   font-weight: 700;
@@ -166,8 +242,12 @@
 }
 
 .addBtn {
-  width: 100%;
-  height: 44px;
+  position: absolute;
+  right: 22px;
+  bottom: 17px;
+  left: 22px;
+  width: auto;
+  height: 40px;
   border: none;
   border-radius: 8px;
   background: rgba(16, 181, 192, 1);
@@ -179,6 +259,7 @@
   justify-content: center;
   gap: 8px;
   cursor: pointer;
+  margin-top: 0;
 
   &:hover {
     background: #0fa1ab;
@@ -186,8 +267,8 @@
 }
 
 .specCell {
-  background: #f8fafc;
-  font-size: 13px;
+  background: #fff;
+  font-size: 12px;
   color: rgba(59, 63, 66, 1);
 }
 
@@ -198,16 +279,27 @@
 // რიგი, სადაც პროდუქტებს განსხვავებული მნიშვნელობა აქვთ.
 .diffRow {
   .specCell {
-    font-weight: 600;
-    background: #dff6f8;
-    border-top-color: rgba(16, 181, 192, 0.42);
-    border-bottom-color: rgba(16, 181, 192, 0.42);
+    font-weight: 400;
+    background: #e5f7f8;
+    border-top-color: #e9ebf8;
+    border-bottom-color: #e9ebf8;
   }
 
   .rowLabel {
-    background: #10b5c0;
-    color: #fff;
-    border-color: #10b5c0;
+    background: #e5f7f8;
+    color: #3b3f42;
+    border-color: #e9ebf8;
+  }
+}
+
+.sectionRow {
+  th {
+    padding: 22px 20px;
+    background: #fff;
+    color: #3b3f42;
+    font-size: 13px;
+    font-weight: 600;
+    text-align: left;
   }
 }
 
@@ -258,10 +350,99 @@
   text-decoration: none;
   font-size: 14px;
   font-weight: 500;
+  border: 0;
+  cursor: pointer;
 
   &:hover {
     background: #0fa1ab;
   }
+}
+
+.pickerOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  padding: 24px;
+  background: rgba(18, 30, 34, 0.48);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.picker {
+  width: min(720px, calc(100vw - 48px));
+  max-height: min(760px, calc(100vh - 48px));
+  padding: 22px;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 22px 70px rgba(24, 43, 48, 0.2);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  > input {
+    width: 100%;
+    height: 56px;
+    min-height: 56px;
+    flex: 0 0 56px;
+    padding: 0 18px;
+    border: 1px solid #dfe8ec;
+    border-radius: 12px;
+    font: inherit;
+    font-size: 16px;
+    outline: none;
+
+    &:focus { border-color: #10b5c0; }
+  }
+}
+
+.pickerHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+
+  h2 { margin: 0; font-size: 20px; color: #3b3f42; }
+  button { width: 34px; height: 34px; padding: 0; border: 0; border-radius: 50%; background: #f6f8fb; font-size: 24px; cursor: pointer; }
+}
+
+.pickerResults {
+  min-height: 120px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+
+  > p { margin: auto; color: #7f8a8f; text-align: center; }
+}
+
+.pickerProduct {
+  width: 100%;
+  min-height: 78px;
+  padding: 10px 12px;
+  border: 1px solid #e7eef1;
+  border-radius: 12px;
+  background: #fff;
+  color: #3b3f42;
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr) minmax(34px, max-content);
+  align-items: center;
+  gap: 12px;
+  text-align: left;
+  cursor: pointer;
+
+  > img { width: 64px; height: 58px; object-fit: contain; }
+  > span { min-width: 0; display: flex; flex-direction: column; gap: 5px; }
+  strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; }
+  small { color: #10aab5; font-size: 12px; }
+  > b { font-size: 22px; color: #10b5c0; text-align: center; }
+  &:disabled { opacity: .5; cursor: default; }
+}
+
+.pickerSelected {
+  font-size: 11px !important;
+  white-space: nowrap;
 }
 
 @media (max-width: 768px) {
@@ -287,19 +468,18 @@
     top: 0;
     left: 0;
     right: 0;
-    z-index: 120;
+    z-index: 900;
     display: grid;
     grid-template-columns: repeat(var(--compare-columns), minmax(0, 1fr));
     gap: 6px;
     width: auto;
     padding: 8px 10px;
-    border: 0;
-    border-bottom: 3px solid #079ca6;
-    border-radius: 0;
-    background: #10b5c0;
+    border: 1px solid #e9ebf8;
+    border-radius: 0 0 12px 12px;
+    background: #fff;
     overflow-x: hidden;
     overflow-y: hidden;
-    box-shadow: 0 10px 26px rgba(17, 78, 82, 0.24);
+    box-shadow: 0 8px 22px rgba(31, 54, 61, 0.12);
     animation: compareHeaderIn 180ms ease-out both;
   }
 
@@ -307,7 +487,7 @@
     position: relative;
     min-width: 0;
     padding: 7px 5px 6px;
-    border: 1px solid rgba(255, 255, 255, 0.6);
+    border: 1px solid #e9ebf8;
     border-radius: 10px;
     background: #fff;
 
@@ -387,15 +567,56 @@
 
   .productRow {
     display: grid;
+    height: auto;
+
+    > th,
+    > td {
+      height: auto;
+    }
 
     .rowLabel {
       display: none;
     }
 
+    .addProductCell {
+      display: block;
+      grid-column: 1 / -1;
+      width: auto;
+      padding: 0 0 10px !important;
+      border: 0 !important;
+      background: transparent;
+    }
+
+    .addProductTile {
+      width: 100%;
+      height: 72px;
+      min-height: 72px;
+      border: 1px dashed #dfe8ec;
+      border-radius: 12px;
+      gap: 4px;
+
+      span {
+        width: 20px;
+        height: 20px;
+        font-size: 18px;
+      }
+
+      small {
+        max-width: none;
+        font-size: 11px;
+      }
+    }
+
     .productCell {
       min-width: 0;
+      height: auto;
       padding: 8px 5px;
       border-color: #ecf2f6;
+    }
+
+    .removeBtn {
+      opacity: 1;
+      color: #10aab5;
     }
 
     .productTitle {
@@ -410,11 +631,12 @@
     .priceBox,
     .addBtn {
       display: none;
+      margin-top: 0;
     }
   }
 
   .mobilePriceRow {
-    display: grid;
+    display: none;
   }
 
   .rowLabel {
@@ -424,7 +646,7 @@
     padding: 10px 8px !important;
     border: 0 !important;
     border-radius: 8px 8px 0 0;
-    background: rgba(16, 181, 192, 0.09);
+    background: #fff;
     color: #3b3f42;
     font-size: 13px;
   }
@@ -435,19 +657,25 @@
     justify-content: center;
     min-height: 62px;
     border-color: #fff !important;
-    background: rgba(16, 181, 192, 0.045);
+    background: #fff;
     text-align: center !important;
     vertical-align: middle;
   }
 
   .diffRow {
     .rowLabel {
-      color: #fff;
+      color: #3b3f42;
+      background: #fff;
     }
 
     .specCell {
-      background: #dff6f8;
+      background: #e5f7f8;
     }
+  }
+
+  .sectionRow th {
+    grid-column: 1 / -1;
+    width: auto;
   }
 
   .mobilePriceBox {
@@ -477,6 +705,9 @@
     font-size: 12px;
     font-weight: 600;
   }
+
+  .pickerOverlay { padding: 12px; align-items: center; }
+  .picker { width: calc(100vw - 24px); max-height: calc(100vh - 24px); padding: 16px; border-radius: 18px; }
 }
 
 @keyframes compareHeaderIn {
