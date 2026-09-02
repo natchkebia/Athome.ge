@@ -112,7 +112,11 @@ export default function Step4Payment({
           >
             <div className={styles.bankWrapper}>
               <div className={styles.radio}>{bank === "tbc" && <div />}</div>
-              <img src="/icons/Tbc.svg" className={styles.bankIcon} alt={en ? "TBC Bank" : "თიბისი ბანკი"} />
+              <img
+                src="/icons/flitt-payment.png"
+                className={styles.flittIcon}
+                alt="Flitt"
+              />
             </div>
             <div className={styles.cards}>
               <img src="/icons/Group.svg" />

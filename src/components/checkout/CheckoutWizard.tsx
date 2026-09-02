@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Step1Contact from "./Step1Contact";
 import Step2Delivery from "./Step2Delivery";
@@ -7,7 +7,6 @@ import Step3Method from "./Step3Method";
 import Step4Payment, { type PaymentSelection } from "./Step4Payment";
 import Step5Complete from "./Step5Complete";
 import styles from "./checkoutWizard.module.scss";
-import Breadcrumb from "../ breadcrumb/Breadcrumb";
 import StepPagination from "./components/StepPagination";
 import type { FormValues } from "./Step1Contact";
 import { useCommerce } from "@/contexts/CommerceContext";
@@ -47,6 +46,17 @@ type DeliverySelection = {
   } | null;
 };
 
+const CHECKOUT_PROGRESS_KEY = "athomeCheckoutProgress";
+
+type CheckoutProgress = {
+  step: number;
+  orderType: "store" | "delivery" | null;
+  pickupBranchCode: string | null;
+  shippingMethodId: number | null;
+  contactData: FormValues | null;
+  deliveryData: DeliverySelection | null;
+};
+
 // UI payment values differ from the backend enum — map them here.
 const PAYMENT_METHOD_MAP: Record<PaymentSelection["method"], PaymentMethod> = {
   card: "card",
@@ -79,11 +89,60 @@ export default function CheckoutWizard({ onStepChange, onDeliverySummaryChange }
   const [orderItems, setOrderItems] = useState(cart.items);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [progressRestored, setProgressRestored] = useState(false);
 
-  const breadcrumbs = [
-    { label: en ? "Home" : "მთავარი გვერდი", href: "/" },
-    { label: en ? "Checkout" : "მიწოდების დეტალები" },
-  ];
+  useEffect(() => {
+    try {
+      const saved = sessionStorage.getItem(CHECKOUT_PROGRESS_KEY);
+      if (saved) {
+        const progress = JSON.parse(saved) as Partial<CheckoutProgress>;
+        const savedStep = Number(progress.step);
+
+        if (Number.isInteger(savedStep) && savedStep >= 1 && savedStep <= 4) {
+          setStep(savedStep);
+          onStepChange?.(savedStep);
+        }
+        setOrderType(progress.orderType ?? null);
+        setPickupBranchCode(progress.pickupBranchCode ?? null);
+        setShippingMethodId(progress.shippingMethodId ?? null);
+        setContactData(progress.contactData ?? null);
+        setDeliveryData(progress.deliveryData ?? null);
+
+        if (progress.orderType) {
+          onDeliverySummaryChange?.({
+            mode: progress.orderType === "store" ? "pickup" : "courier",
+            amount: null,
+          });
+        }
+      }
+    } catch {
+      sessionStorage.removeItem(CHECKOUT_PROGRESS_KEY);
+    } finally {
+      setProgressRestored(true);
+    }
+  }, [onDeliverySummaryChange, onStepChange]);
+
+  useEffect(() => {
+    if (!progressRestored || step === 5) return;
+
+    const progress: CheckoutProgress = {
+      step,
+      orderType,
+      pickupBranchCode,
+      shippingMethodId,
+      contactData,
+      deliveryData,
+    };
+    sessionStorage.setItem(CHECKOUT_PROGRESS_KEY, JSON.stringify(progress));
+  }, [
+    contactData,
+    deliveryData,
+    orderType,
+    pickupBranchCode,
+    progressRestored,
+    shippingMethodId,
+    step,
+  ]);
 
   const handleStep2Next = () => {
     if (orderType === "store") {
@@ -189,6 +248,7 @@ export default function CheckoutWizard({ onStepChange, onDeliverySummaryChange }
             orderType,
           })
         );
+        sessionStorage.removeItem(CHECKOUT_PROGRESS_KEY);
       }
 
       // Keep the cart until payment is positively confirmed. Failed, cancelled
@@ -267,10 +327,7 @@ export default function CheckoutWizard({ onStepChange, onDeliverySummaryChange }
   }
 
   return (
-    <>
-      <Breadcrumb items={breadcrumbs} />
-
-      <div className={styles.container}>
+    <div className={styles.container}>
         <div className={styles.paginationWrapper}>
           <StepPagination currentStep={step} totalSteps={5} />
         </div>
@@ -328,7 +385,6 @@ export default function CheckoutWizard({ onStepChange, onDeliverySummaryChange }
             items={orderItems}
           />
         )}
-      </div>
-    </>
+    </div>
   );
 }

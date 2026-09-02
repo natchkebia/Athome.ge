@@ -167,7 +167,7 @@
   }
 }
 
-@media (max-width: 600px) {
+@media (max-width: 1024px) {
   .footer {
     padding: 0;
 
@@ -175,12 +175,14 @@
       width: 100%;
       padding: 0;
       gap: 0;
+      flex-direction: column;
     }
 
     .footer-menus {
       width: 100%;
       order: 1;
       gap: 0;
+      flex-direction: column;
 
       .menu-column {
         width: 100%;

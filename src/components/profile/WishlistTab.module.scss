@@ -2,6 +2,8 @@
   width: 100%;
   max-width: none;
   margin: 0;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .grid {
@@ -16,6 +18,7 @@
   width: 100%;
   min-width: 0;
   max-width: 330px;
+  box-sizing: border-box;
 }
 
 .title {
@@ -77,7 +80,11 @@
 }
 
 .profileVariant .grid {
-  margin: 0;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 330px));
+  justify-content: center;
+  justify-items: stretch;
+  margin: 0 auto;
+  max-width: 100%;
 }
 
 .pageVariant .grid {
@@ -123,6 +130,18 @@
   .grid {
     grid-template-columns: repeat(auto-fill, minmax(260px, 330px));
     gap: 16px;
+    justify-content: center;
+  }
+
+  .profileVariant .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+    justify-content: stretch;
+  }
+
+  .profileVariant .cardWrapper {
+    max-width: none;
+    margin: 0;
   }
 
   .summary {
@@ -147,5 +166,10 @@
 
   .grid {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .profileVariant .cardWrapper {
+    max-width: none;
+    margin: 0;
   }
 }

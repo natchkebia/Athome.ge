@@ -140,11 +140,13 @@ img {
   }
 }
 
-@media (max-width: 560px) {
+@media (max-width: 1024px) {
   body {
     padding-bottom: calc(76px + env(safe-area-inset-bottom));
   }
+}
 
+@media (max-width: 560px) {
   .fixed-header {
     position: relative;
     box-shadow: none;

@@ -123,7 +123,7 @@
   }
 }
 
-@media (max-width: 560px) {
+@media (max-width: 1024px) {
   .navbar {
     position: absolute;
     top: 46px;
@@ -148,12 +148,23 @@
   }
 
   .mobileMenuButton {
+    display: inline-flex;
     width: 40px;
     height: 40px;
     flex-basis: 40px;
     padding: 9px;
     border-radius: 0;
     background: transparent;
+    border: 0;
+    outline: none;
+    box-shadow: none;
+    appearance: none;
+
+    &:focus,
+    &:focus-visible {
+      outline: none;
+      box-shadow: none;
+    }
 
     img {
       width: 24px;
@@ -306,6 +317,18 @@
       text-align: center;
       text-decoration: none;
       background: #fff;
+    }
+  }
+}
+
+@media (min-width: 601px) and (max-width: 1024px) {
+  .mobileSubcategoryGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 24px;
+    padding-inline: 28px;
+
+    a {
+      height: 112px;
     }
   }
 }

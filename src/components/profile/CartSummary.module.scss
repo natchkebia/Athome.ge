@@ -181,6 +181,53 @@
   }
 }
 
+@media (min-width: 601px) and (max-width: 1180px) {
+  .cartSection,
+  .expanded {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .expanded {
+    height: 380px;
+    padding: 16px 16px 0;
+
+    .wrapper {
+      height: 140px;
+      min-height: 140px;
+      overflow-x: hidden;
+      overflow-y: auto;
+    }
+
+    .summary {
+      margin-top: 12px;
+    }
+
+    .row {
+      min-width: 0;
+      gap: 8px;
+
+      p {
+        min-width: 0;
+      }
+
+      span {
+        flex-shrink: 0;
+        text-align: right;
+      }
+    }
+
+    .deliveryByAddress {
+      max-width: 88px;
+      white-space: normal;
+    }
+
+    .totalRow {
+      margin-top: 16px;
+    }
+  }
+}
+
 @media (max-width: 520px) {
   .cartSection {
     width: min(360px, 100%);

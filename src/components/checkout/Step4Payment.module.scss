@@ -107,6 +107,13 @@
   width: 160px;
 }
 
+.flittIcon {
+  width: 160px;
+  height: 54px;
+  object-fit: contain;
+  object-position: left center;
+}
+
 .bankIcon1 {
   width: 206px;
   height: 36px;
@@ -310,6 +317,7 @@
   }
 
   .bankIcon,
+  .flittIcon,
   .bankIcon1 {
     width: min(160px, 100%);
     height: auto;
