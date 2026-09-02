@@ -27,12 +27,16 @@ interface DiscountSliderProps {
   products: Product[];
   onToggleWishlist?: (id: number) => void;
   compact?: boolean;
+  flush?: boolean;
+  fixedCardSize?: boolean;
 }
 
 export default function DiscountSlider({
   products,
   onToggleWishlist,
   compact = false,
+  flush = false,
+  fixedCardSize = false,
 }: DiscountSliderProps) {
   const [progress, setProgress] = useState(10);
   const sliderId = useId().replace(/:/g, "");
@@ -54,6 +58,8 @@ export default function DiscountSlider({
     <div
       className={`${styles.sliderWrapper} ${
         compact ? styles.compactSlider : ""
+      } ${flush ? styles.flushSlider : ""} ${
+        fixedCardSize ? styles.fixedCardSlider : ""
       }`}
     >
       <div className={styles.topBar}>
@@ -134,6 +140,7 @@ export default function DiscountSlider({
                         : toggleWishlist(Number(id))
                     }
                     onAddToCart={(id) => addToCart(Number(id))}
+                    fixedSize={fixedCardSize}
                   />
                 </Link>
               ) : (
@@ -154,6 +161,7 @@ export default function DiscountSlider({
                       : toggleWishlist(Number(id))
                   }
                   onAddToCart={(id) => addToCart(Number(id))}
+                  fixedSize={fixedCardSize}
                 />
               )}
             </SwiperSlide>

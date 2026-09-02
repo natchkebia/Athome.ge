@@ -28,6 +28,7 @@ export interface ProductCardProps {
   subCategory?: string;
   slug?: string;
   layout?: "grid" | "list";
+  fixedSize?: boolean;
 }
 
 function ZoomIcon() {
@@ -66,6 +67,7 @@ export default function DiscountCard({
   category,
   slug,
   layout = "grid",
+  fixedSize = false,
 }: ProductCardProps) {
   const locale = useStorefrontLocale();
   const en = locale === "en";
@@ -267,7 +269,7 @@ export default function DiscountCard({
   }
 
   return (
-    <div className={`${styles.card} ${!isAvailable ? styles.outOfStockCard : ""}`}>
+    <div className={`${styles.card} ${fixedSize ? styles.fixedCard : ""} ${!isAvailable ? styles.outOfStockCard : ""}`}>
       <div className={styles.cardWrapper}>
         {(promotionLabel || discount > 0 || isNew) && (
           <div className={styles.badges}>

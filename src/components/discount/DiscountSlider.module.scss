@@ -187,3 +187,13 @@
     }
   }
 }
+
+.flushSlider {
+  padding-inline: 0;
+}
+
+.fixedCardSlider .swiper {
+  :global(.swiper-slide) {
+    width: 260px;
+  }
+}

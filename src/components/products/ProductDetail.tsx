@@ -311,7 +311,11 @@ export default function ProductDetail({
 
   return (
     <div className={styles.mainContainer}>
-      <div className={styles.container}>
+      <div
+        className={`${styles.container} ${
+          !isAthomePrebuilt ? styles.standardProductContainer : ""
+        }`}
+      >
         <ProductGallery images={images} />
 
         <div className={styles.textContainer}>
@@ -431,7 +435,16 @@ export default function ProductDetail({
 
             <div className={styles.paymentOptions} aria-label={en ? "Installment banks" : "განვადების ბანკები"}>
               <fieldset className={styles.paymentOption}>
-                <legend>{en ? "Installment" : "განვადება"}</legend>
+                <legend>{en ? "Pay by card" : "ბარათით გადახდა"}</legend>
+                <div className={styles.cardPaymentLogos}>
+                  <img src="/icons/Bank_of_Georgia.svg" alt={en ? "Bank of Georgia" : "საქართველოს ბანკი"} />
+                  <span className={styles.mastercardMark} aria-label="Mastercard"><i /><i /></span>
+                  <strong>VISA</strong>
+                  <small>AMEX</small>
+                </div>
+              </fieldset>
+              <fieldset className={styles.paymentOption}>
+                <legend>{en ? "Pay by card" : "ბარათით გადახდა"}</legend>
                 <img src="/icons/Tbc.svg" alt={en ? "TBC Bank" : "თიბისი ბანკი"} />
               </fieldset>
               <fieldset className={styles.paymentOption}>
@@ -440,7 +453,7 @@ export default function ProductDetail({
               </fieldset>
               <fieldset className={styles.paymentOption}>
                 <legend>{en ? "Installment" : "განვადება"}</legend>
-                <img src="/icons/kredo.svg" alt={en ? "Credo Bank" : "კრედო ბანკი"} />
+                <img src="/icons/Tbc.svg" alt={en ? "TBC Bank" : "თიბისი ბანკი"} />
               </fieldset>
               <fieldset className={styles.paymentOption}>
                 <legend>{en ? "TBC Bank split payment" : "TBC ბანკის განაწილება"}</legend>
@@ -453,6 +466,10 @@ export default function ProductDetail({
                     <strong>{en ? "Split payment" : "განაწილება"}</strong>
                   </span>
                 </div>
+              </fieldset>
+              <fieldset className={styles.paymentOption}>
+                <legend>{en ? "Installment" : "განვადება"}</legend>
+                <img src="/icons/kredo.svg" alt={en ? "Credo Bank" : "კრედო ბანკი"} />
               </fieldset>
             </div>
 
@@ -589,6 +606,8 @@ export default function ProductDetail({
           icon="/icons/Monitor.svg"
           title="მსგავსი პროდუქტები"
           products={relatedProducts}
+          flush
+          fixedCardSize
         />
       )}
 

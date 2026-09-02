@@ -20,6 +20,8 @@ interface ProductSectionProps {
   title: string;
   products: Product[];
   compact?: boolean;
+  flush?: boolean;
+  fixedCardSize?: boolean;
 }
 
 export default function ProductSection({
@@ -27,6 +29,8 @@ export default function ProductSection({
   title,
   products,
   compact = false,
+  flush = false,
+  fixedCardSize = false,
 }: ProductSectionProps) {
   const locale = useStorefrontLocale();
   const englishTitles: Record<string, string> = {
@@ -53,6 +57,8 @@ export default function ProductSection({
 
       <DiscountSlider
         compact={compact}
+        flush={flush}
+        fixedCardSize={fixedCardSize}
         products={products.map((p) => ({
           ...p,
           oldPrice: p.oldPrice ?? undefined,

@@ -7,6 +7,7 @@
   flex: 0 0 min(48%, 672px);
 
   @media (max-width: 1200px) {
+    width: 100%;
     flex-basis: auto;
   }
 }
@@ -24,7 +25,7 @@
   box-sizing: border-box;
 
   @media (max-width: 1200px) {
-    width: min(100%, 672px);
+    width: 100%;
   }
 
   @media (max-width: 768px) {
@@ -133,7 +134,8 @@
 }
 
 .thumbBox {
-  width: calc((100% - 36px) / 4);
+  width: auto;
+  min-width: 112px;
   height: 150px;
   background: rgba(255, 255, 255, 1);
   border: 1px solid rgba(236, 242, 246, 1);
@@ -143,17 +145,15 @@
   justify-content: center;
   cursor: pointer;
   transition: all 0.2s ease;
-  flex: 0 0 calc((100% - 36px) / 4);
+  flex: 1 0 112px;
   scroll-snap-align: center;
 
   @media (max-width: 768px) {
-    width: 112px;
     height: 100px;
-    flex-basis: 112px;
   }
 
   @media (max-width: 480px) {
-    width: 92px;
+    min-width: 92px;
     height: 84px;
     flex-basis: 92px;
   }
