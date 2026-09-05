@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import ConfiguratorProductModal, { type ProductSelectionResult } from "@/components/configurator/ConfiguratorProductModal";
-import type { ConfiguratorCategoryKey, ConfiguratorProduct } from "@/components/configurator/configuratorTypes";
+import type { ConfiguratorCategoryKey, ConfiguratorProduct, SelectedConfiguratorProduct } from "@/components/configurator/configuratorTypes";
 import type { DynamicFilterValues } from "@/components/products/DynamicProductFilter";
 import { useCommerce } from "@/contexts/CommerceContext";
 import { cacheProductInfo } from "@/lib/commerce/guestStore";
@@ -17,14 +17,17 @@ import {
   type PrebuiltSwap,
 } from "@/lib/api/prebuilt";
 import { useStorefrontLocale } from "@/lib/i18n/useStorefrontLocale";
+import { printConfiguration } from "@/lib/configurator/printConfiguration";
 import styles from "./ProductDetail.module.scss";
 
 const EMPTY_FILTERS: DynamicFilterValues = { price: [0, 0], brandSlugs: [], inStockOnly: true, attributes: {}, ranges: {} };
 const SLOT_CATEGORY: Record<string, ConfiguratorCategoryKey> = {
-  Cpu: "processor", Motherboard: "motherboard", Ram: "ram", Gpu: "gpu", Psu: "psu",
-  Case: "case", CpuCooler: "cooler", LiquidCooler: "liquidCooler", StorageSsd: "storage",
-  StorageHdd: "drive", CaseFan: "caseFan",
+  cpu: "processor", motherboard: "motherboard", ram: "ram", gpu: "gpu", psu: "psu",
+  case: "case", cpuaircooler: "cooler", cpucooler: "cooler", liquidcooler: "liquidCooler",
+  storagessd: "storage", storagehdd: "drive", storagedrive: "storageDrive", casefan: "caseFan",
 };
+
+const categoryForSlot = (slot: string) => SLOT_CATEGORY[slot.toLocaleLowerCase()] ?? `backend:${slot}`;
 
 type Props = {
   productId: number;
@@ -43,6 +46,7 @@ export default function PrebuiltConfigurator({ productId, onConfiguredPrice, onQ
   const [hidden, setHidden] = useState(0);
   const [loadingOptions, setLoadingOptions] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [downloadingInvoice, setDownloadingInvoice] = useState(false);
   const [message, setMessage] = useState("");
   const [filterValues, setFilterValues] = useState(EMPTY_FILTERS);
 
@@ -106,7 +110,7 @@ export default function PrebuiltConfigurator({ productId, onConfiguredPrice, onQ
       setHidden(result.hiddenByCompatibility ?? 0);
       setOptions(result.options.map(({ product, priceDelta, newPrice }) => ({
         id: product.id,
-        category: SLOT_CATEGORY[part.slot] ?? "storageDrive",
+        category: categoryForSlot(part.slot),
         title: product.name ?? "",
         image: normalizeMediaUrl(product.thumbnailUrl ?? undefined) || "/images/case.svg",
         price: product.effectivePrice,
@@ -166,6 +170,31 @@ export default function PrebuiltConfigurator({ productId, onConfiguredPrice, onQ
     } finally { setBusy(false); }
   };
 
+  const downloadInvoice = async () => {
+    if (parts.length === 0 || blocking.length > 0) return;
+    setDownloadingInvoice(true);
+    try {
+      const selectedProducts = parts.reduce<Record<string, SelectedConfiguratorProduct[]>>((result, part) => {
+        const category = categoryForSlot(part.slot);
+        const item: SelectedConfiguratorProduct = {
+          id: part.productId,
+          category,
+          title: part.productName,
+          image: normalizeMediaUrl(part.thumbnailUrl ?? undefined) || "/images/case.svg",
+          price: part.unitPrice,
+          stock: Math.max(0, part.available),
+          specs: [],
+          quantity: part.quantity,
+        };
+        result[category] = [...(result[category] ?? []), item];
+        return result;
+      }, {});
+      await printConfiguration(selectedProducts, en ? "en" : "ka");
+    } finally {
+      setDownloadingInvoice(false);
+    }
+  };
+
   if (!base || base.parts.length === 0) return null;
   const blocking = quote?.blockingIssues ?? [];
   const priceDelta = quote?.priceDelta ?? 0;
@@ -173,7 +202,7 @@ export default function PrebuiltConfigurator({ productId, onConfiguredPrice, onQ
 
   return <section className={styles.prebuiltConfigurator}>
     <div className={styles.prebuiltHeader}>
-      <div><h3>{en ? "Customize this PC" : "მზა კომპიუტერის კონფიგურაცია"}</h3><p>{en ? `Can currently build ${quote?.buildableUnits ?? base.buildableUnits}` : `ამჟამად იწყობა: ${quote?.buildableUnits ?? base.buildableUnits} ცალი`}</p></div>
+      <div><h3>{en ? "Customize this PC" : "მზა კომპიუტერის კონფიგურაცია"}</h3></div>
       <strong>{(quote?.price ?? base.basePrice).toFixed(2)} ₾</strong>
     </div>
     {priceDelta !== 0 && <div className={priceDelta < 0 ? styles.prebuiltSaving : styles.prebuiltIncrease}>{priceDelta > 0 ? "+" : ""}{priceDelta.toFixed(2)} ₾</div>}
@@ -184,7 +213,13 @@ export default function PrebuiltConfigurator({ productId, onConfiguredPrice, onQ
     </div>)}</div>
     {blocking.length > 0 && <div className={styles.prebuiltBlocking}><strong>{en ? "This configuration cannot be built" : "ეს კონფიგურაცია ვერ იწყობა"}</strong>{blocking.map((issue, index) => <p key={index}>{issue.message ?? issue.detail ?? issue.ruleCode}</p>)}</div>}
     {message && <p className={styles.prebuiltMessage}>{message}</p>}
-    {swaps.length > 0 && <button className={styles.prebuiltCartButton} type="button" disabled={busy || blocking.length > 0 || (quote?.buildableUnits ?? 0) <= 0} onClick={() => void addConfigured()}>{busy ? (en ? "Adding..." : "ემატება...") : (en ? "Add configured PC to cart" : "შეცვლილი კომპიუტერის კალათაში დამატება")}</button>}
+    <div className={styles.prebuiltActions}>
+      <button className={styles.prebuiltInvoiceButton} type="button" disabled={downloadingInvoice || blocking.length > 0} onClick={() => void downloadInvoice()}>
+        <img src="/images/conf2.svg" alt="" />
+        {downloadingInvoice ? (en ? "Downloading..." : "იტვირთება...") : (en ? "Download invoice" : "ინვოისის გადმოწერა")}
+      </button>
+      {swaps.length > 0 && <button className={styles.prebuiltCartButton} type="button" disabled={busy || blocking.length > 0 || (quote?.buildableUnits ?? 0) <= 0} onClick={() => void addConfigured()}>{busy ? (en ? "Adding..." : "ემატება...") : (en ? "Add configured PC to cart" : "შეცვლილი კომპიუტერის კალათაში დამატება")}</button>}
+    </div>
     {openSlot && <ConfiguratorProductModal title={en ? `Change ${openSlot}` : `${openSlot} — ნაწილის შეცვლა`} products={options} loading={loadingOptions} selectedProducts={[]} onClose={() => setOpenSlot(null)} onSelect={chooseOption} onUpdateQuantity={() => {}} brands={[]} filters={[]} filterValues={filterValues} priceBounds={bounds} onFilterValuesChange={setFilterValues} hiddenByCompatibility={hidden} totalCount={options.length} />}
   </section>;
 }

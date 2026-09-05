@@ -200,7 +200,6 @@
 .prebuiltMessage { margin: 14px 0 0; color: #51666a; font-size: 13px; }
 
 .prebuiltCartButton {
-  margin-top: 16px;
   min-height: 46px;
   padding: 0 20px;
   border: 0;
@@ -209,6 +208,30 @@
   color: #fff;
   font-weight: 650;
   cursor: pointer;
+  &:disabled { opacity: .5; cursor: not-allowed; }
+}
+
+.prebuiltActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.prebuiltInvoiceButton {
+  min-height: 46px;
+  padding: 0 20px;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  border: 1px solid #16b5c0;
+  border-radius: 11px;
+  background: #fff;
+  color: #0fa1ab;
+  font-weight: 650;
+  cursor: pointer;
+
+  img { width: 22px; height: 22px; object-fit: contain; }
   &:disabled { opacity: .5; cursor: not-allowed; }
 }
 
