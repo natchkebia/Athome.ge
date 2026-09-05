@@ -377,11 +377,13 @@ export default function ProductDetail({
                 )}
               </div>
             )}
-            {!isAthomePrebuilt && <div className={styles.meta}>
-              <div className={styles.stockWrapper}>
-                {en ? "Stock by location:" : "მარაგი ლოკაციების მიხედვით:"}{" "}
-                <StockCheck stockLocations={product.stockLocations ?? []} />
-              </div>
+            <div className={styles.meta}>
+              {!isAthomePrebuilt && (
+                <div className={styles.stockWrapper}>
+                  {en ? "Stock by location:" : "მარაგი ლოკაციების მიხედვით:"}{" "}
+                  <StockCheck stockLocations={product.stockLocations ?? []} />
+                </div>
+              )}
               <p>
                 {en ? "Product code:" : "პროდუქტის კოდი:"} <span>{product.id}</span>
               </p>
@@ -420,7 +422,7 @@ export default function ProductDetail({
                   {product.subCategory?.name || product.category.name}
                 </Link>
               </p>
-            </div>}
+            </div>
           </div>
 
           <div className={styles.priceWrapper}>
