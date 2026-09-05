@@ -10,7 +10,7 @@ type ProductPaginationProps = {
   locale?: "ka" | "en";
 };
 
-export const PRODUCTS_PER_PAGE = 9;
+export const PRODUCTS_PER_PAGE = 6;
 const PAGE_WINDOW = 1;
 
 function pageItems(currentPage: number, totalPages: number) {

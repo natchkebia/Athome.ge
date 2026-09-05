@@ -34,13 +34,20 @@
     position: sticky;
     top: 216px;
     width: 100%;
+    // 32px controls + 24px grid offset + two 400px rows with a 24px gap.
+    height: 880px;
     align-self: flex-start;
     overflow: visible;
     transition: top 0.3s ease;
 
     > * {
       width: 100%;
+      height: 100%;
       margin-top: 0 !important;
+
+      > :last-child {
+        flex: 1;
+      }
     }
   }
 
@@ -86,6 +93,11 @@
 
   .content {
     grid-column: auto;
+  }
+
+  .desktopSidebar {
+    // At this width six products use three two-card rows.
+    height: 1304px;
   }
 
   .grid {
