@@ -1,7 +1,7 @@
 "use client";
 
 import { ChevronDown, ChevronUp } from "react-bootstrap-icons";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { StorefrontBrandFilterSet } from "@/lib/api/storefront";
 import { useStorefrontLocale } from "@/lib/i18n/useStorefrontLocale";
 import styles from "./BrandCategoryFilter.module.scss";
@@ -19,6 +19,18 @@ export default function BrandCategoryFilter({ schema, value, onChange }: {
 }) {
   const en = useStorefrontLocale() === "en";
   const [open, setOpen] = useState<Record<string, boolean>>({});
+  useEffect(() => {
+    const desktop = window.matchMedia("(min-width: 993px)");
+    const syncOpenState = () =>
+      setOpen(
+        desktop.matches
+          ? Object.fromEntries(schema.categories.map((category) => [category.slug, true]))
+          : {}
+      );
+    syncOpenState();
+    desktop.addEventListener("change", syncOpenState);
+    return () => desktop.removeEventListener("change", syncOpenState);
+  }, [schema.categories]);
   return <aside className={styles.wrapper}>
     <div className={styles.header}>
       <h4>{en ? "Categories" : "კატეგორიები"}</h4>

@@ -35,6 +35,27 @@ export default function ProductFilter({
     {}
   );
 
+  useEffect(() => {
+    const desktop = window.matchMedia("(min-width: 993px)");
+    const syncOpenState = () =>
+      setOpenDropdowns(
+        desktop.matches
+          ? {
+              brands: true,
+              condition: true,
+              processor: true,
+              ram: true,
+              gpu: true,
+              color: true,
+              screen: true,
+            }
+          : {}
+      );
+    syncOpenState();
+    desktop.addEventListener("change", syncOpenState);
+    return () => desktop.removeEventListener("change", syncOpenState);
+  }, []);
+
   const toggleDropdown = (key: string) => {
     setOpenDropdowns((prev) => ({
       ...prev,

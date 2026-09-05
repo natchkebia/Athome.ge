@@ -1,4 +1,5 @@
 .container {
+  --product-grid-height: 1248px;
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   align-items: flex-start;
@@ -80,6 +81,7 @@
 
 @media (min-width: 993px) and (max-width: 1199px) {
   .container {
+    --product-grid-height: 2096px;
     grid-template-columns: 280px minmax(0, 1fr);
   }
 

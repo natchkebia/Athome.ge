@@ -94,7 +94,8 @@
 
 .filterBox {
   width: 330px;
-  max-height: min(1248px, calc(100vh - 250px));
+  height: var(--product-grid-height, 1248px);
+  max-height: var(--product-grid-height, 1248px);
   margin-top: 24px;
   background-color: #fff;
   border: 1px solid rgba(236, 242, 246, 1);
@@ -122,6 +123,7 @@
 
   @media (max-width: 992px) {
     width: 100%;
+    height: auto;
     max-height: none;
     margin-top: 0;
     overflow: visible;

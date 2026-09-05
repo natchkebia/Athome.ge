@@ -37,6 +37,27 @@ export default function DynamicProductFilter({
   const [showAllBrands, setShowAllBrands] = useState(false);
 
   useEffect(() => {
+    if (compact) return;
+    const desktop = window.matchMedia("(min-width: 993px)");
+    const syncOpenState = () => {
+      if (!desktop.matches) {
+        setOpen({});
+        return;
+      }
+      setOpen({
+        brand: true,
+        ...Object.fromEntries(
+          schema.filters.map((filter) => [filter.fieldKey, true])
+        ),
+      });
+      setShowAllBrands(true);
+    };
+    syncOpenState();
+    desktop.addEventListener("change", syncOpenState);
+    return () => desktop.removeEventListener("change", syncOpenState);
+  }, [compact, schema.filters]);
+
+  useEffect(() => {
     setMinInput(String(values.price[0]));
     setMaxInput(String(values.price[1]));
     const span = Math.max(1, priceBounds[1] - priceBounds[0]);

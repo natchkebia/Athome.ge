@@ -1,4 +1,4 @@
-.wrapper { width: 330px; max-height: min(1248px, calc(100vh - 194px)); margin-top: 56px; border: 1px solid #ecf2f6; border-radius: 18px; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: #b8dfe2 transparent; background: #fff; color: #3b3f42; }
+.wrapper { width: 330px; height: var(--product-grid-height, 1248px); max-height: var(--product-grid-height, 1248px); margin-top: 56px; border: 1px solid #ecf2f6; border-radius: 18px; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: #b8dfe2 transparent; background: #fff; color: #3b3f42; }
 .header { min-height: 58px; padding: 0 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #ecf2f6; h4 { margin: 0; font-size: 16px; } button { border: 0; background: none; color: #10b5c0; cursor: pointer; } }
 .group { border-top: 1px solid #ecf2f6; }
 .categoryRow { display: flex; }
@@ -7,4 +7,4 @@
 .toggle { width: 48px; border: 0; background: #fff; cursor: pointer; color: #68757c; }
 .subRow { min-height: 44px; padding-left: 32px; font-size: 13px; background: #fbfcfd; }
 .active { color: #10aab5; font-weight: 600; background: #f0fbfc; }
-@media (max-width: 992px) { .wrapper { width: 100%; max-height: none; margin-top: 0; overflow: visible; } }
+@media (max-width: 992px) { .wrapper { width: 100%; height: auto; max-height: none; margin-top: 0; overflow: visible; } }
