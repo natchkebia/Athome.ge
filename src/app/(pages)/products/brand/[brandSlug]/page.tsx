@@ -6,6 +6,7 @@ import styles from "../../[category]/products.module.scss";
 import DiscountCard from "@/components/discount/DiscountCard";
 import BrandCategoryFilter, { BrandCategorySelection } from "@/components/products/BrandCategoryFilter";
 import ProductSortBar from "@/components/products/ProductSortBar";
+import ProductPagination, { PRODUCTS_PER_PAGE } from "@/components/products/ProductPagination";
 import EmptyState from "@/components/products/EmptyState";
 import Breadcrumb from "@/components/ breadcrumb/Breadcrumb";
 import AtHomeLoader from "@/components/shared/AtHomeLoader";
@@ -23,7 +24,7 @@ export default function BrandProductsPage() {
   const [products, setProducts] = useState<StorefrontProductCard[]>([]);
   const [loading, setLoading] = useState(true);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
-  const [visibleCount, setVisibleCount] = useState(9);
+  const [currentPage, setCurrentPage] = useState(1);
   const [sort, setSort] = useState("default");
   const { wishlistProductIds, toggleWishlist, addToCart } = useCommerce();
 
@@ -33,7 +34,7 @@ export default function BrandProductsPage() {
     return () => { active = false; };
   }, [brandSlug]);
   useEffect(() => {
-    let active = true; setLoading(true); setVisibleCount(9);
+    let active = true; setLoading(true); setCurrentPage(1);
     getAllStorefrontProducts({ pageSize: PRODUCT_LIMIT, brandSlug, categorySlug: selection.categorySlug, subCategorySlug: selection.subCategorySlug })
       .then(items => { if (active) setProducts(items.map(mapStorefrontProductToCard)); })
       .catch(() => { if (active) setProducts([]); })
@@ -51,7 +52,8 @@ export default function BrandProductsPage() {
   const brandName = schema?.brandName ?? brandSlug;
   const breadcrumbs = [{ label: en ? "Home" : "მთავარი გვერდი", href: "/" }, { label: en ? "Brands" : "ბრენდები", href: "/brands" }, { label: brandName }];
   if (!schema && loading) return <AtHomeLoader variant="page" />;
-  const visibleProducts = sortedProducts.slice(0, visibleCount);
+  const pageStart = (currentPage - 1) * PRODUCTS_PER_PAGE;
+  const visibleProducts = sortedProducts.slice(pageStart, pageStart + PRODUCTS_PER_PAGE);
   return <><Breadcrumb items={breadcrumbs} /><div className={`${styles.container} site-wrapper`}>
     <div className={`${styles.sidebar} ${styles.desktopSidebar}`}>{schema && <BrandCategoryFilter schema={schema} value={selection} onChange={setSelection} />}</div>
     <main className={styles.content}><div className={styles.sortbarWrapper}>
@@ -60,6 +62,6 @@ export default function BrandProductsPage() {
     </div>
     {mobileFiltersOpen && schema && <div className={styles.mobileFilterPanel}><BrandCategoryFilter schema={schema} value={selection} onChange={value => { setSelection(value); setMobileFiltersOpen(false); }} /></div>}
     {loading ? <AtHomeLoader variant="page" /> : visibleProducts.length === 0 ? <EmptyState /> : <div className={styles.grid}>{visibleProducts.map(item => <Link key={item.id} href={`/products/${item.category}/${item.slug}`} className={styles.cardLink} style={{ textDecoration: "none", color: "inherit" }}><DiscountCard {...item} id={String(item.id)} isWishlisted={wishlistProductIds.has(item.id)} onToggleWishlist={id => toggleWishlist(Number(id))} onAddToCart={id => addToCart(Number(id))} /></Link>)}</div>}
-    {visibleCount < sortedProducts.length && <div className={styles.ShowMore}><button onClick={() => setVisibleCount(count => Math.min(count + 9, sortedProducts.length))}>{en ? "Show more" : "მეტის ნახვა"}</button></div>}
+    <ProductPagination currentPage={currentPage} totalItems={sortedProducts.length} onPageChange={setCurrentPage} locale={en ? "en" : "ka"} />
     </main></div></>;
 }

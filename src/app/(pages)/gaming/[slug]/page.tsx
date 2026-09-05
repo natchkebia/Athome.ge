@@ -7,6 +7,9 @@ import styles from "../../products/[category]/products.module.scss";
 import DiscountCard from "@/components/discount/DiscountCard";
 import ProductFilter from "@/components/products/ProductFilter";
 import ProductSortBar from "@/components/products/ProductSortBar";
+import ProductPagination, {
+  PRODUCTS_PER_PAGE,
+} from "@/components/products/ProductPagination";
 import EmptyState from "@/components/products/EmptyState";
 import Breadcrumb from "@/components/ breadcrumb/Breadcrumb";
 import AtHomeLoader from "@/components/shared/AtHomeLoader";
@@ -69,14 +72,14 @@ function GamingResultsInner() {
   const [products, setProducts] = useState<StorefrontProductCard[]>([]);
   const [loading, setLoading] = useState(true);
   const [filtersActive, setFiltersActive] = useState(false);
-  const [visibleCount, setVisibleCount] = useState(9);
+  const [currentPage, setCurrentPage] = useState(1);
   const [view, setView] = useState<"grid" | "list">("grid");
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
   useEffect(() => {
     let active = true;
     setLoading(true);
-    setVisibleCount(9);
+    setCurrentPage(1);
 
     getCategoryProductsBySlugs(PERIPHERAL_PARENT_CATEGORY, [slug], PRODUCT_LIMIT)
       .then((items) => {
@@ -139,7 +142,7 @@ function GamingResultsInner() {
   const handleUpdateFilters = (newValues: Partial<typeof filters>) => {
     setFilters((prev) => ({ ...prev, ...newValues }));
     setFiltersActive(true);
-    setVisibleCount(9);
+    setCurrentPage(1);
   };
 
   const allFilterKeys = [
@@ -180,15 +183,14 @@ function GamingResultsInner() {
       }));
     }
     setFiltersActive(true);
-    setVisibleCount(9);
+    setCurrentPage(1);
   };
 
-  const handleShowMore = () => {
-    setVisibleCount((prev) => prev + 9);
-  };
-
-  const visibleProducts = filteredProducts.slice(0, visibleCount);
-  const hasMore = visibleCount < filteredProducts.length;
+  const pageStart = (currentPage - 1) * PRODUCTS_PER_PAGE;
+  const visibleProducts = filteredProducts.slice(
+    pageStart,
+    pageStart + PRODUCTS_PER_PAGE
+  );
 
   const breadcrumbs = [
     { label: "მთავარი გვერდი", href: "/" },
@@ -301,11 +303,11 @@ function GamingResultsInner() {
             </div>
           )}
 
-          {hasMore && (
-            <div className={styles.ShowMore}>
-              <button onClick={handleShowMore}>მეტის ნახვა</button>
-            </div>
-          )}
+          <ProductPagination
+            currentPage={currentPage}
+            totalItems={filteredProducts.length}
+            onPageChange={setCurrentPage}
+          />
         </div>
       </div>
     </>

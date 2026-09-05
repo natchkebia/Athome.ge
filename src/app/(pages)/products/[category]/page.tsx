@@ -10,6 +10,9 @@ import DynamicProductFilter, {
   DynamicFilterValues,
 } from "@/components/products/DynamicProductFilter";
 import ProductSortBar from "@/components/products/ProductSortBar";
+import ProductPagination, {
+  PRODUCTS_PER_PAGE,
+} from "@/components/products/ProductPagination";
 import EmptyState from "@/components/products/EmptyState";
 import Breadcrumb from "@/components/ breadcrumb/Breadcrumb";
 import AtHomeLoader from "@/components/shared/AtHomeLoader";
@@ -81,7 +84,7 @@ function ProductsPageInner() {
   // listing-ის იმავე წყაროდან (products endpoint totalCount) ვიღებთ.
   const [subcatCounts, setSubcatCounts] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
-  const [visibleCount, setVisibleCount] = useState(9);
+  const [currentPage, setCurrentPage] = useState(1);
   const [view, setView] = useState<"grid" | "list">("grid");
   const { wishlistProductIds, toggleWishlist, addToCart } = useCommerce();
 
@@ -194,7 +197,7 @@ function ProductsPageInner() {
     let isMounted = true;
 
     setLoading(true);
-    setVisibleCount(9);
+    setCurrentPage(1);
     // Legacy by-category endpoint backend-ზე შედეგებს ჭრის (მაგ. 92-დან 28).
     // Paged products endpoint სრულ totalCount-ს აბრუნებს ყველა დონეზე.
     const productsRequest = getAllStorefrontProducts({
@@ -334,7 +337,7 @@ function ProductsPageInner() {
         if (active) {
           setFilterSchema(nextSchema);
           setProducts(resultItems.map(mapStorefrontProductToCard));
-          setVisibleCount(9);
+          setCurrentPage(1);
         }
       } catch {
         if (active) setProducts([]);
@@ -417,7 +420,7 @@ function ProductsPageInner() {
 
   const handleUpdateFilters = (newValues: Partial<typeof filters>) => {
     setFilters((prev) => ({ ...prev, ...newValues }));
-    setVisibleCount(9);
+    setCurrentPage(1);
   };
 
   const allFilterKeys = [
@@ -457,17 +460,14 @@ function ProductsPageInner() {
         [key]: (prev[key as FilterKey] as string[]).filter((v) => v !== value),
       }));
     }
-    setVisibleCount(9);
+    setCurrentPage(1);
   };
 
-  const handleShowMore = () => {
-    setVisibleCount((current) =>
-      Math.min(current + 9, filteredProducts.length)
-    );
-  };
-
-  const visibleProducts = filteredProducts.slice(0, visibleCount);
-  const hasMore = visibleCount < filteredProducts.length;
+  const pageStart = (currentPage - 1) * PRODUCTS_PER_PAGE;
+  const visibleProducts = filteredProducts.slice(
+    pageStart,
+    pageStart + PRODUCTS_PER_PAGE
+  );
   const breadcrumbs = [
     { label: "მთავარი გვერდი", href: "/" },
     { label: categoryDetails?.name || categoryName || category },
@@ -633,13 +633,11 @@ function ProductsPageInner() {
             </div>
           )}
 
-          {hasMore && (
-            <div className={styles.ShowMore}>
-              <button type="button" onClick={handleShowMore}>
-                მეტის ნახვა
-              </button>
-            </div>
-          )}
+          <ProductPagination
+            currentPage={currentPage}
+            totalItems={filteredProducts.length}
+            onPageChange={setCurrentPage}
+          />
 
         </div>
       </div>

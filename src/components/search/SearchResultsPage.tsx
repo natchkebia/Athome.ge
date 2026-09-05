@@ -10,6 +10,9 @@ import DynamicProductFilter, {
   type DynamicFilterValues,
 } from "@/components/products/DynamicProductFilter";
 import ProductSortBar from "@/components/products/ProductSortBar";
+import ProductPagination, {
+  PRODUCTS_PER_PAGE,
+} from "@/components/products/ProductPagination";
 import AtHomeLoader from "@/components/shared/AtHomeLoader";
 import {
   searchStorefrontProducts,
@@ -54,8 +57,8 @@ export default function SearchResultsPage({
     ram: [] as string[], gpu: [] as string[], color: [] as string[], screen: [] as string[],
     sort: "default",
   });
-  const [visibleCount, setVisibleCount] = useState(9);
-  const [mobileVisibleCount, setMobileVisibleCount] = useState(4);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [mobilePage, setMobilePage] = useState(1);
   const [view, setView] = useState<"grid" | "list">("grid");
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
@@ -109,8 +112,8 @@ export default function SearchResultsPage({
     }
 
     setLoading(true);
-    setVisibleCount(9);
-    setMobileVisibleCount(4);
+    setCurrentPage(1);
+    setMobilePage(1);
     request(1)
       .then(async (first) => {
         const pages = Math.min(first.totalPages || 1, MAX_PAGES);
@@ -162,10 +165,14 @@ export default function SearchResultsPage({
     if (sortFilters.sort === "z-a") result.sort((a, b) => b.title.localeCompare(a.title));
     return result;
   }, [data, sortFilters.sort]);
-  const visibleProducts = products.slice(0, visibleCount);
-  const hasMore = visibleCount < products.length;
-  const mobileVisibleProducts = products.slice(0, mobileVisibleCount);
-  const mobileHasMore = mobileVisibleCount < products.length;
+  const pageStart = (currentPage - 1) * PRODUCTS_PER_PAGE;
+  const visibleProducts = products.slice(pageStart, pageStart + PRODUCTS_PER_PAGE);
+  const mobilePageSize = 4;
+  const mobilePageStart = (mobilePage - 1) * mobilePageSize;
+  const mobileVisibleProducts = products.slice(
+    mobilePageStart,
+    mobilePageStart + mobilePageSize
+  );
   const breadcrumbs = [{ label: "მთავარი გვერდი", href: "/" }, { label: "ძებნა" }];
 
   if (loading && !data) return <AtHomeLoader variant="page" />;
@@ -225,11 +232,12 @@ export default function SearchResultsPage({
           </div>
         )}
 
-        {mobileHasMore && (
-          <button className={styles.mobileShowMore} onClick={() => setMobileVisibleCount((count) => count + 4)}>
-            მეტის ნახვა
-          </button>
-        )}
+        <ProductPagination
+          currentPage={mobilePage}
+          totalItems={products.length}
+          pageSize={mobilePageSize}
+          onPageChange={setMobilePage}
+        />
       </section>
 
       <div className={`${layout.container} site-wrapper ${styles.desktopResults}`}>
@@ -256,7 +264,7 @@ export default function SearchResultsPage({
             </div>
           )}
           <div className={styles.sortbar}>
-            <ProductSortBar filters={sortFilters} onChange={(next) => setSortFilters((current) => ({ ...current, ...next }))} />
+            <ProductSortBar filters={sortFilters} onChange={(next) => { setSortFilters((current) => ({ ...current, ...next })); setCurrentPage(1); }} />
             <button
               type="button"
               className={`${layout.mobileFilterButton} ${mobileFiltersOpen ? layout.mobileFilterButtonActive : ""}`}
@@ -291,7 +299,11 @@ export default function SearchResultsPage({
               ))}
             </div>
           )}
-          {hasMore && <div className={layout.ShowMore}><button onClick={() => setVisibleCount((count) => count + 9)}>მეტის ნახვა</button></div>}
+          <ProductPagination
+            currentPage={currentPage}
+            totalItems={products.length}
+            onPageChange={setCurrentPage}
+          />
         </div>
       </div>
     </>
