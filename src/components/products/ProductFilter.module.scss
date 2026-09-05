@@ -1,7 +1,7 @@
 .wrapper {
   display: flex;
   flex-direction: column;
-  margin-top: -38px;
+  margin-top: 0;
 
   @media (max-width: 992px) {
     width: 100%;
@@ -73,6 +73,7 @@
 }
 .header {
   width: 100%;
+  min-height: 32px;
   box-sizing: border-box;
   display: flex;
   align-items: center;
@@ -85,6 +86,7 @@
 }
 
 .title {
+  margin: 0;
   font-size: 16px;
   font-weight: 590;
   color: rgba(59, 63, 66, 1);
@@ -92,6 +94,8 @@
 
 .filterBox {
   width: 330px;
+  max-height: min(1248px, calc(100vh - 250px));
+  margin-top: 24px;
   background-color: #fff;
   border: 1px solid rgba(236, 242, 246, 1);
   border-radius: 18px;
@@ -101,9 +105,26 @@
   gap: 24px;
   font-family: "SF Georgian Rounded", sans-serif;
   box-sizing: border-box;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: #b8dfe2 transparent;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+    background: #b8dfe2;
+  }
 
   @media (max-width: 992px) {
     width: 100%;
+    max-height: none;
+    margin-top: 0;
+    overflow: visible;
   }
 }
 
