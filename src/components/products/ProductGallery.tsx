@@ -5,14 +5,23 @@ import styles from "./ProductGallery.module.scss";
 import Image from "next/image";
 import { img } from "@/lib/media/img";
 
+export type ProductGalleryImage = {
+  url: string;
+  altText?: string;
+};
+
 interface ProductGalleryProps {
-  images: string[];
+  images: ProductGalleryImage[];
 }
 
 export default function ProductGallery({ images }: ProductGalleryProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const thumbnailsRef = useRef<HTMLDivElement | null>(null);
   const thumbnailRefs = useRef<(HTMLButtonElement | null)[]>([]);
+
+  useEffect(() => {
+    setCurrentIndex(0);
+  }, [images]);
 
   useEffect(() => {
     const container = thumbnailsRef.current;
@@ -50,8 +59,8 @@ export default function ProductGallery({ images }: ProductGalleryProps) {
         </button>
 
         <Image
-          src={img(images[currentIndex], 800)}
-          alt={`product-image-${currentIndex}`}
+          src={img(images[currentIndex]?.url, 800)}
+          alt={images[currentIndex]?.altText || `product-image-${currentIndex}`}
           width={300}
           height={300}
           className={styles.mainImage}
@@ -65,9 +74,9 @@ export default function ProductGallery({ images }: ProductGalleryProps) {
         </button>
 
         <div ref={thumbnailsRef} className={styles.thumbnails}>
-          {images.map((imageUrl, i) => (
+          {images.map((image, i) => (
             <button
-              key={i}
+              key={`${image.url}-${i}`}
               ref={(element) => {
                 thumbnailRefs.current[i] = element;
               }}
@@ -77,8 +86,8 @@ export default function ProductGallery({ images }: ProductGalleryProps) {
               }`}
             >
               <Image
-                src={img(imageUrl, 200)}
-                alt={`thumb-${i}`}
+                src={img(image.url, 200)}
+                alt={image.altText || `thumb-${i}`}
                 width={148}
                 height={150}
               />

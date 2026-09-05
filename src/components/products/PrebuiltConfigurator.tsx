@@ -26,9 +26,13 @@ const SLOT_CATEGORY: Record<string, ConfiguratorCategoryKey> = {
   StorageHdd: "drive", CaseFan: "caseFan",
 };
 
-type Props = { productId: number; onConfiguredPrice?: (price: number | null) => void };
+type Props = {
+  productId: number;
+  onConfiguredPrice?: (price: number | null) => void;
+  onQuotedPartsChange?: (parts: PrebuiltPart[] | null) => void;
+};
 
-export default function PrebuiltConfigurator({ productId, onConfiguredPrice }: Props) {
+export default function PrebuiltConfigurator({ productId, onConfiguredPrice, onQuotedPartsChange }: Props) {
   const en = useStorefrontLocale() === "en";
   const { cart, addToCart, refreshCart } = useCommerce();
   const [base, setBase] = useState<PrebuiltConfiguration | null>(null);
@@ -79,6 +83,11 @@ export default function PrebuiltConfigurator({ productId, onConfiguredPrice }: P
   }, [cart.items, productId]);
 
   useEffect(() => onConfiguredPrice?.(quote?.price ?? null), [onConfiguredPrice, quote?.price]);
+  useEffect(() => {
+    onQuotedPartsChange?.(quote?.parts ?? null);
+  }, [onQuotedPartsChange, quote?.parts]);
+
+  useEffect(() => () => onQuotedPartsChange?.(null), [onQuotedPartsChange]);
 
   const parts = quote?.parts ?? base?.parts ?? [];
   const swaps = useMemo<PrebuiltSwap[]>(
@@ -118,6 +127,16 @@ export default function PrebuiltConfigurator({ productId, onConfiguredPrice }: P
     const nextSwaps = Object.values(next).map((componentProductId) => ({ componentProductId }));
     try {
       const result = await quotePrebuiltConfiguration(productId, nextSwaps);
+      if ((result.blockingIssues ?? []).length > 0) {
+        setQuote(result);
+        return {
+          allowed: false,
+          message: result.blockingIssues
+            .map((issue) => issue.message ?? issue.detail ?? issue.ruleCode)
+            .filter(Boolean)
+            .join(" "),
+        };
+      }
       setSwapsBySlot(next);
       setQuote(result);
       setOpenSlot(null);

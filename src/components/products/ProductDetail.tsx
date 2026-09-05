@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import DOMPurify from "isomorphic-dompurify";
 import styles from "./ProductDetail.module.scss";
-import ProductGallery from "./ProductGallery";
+import ProductGallery, { type ProductGalleryImage } from "./ProductGallery";
 // დროებით გამორთულია დამკვეთის მოთხოვნით.
 // დასაბრუნებლად გააქტიურდეს import და ქვემოთ არსებული ProductReviews ბლოკი.
 // import ProductReviews from "./ProductReviews";
@@ -27,6 +27,7 @@ import { cacheProductInfo } from "@/lib/commerce/guestStore";
 import { flyToTarget } from "@/lib/ui/flyToCart";
 import { useStorefrontLocale } from "@/lib/i18n/useStorefrontLocale";
 import PrebuiltConfigurator from "./PrebuiltConfigurator";
+import type { PrebuiltPart } from "@/lib/api/prebuilt";
 
 interface Spec {
   label: string;
@@ -59,6 +60,11 @@ const COMPONENT_TYPE_HEADINGS_EN: Record<string, string> = {
   Cpu: "Processors", Motherboard: "Motherboards", Ram: "Memory", Gpu: "Graphics cards",
   Psu: "Power supplies", Case: "Cases", CpuAirCooler: "Air coolers", LiquidCooler: "Liquid cooling (AIO)",
 };
+
+const PREBUILT_GALLERY_SLOT_ORDER = [
+  "case", "cpu", "motherboard", "gpu", "ram", "storagessd", "storagehdd",
+  "storagedrive", "psu", "cpuaircooler", "cpucooler", "liquidcooler", "casefan",
+];
 
 function sanitizeRichText(html: string) {
   let sanitized = DOMPurify.sanitize(html)
@@ -149,6 +155,7 @@ export default function ProductDetail({
     useState<ProductInfoTab>("additional");
   const [showFullShortDescription, setShowFullShortDescription] = useState(false);
   const [configuredPrice, setConfiguredPrice] = useState<number | null>(null);
+  const [quotedParts, setQuotedParts] = useState<PrebuiltPart[] | null>(null);
   const [isShortDescriptionOverflowing, setIsShortDescriptionOverflowing] =
     useState(false);
   const shortDescriptionRef = useRef<HTMLDivElement>(null);
@@ -163,12 +170,28 @@ export default function ProductDetail({
     StorefrontProductCard[]
   >([]);
   const productImages = product.images ?? [];
-  const images =
+  const baseImages: ProductGalleryImage[] =
     productImages.length > 0
       ? [...productImages]
           .sort((a, b) => a.sortOrder - b.sortOrder)
-          .map((image) => normalizeMediaUrl(image.url))
-      : ["/images/discountPc.png"];
+          .map((image) => ({
+            url: normalizeMediaUrl(image.url),
+            altText: image.altText || product.name,
+          }))
+      : [{ url: "/images/discountPc.png", altText: product.name }];
+  const quotedImages: ProductGalleryImage[] = [...(quotedParts ?? [])]
+    .filter((part) => Boolean(part.thumbnailUrl))
+    .sort((a, b) => {
+      const aIndex = PREBUILT_GALLERY_SLOT_ORDER.indexOf(a.slot.toLocaleLowerCase());
+      const bIndex = PREBUILT_GALLERY_SLOT_ORDER.indexOf(b.slot.toLocaleLowerCase());
+      return (aIndex < 0 ? Number.MAX_SAFE_INTEGER : aIndex) -
+        (bIndex < 0 ? Number.MAX_SAFE_INTEGER : bIndex);
+    })
+    .map((part) => ({
+      url: normalizeMediaUrl(part.thumbnailUrl ?? undefined),
+      altText: part.productName,
+    }));
+  const galleryImages = quotedImages.length > 0 ? quotedImages : baseImages;
   // Backend აბრუნებს ჯგუფებსა და ველებს ჩვენების რიგით — არ ვახარისხებთ.
   const specGroups: SpecGroup[] = (product.specifications ?? [])
     .map((group) => ({
@@ -242,6 +265,7 @@ export default function ProductDetail({
     setShowFullShortDescription(false);
     setIsShortDescriptionOverflowing(false);
     setActiveInfoTab("additional");
+    setQuotedParts(null);
   }, [product.id]);
 
   useEffect(() => {
@@ -266,7 +290,7 @@ export default function ProductDetail({
     cacheProductInfo({
       productId: product.id,
       productName: product.name,
-      imageUrl: images[0],
+      imageUrl: galleryImages[0].url,
       slug: product.slug,
       sellingPrice: product.pricing.effectivePrice,
       oldPrice,
@@ -287,7 +311,7 @@ export default function ProductDetail({
     if (!isAvailable) return;
     const sourceEl = event.currentTarget as HTMLElement;
     cacheInfo();
-    flyToTarget(sourceEl, images[0], "cart");
+    flyToTarget(sourceEl, galleryImages[0].url, "cart");
     await addToCart(product.id);
   };
 
@@ -299,7 +323,7 @@ export default function ProductDetail({
       slug: product.slug || routeSlug || "",
       category: product.category?.slug || routeCategory || "",
       title: product.name,
-      image: images[0],
+      image: galleryImages[0].url,
       newPrice: product.pricing.effectivePrice,
       oldPrice,
     });
@@ -316,7 +340,7 @@ export default function ProductDetail({
           !isAthomePrebuilt ? styles.standardProductContainer : ""
         }`}
       >
-        <ProductGallery images={images} />
+        <ProductGallery images={galleryImages} />
 
         <div className={styles.textContainer}>
           {product.activePromotion?.promotionName && (
@@ -481,6 +505,7 @@ export default function ProductDetail({
         <PrebuiltConfigurator
           productId={product.id}
           onConfiguredPrice={setConfiguredPrice}
+          onQuotedPartsChange={setQuotedParts}
         />
       )}
 
