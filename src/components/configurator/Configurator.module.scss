@@ -1713,3 +1713,40 @@
     color: #c0392b;
   }
 }
+
+.portUsageList {
+  display: grid;
+  gap: 8px;
+  padding: 12px 14px;
+  border: 1px solid #e2e8ea;
+  border-radius: 10px;
+  background: #f8fbfb;
+}
+
+.portUsageRow {
+  display: grid;
+  grid-template-columns: minmax(110px, 1fr) auto;
+  align-items: center;
+  gap: 6px 12px;
+  color: #415054;
+  font-size: 12px;
+
+  strong {
+    color: #172326;
+  }
+
+  > i {
+    grid-column: 1 / -1;
+    height: 5px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: #dce7e8;
+  }
+
+  > i > b {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: #10b5c0;
+  }
+}

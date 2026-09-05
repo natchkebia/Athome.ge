@@ -93,6 +93,7 @@ export type ConfiguratorProductsResponse = {
   hiddenByCompatibility: number;
   hiddenByStock: number;
   unknownCount: number;
+  ports?: ConfiguratorPortUsage[];
 };
 
 export type ConfiguratorSlotDefinition = {
@@ -100,11 +101,20 @@ export type ConfiguratorSlotDefinition = {
   productCount: number;
   isRecommended: boolean;
   displayOrder: number;
+  acceptsMultiple: boolean;
 };
 
 export type ConfiguratorBuildSlot = {
   slot: ConfiguratorSlot;
   productId: number;
+  quantity: number;
+};
+
+export type ConfiguratorPortUsage = {
+  port: "m2Slots" | "sataPorts" | "memorySlots" | "caseFanMounts" | string;
+  used: number;
+  capacity: number | null;
+  isFull: boolean;
 };
 
 export type ConfiguratorIssue = {
@@ -122,6 +132,8 @@ export type ConfiguratorBuildSlotSummary = {
   productName?: string | null;
   thumbnailUrl?: string | null;
   price: number;
+  quantity?: number;
+  lineTotal?: number;
   stockQuantity?: number | null;
   stockStatus?: string | null;
   hasIssue: boolean;
@@ -150,6 +162,7 @@ export type ConfiguratorCheckResult = {
   }[];
   allIssues: ConfiguratorIssue[];
   summary: ConfiguratorBuildSummary;
+  ports?: ConfiguratorPortUsage[];
   power?: {
     measuredCoreWatts: number;
     estimatedTotalWatts: number;

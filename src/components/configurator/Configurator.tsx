@@ -37,6 +37,7 @@ import {
   type ConfiguratorCheckResult,
   type ConfiguratorIssue,
   type ConfiguratorProductCard,
+  type ConfiguratorPortUsage,
   type ConfiguratorSlot,
   type ConfiguratorSlotDefinition,
 } from "@/lib/api/configurator";
@@ -78,13 +79,19 @@ function translateCompatibilityIssue(issue: ConfiguratorIssue, en: boolean) {
     case "COOLER_HEIGHT_EXCEEDS_CASE":
       return en ? "The CPU cooler is too tall for the selected case." : "პროცესორის ქულერის სიმაღლე არჩეული ქეისისთვის ზედმეტად დიდია.";
     case "RAM_SLOT_COUNT_EXCEEDED":
-      return en ? "The memory kit has more modules than the motherboard has slots." : "ოპერატიულის მოდულების რაოდენობა აღემატება დედაპლატის სლოტებს.";
+      return en ? "This build has more memory modules than the motherboard has slots." : "ამ ბილდში ოპერატიულის მოდულების რაოდენობა აღემატება დედა დაფის სლოტებს.";
+    case "SLOT_ACCEPTS_ONE_ONLY":
+      return en ? "This slot accepts only one component." : "ამ სლოტში მხოლოდ ერთი კომპონენტის არჩევაა შესაძლებელი.";
+    case "STORAGE_M2_SLOTS_EXCEEDED":
+      return en ? "This build uses more M.2 drives than the motherboard supports." : "ამ ბილდში M.2 დისკების რაოდენობა აღემატება დედა დაფის M.2 სლოტებს.";
+    case "STORAGE_SATA_PORTS_EXCEEDED":
+      return en ? "This build uses more SATA drives than the motherboard supports." : "ამ ბილდში SATA დისკების რაოდენობა აღემატება დედა დაფის SATA პორტებს.";
     case "STORAGE_M2_SLOT_MISSING":
       return en ? "The motherboard has no M.2 slot." : "დედაპლატას M.2 სლოტი არ აქვს.";
     case "STORAGE_SATA_PORT_MISSING":
       return en ? "The motherboard has no SATA port." : "დედაპლატას SATA პორტი არ აქვს.";
     case "RAM_CAPACITY_ABOVE_BOARD_MAX":
-      return en ? "The motherboard cannot use all of this memory capacity." : "დედაპლატა ამ მოცულობის სრულად ვერ გამოიყენებს.";
+      return en ? "The motherboard cannot use this build's total memory capacity." : "დედა დაფა ამ ბილდის ოპერატიული მეხსიერების სრულ მოცულობას ვერ გამოიყენებს.";
     case "GPU_POWER_CONNECTOR_ADAPTER":
       return en ? "The card needs 12VHPWR power and will work with the included adapter." : "ბარათს 12VHPWR კვება სჭირდება — იმუშავებს კომპლექტში შემავალი გადამყვანით.";
     case "PSU_BELOW_SYSTEM_DRAW":
@@ -226,6 +233,7 @@ export default function Configurator() {
   const [hiddenByCompatibility, setHiddenByCompatibility] = useState(0);
   const [hiddenByStock, setHiddenByStock] = useState(0);
   const [modalTotalCount, setModalTotalCount] = useState(0);
+  const [modalPorts, setModalPorts] = useState<ConfiguratorPortUsage[]>([]);
   const [compatibilityFilterEnabled, setCompatibilityFilterEnabled] = useState(true);
   const [servedSlots, setServedSlots] = useState<ConfiguratorSlotDefinition[] | null>(null);
 
@@ -272,11 +280,14 @@ export default function Configurator() {
         title: String(definition.slot),
         icon: "/images/case.svg",
       };
-      return { ...(meta ?? fallback), isRecommended: definition.isRecommended, productCount: definition.productCount };
+      return { ...(meta ?? fallback), isRecommended: definition.isRecommended, productCount: definition.productCount, acceptsMultiple: definition.acceptsMultiple };
     });
   }, [servedSlots]);
 
   const visibleCategories = showPeripherals ? peripheralCategories : servedSystemCategories;
+  const selectedCategoryDefinition = selectedCategory
+    ? servedSystemCategories.find((category) => category.key === selectedCategory)
+    : undefined;
 
   // Load products for the opened slot — real data for backend-mapped slots,
   // local fallback for slots the backend doesn't support yet (os, peripherals).
@@ -301,8 +312,8 @@ export default function Configurator() {
 
     const selectedIds = compatibilityFilterEnabled
       ? (Object.keys(selectedProducts) as ConfiguratorCategoryKey[])
-      // მიმდინარე სლოტის ძველი არჩევანი კანდიდატებს არ უნდა შეედაროს — ის ჩანაცვლდება.
-      .filter((key) => key !== selectedCategory && Boolean(backendSlotForCategory(key)))
+      // Single slots replace their current item; multi slots keep existing items in the check.
+      .filter((key) => (key !== selectedCategory || selectedCategoryDefinition?.acceptsMultiple) && Boolean(backendSlotForCategory(key)))
           .flatMap((key) => selectedProducts[key]?.map((item) => item.id) ?? [])
       : [];
     const request = backendSlot
@@ -330,12 +341,14 @@ export default function Configurator() {
           setHiddenByCompatibility(response.hiddenByCompatibility ?? 0);
           setHiddenByStock(response.hiddenByStock ?? 0);
           setModalTotalCount(response.totalCount ?? items.length);
+          setModalPorts(response.ports ?? []);
         } else {
           setModalBrands([]);
           setModalFilters([]);
           setHiddenByCompatibility(0);
           setHiddenByStock(0);
           setModalTotalCount(items.length);
+          setModalPorts([]);
         }
         setModalProducts(
           (items ?? []).map((card) => adaptCard(card, selectedCategory))
@@ -351,7 +364,7 @@ export default function Configurator() {
     return () => {
       active = false;
     };
-  }, [selectedCategory, filterValues, selectedProducts, compatibilityFilterEnabled]);
+  }, [selectedCategory, selectedCategoryDefinition?.acceptsMultiple, filterValues, selectedProducts, compatibilityFilterEnabled]);
 
   useEffect(() => {
     setFilterValues(EMPTY_FILTERS);
@@ -384,17 +397,16 @@ export default function Configurator() {
     return allSelectedProducts.reduce((sum, product) => sum + product.quantity, 0);
   }, [allSelectedProducts]);
 
-  // Build the backend slots array (one product per backend slot).
+  // Every distinct product is one entry; quantity carries repeated identical items.
   const backendSlots = useMemo<ConfiguratorBuildSlot[]>(() => {
     const slots: ConfiguratorBuildSlot[] = [];
-    const seen = new Set<ConfiguratorSlot>();
     (Object.keys(selectedProducts) as ConfiguratorCategoryKey[]).forEach(
       (key) => {
         const backendSlot = backendSlotForCategory(key);
-        const first = selectedProducts[key]?.[0];
-        if (backendSlot && first && !seen.has(backendSlot)) {
-          seen.add(backendSlot);
-          slots.push({ slot: backendSlot, productId: first.id });
+        if (backendSlot) {
+          (selectedProducts[key] ?? []).forEach((product) => {
+            slots.push({ slot: backendSlot, productId: product.id, quantity: product.quantity || 1 });
+          });
         }
       }
     );
@@ -432,7 +444,9 @@ export default function Configurator() {
         const restored: SelectedProducts = {};
         build.slots.forEach((slot) => {
           const key = BACKEND_TO_FRONTEND_SLOT[slot.slot] ?? `backend:${slot.slot}`;
+          const quantity = slot.quantity ?? 1;
           restored[key] = [
+            ...(restored[key] ?? []),
             {
               id: slot.productId,
               category: key,
@@ -444,7 +458,7 @@ export default function Configurator() {
                 : Math.max(0, slot.stockQuantity),
               stockStatus: slot.stockStatus ?? undefined,
               specs: [],
-              quantity: 1,
+              quantity,
             },
           ];
         });
@@ -493,10 +507,13 @@ export default function Configurator() {
       const candidateSlot = backendSlotForCategory(product.category);
 
       if (candidateSlot) {
-        const candidateSlots = backendSlots.filter(
-          (item) => item.slot !== candidateSlot
-        );
-        candidateSlots.push({ slot: candidateSlot, productId: product.id });
+        const acceptsMultiple = servedSlots?.find(
+          (item) => String(item.slot).toLowerCase() === String(candidateSlot).toLowerCase()
+        )?.acceptsMultiple ?? false;
+        const candidateSlots = acceptsMultiple
+          ? backendSlots.filter((item) => !(item.slot === candidateSlot && item.productId === product.id))
+          : backendSlots.filter((item) => item.slot !== candidateSlot);
+        candidateSlots.push({ slot: candidateSlot, productId: product.id, quantity: safeQuantity });
 
         // ერთი კომპონენტი ჯერ ვერავისთან იქნება შეუთავსებელი.
         if (candidateSlots.length >= 2) {
@@ -545,14 +562,21 @@ export default function Configurator() {
         };
       }
 
-      // one product per slot — replace any previous selection in this category.
+      const candidateSlot = backendSlotForCategory(product.category);
+      const acceptsMultiple = candidateSlot
+        ? servedSlots?.find((item) => String(item.slot).toLowerCase() === String(candidateSlot).toLowerCase())?.acceptsMultiple ?? false
+        : false;
+      const nextProducts = acceptsMultiple
+        ? [...prevCategory, { ...product, quantity: safeQuantity }]
+        : [{ ...product, quantity: safeQuantity }];
+      // Keep multi-product slots together; single-product slots replace their selection.
       // slot-ს ბოლო პოზიციაზე გადავიტანთ (key ხელახლა ემატება), რომ summary-ში
       // ბოლოს არჩეული კომპონენტი ყოველთვის ზემოთ გამოჩნდეს.
       const rest = { ...prev };
       delete rest[product.category];
       return {
         ...rest,
-        [product.category]: [{ ...product, quantity: safeQuantity }],
+        [product.category]: nextProducts,
       };
     });
 
@@ -700,7 +724,7 @@ export default function Configurator() {
     try {
       const build = await getConfiguratorBuild(token);
       const availableSlots = build.slots.filter((slot) => {
-        if (slot.stockQuantity != null) return slot.stockQuantity > 0;
+        if (slot.stockQuantity != null) return slot.stockQuantity >= (slot.quantity ?? 1);
         return !(slot.stockStatus ?? "").toLowerCase().includes("out");
       });
 
@@ -715,7 +739,7 @@ export default function Configurator() {
           sellingPrice: slot.price,
           isInStock: true,
         });
-        await addToCart(slot.productId, 1);
+        await addToCart(slot.productId, slot.quantity ?? 1);
       }
 
       const skippedCount = build.slots.length - availableSlots.length;
@@ -913,6 +937,8 @@ export default function Configurator() {
             hiddenByCompatibility={hiddenByCompatibility}
             hiddenByStock={hiddenByStock}
             totalCount={modalTotalCount}
+            acceptsMultiple={selectedCategoryDefinition?.acceptsMultiple ?? false}
+            ports={modalPorts.length > 0 ? modalPorts : checkResult?.ports ?? []}
             onClearCompatibilityFilter={() => setCompatibilityFilterEnabled(false)}
           />
         )}

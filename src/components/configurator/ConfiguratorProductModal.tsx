@@ -10,6 +10,7 @@ import {
 } from "./configuratorTypes";
 import { useStorefrontLocale } from "@/lib/i18n/useStorefrontLocale";
 import type { ConfiguratorBrandFacet } from "@/lib/api/configurator";
+import type { ConfiguratorPortUsage } from "@/lib/api/configurator";
 import type { StorefrontCategoryFilter, StorefrontCategoryFilterSet } from "@/lib/api/storefront";
 import DynamicProductFilter, { type DynamicFilterValues } from "../products/DynamicProductFilter";
 
@@ -33,6 +34,8 @@ type Props = {
   hiddenByStock?: number;
   totalCount?: number;
   onClearCompatibilityFilter?: () => void;
+  acceptsMultiple?: boolean;
+  ports?: ConfiguratorPortUsage[];
 };
 
 export type ProductSelectionResult = {
@@ -67,6 +70,8 @@ export default function ConfiguratorProductModal({
   hiddenByStock = 0,
   totalCount = 0,
   onClearCompatibilityFilter,
+  acceptsMultiple = false,
+  ports = [],
 }: Props) {
   const en = useStorefrontLocale() === "en";
   const [searchValue, setSearchValue] = useState("");
@@ -262,6 +267,21 @@ export default function ConfiguratorProductModal({
                   : `მარაგის ფილტრით დამალულია ${hiddenByStock} პროდუქტი`}
               </div>
             )}
+            {ports.length > 0 && (
+              <div className={styles.portUsageList}>
+                {ports.map((port) => (
+                  <div key={port.port} className={styles.portUsageRow}>
+                    <span>{port.port}</span>
+                    <strong>
+                      {port.used}/{port.capacity == null ? (en ? "unknown" : "უცნობია") : port.capacity}
+                    </strong>
+                    {port.capacity != null && (
+                      <i aria-hidden="true"><b style={{ width: `${Math.min(100, (port.used / Math.max(1, port.capacity)) * 100)}%` }} /></i>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
             {loading ? (
               <AtHomeLoader variant="section" />
             ) : filteredProducts.length === 0 ? (
@@ -354,7 +374,11 @@ export default function ConfiguratorProductModal({
                           ? en ? "Checking..." : "მოწმდება..."
                           : isSelected
                             ? en ? "Remove" : "წაშლა"
-                            : en ? "Add" : "დამატება"}
+                            : acceptsMultiple
+                              ? en ? "Add another" : "კიდევ ერთის დამატება"
+                              : selectedProducts.length > 0
+                                ? en ? "Replace" : "შეცვლა"
+                                : en ? "Add" : "დამატება"}
                       </button>
                     </div>
                   </div>

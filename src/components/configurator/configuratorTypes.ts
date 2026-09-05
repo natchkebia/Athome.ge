@@ -26,6 +26,7 @@ export type ConfiguratorCategory = {
   icon: string;
   isRecommended?: boolean;
   productCount?: number;
+  acceptsMultiple?: boolean;
 };
 
 export type ConfiguratorProduct = {

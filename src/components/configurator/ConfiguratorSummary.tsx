@@ -68,12 +68,12 @@ export default function ConfiguratorSummary({
           products.map((product) => (
             <div
               key={product.id}
-              className={`${styles.selectedItem} ${product.stock <= 0 ? styles.selectedItemUnavailable : ""}`}
+              className={`${styles.selectedItem} ${product.stock < product.quantity ? styles.selectedItemUnavailable : ""}`}
             >
               <span>
                 {product.title} × {product.quantity}
-                {product.stock <= 0 && (
-                  <small>{en ? "Unavailable" : "მიუწვდომელია"}</small>
+                {product.stock < product.quantity && (
+                  <small>{en ? `Only ${product.stock} in stock` : `მარაგში მხოლოდ ${product.stock}-ია`}</small>
                 )}
               </span>
 

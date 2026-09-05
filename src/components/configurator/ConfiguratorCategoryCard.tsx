@@ -82,6 +82,9 @@ export default function ConfiguratorCategoryCard({
             </p>
 
             <span className={styles.price}>{totalPrice} ₾</span>
+            {category.acceptsMultiple && (
+              <span className={styles.addText}>{en ? "Add another" : "კიდევ ერთის დამატება"}</span>
+            )}
           </>
         ) : (
           <span className={styles.addText}>{en ? "Add" : "დამატება"}</span>
