@@ -29,6 +29,7 @@ import {
   StorefrontProductCard,
 } from "@/lib/storefront/products";
 import { useCommerce } from "@/contexts/CommerceContext";
+import { usePaginationPage } from "@/lib/navigation/usePaginationPage";
 
 // ყველა პროდუქტი ჩაიტვირთოს (endpoint limit-ს არ ჭრის); 1000 ფარავს ყველაზე დიდ კატეგორიას.
 const PRODUCT_LIMIT = 1000;
@@ -84,7 +85,7 @@ function ProductsPageInner() {
   // listing-ის იმავე წყაროდან (products endpoint totalCount) ვიღებთ.
   const [subcatCounts, setSubcatCounts] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
-  const [currentPage, setCurrentPage] = useState(1);
+  const { currentPage, setCurrentPage } = usePaginationPage();
   const [view, setView] = useState<"grid" | "list">("grid");
   const { wishlistProductIds, toggleWishlist, addToCart } = useCommerce();
 
@@ -197,7 +198,6 @@ function ProductsPageInner() {
     let isMounted = true;
 
     setLoading(true);
-    setCurrentPage(1);
     // Legacy by-category endpoint backend-ზე შედეგებს ჭრის (მაგ. 92-დან 28).
     // Paged products endpoint სრულ totalCount-ს აბრუნებს ყველა დონეზე.
     const productsRequest = getAllStorefrontProducts({
@@ -337,7 +337,6 @@ function ProductsPageInner() {
         if (active) {
           setFilterSchema(nextSchema);
           setProducts(resultItems.map(mapStorefrontProductToCard));
-          setCurrentPage(1);
         }
       } catch {
         if (active) setProducts([]);
@@ -527,6 +526,7 @@ function ProductsPageInner() {
               onChange={(values) => {
                 setDynamicFilters(values);
                 setDynamicFiltersActive(true);
+                setCurrentPage(1);
               }}
             />
           )}
@@ -582,6 +582,7 @@ function ProductsPageInner() {
                 onChange={(values) => {
                   setDynamicFilters(values);
                   setDynamicFiltersActive(true);
+                  setCurrentPage(1);
                 }}
               />
             </div>

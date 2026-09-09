@@ -23,6 +23,7 @@ import {
   StorefrontProductCard,
 } from "@/lib/storefront/products";
 import { useCommerce } from "@/contexts/CommerceContext";
+import { usePaginationPage } from "@/lib/navigation/usePaginationPage";
 
 const SLUG_LABELS: Record<string, string> = {
   monitor: "გეიმინგ მონიტორი",
@@ -72,15 +73,13 @@ function GamingResultsInner() {
   const [products, setProducts] = useState<StorefrontProductCard[]>([]);
   const [loading, setLoading] = useState(true);
   const [filtersActive, setFiltersActive] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
+  const { currentPage, setCurrentPage } = usePaginationPage();
   const [view, setView] = useState<"grid" | "list">("grid");
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
   useEffect(() => {
     let active = true;
     setLoading(true);
-    setCurrentPage(1);
-
     getCategoryProductsBySlugs(PERIPHERAL_PARENT_CATEGORY, [slug], PRODUCT_LIMIT)
       .then((items) => {
         if (!active) return;

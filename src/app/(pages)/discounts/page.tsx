@@ -19,6 +19,7 @@ import {
 } from "@/lib/storefront/products";
 import { useCommerce } from "@/contexts/CommerceContext";
 import { useStorefrontLocale } from "@/lib/i18n/useStorefrontLocale";
+import { usePaginationPage } from "@/lib/navigation/usePaginationPage";
 
 export default function DiscountsPage() {
   const en = useStorefrontLocale() === "en";
@@ -39,15 +40,13 @@ export default function DiscountsPage() {
   const [products, setProducts] = useState<StorefrontProductCard[]>([]);
   const [loading, setLoading] = useState(true);
   const [filtersActive, setFiltersActive] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
+  const { currentPage, setCurrentPage } = usePaginationPage();
   const [view, setView] = useState<"grid" | "list">("grid");
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
   useEffect(() => {
     let active = true;
     setLoading(true);
-    setCurrentPage(1);
-
     getAllStorefrontProducts({ dealsOnly: true })
       .then((items) => {
         if (!active) return;

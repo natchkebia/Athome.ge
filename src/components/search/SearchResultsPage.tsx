@@ -23,6 +23,7 @@ import { mapStorefrontSearchProductToCard } from "@/lib/storefront/products";
 import layout from "@/app/(pages)/products/[category]/products.module.scss";
 import styles from "./SearchResultsPage.module.scss";
 import { useCommerce } from "@/contexts/CommerceContext";
+import { usePaginationPage } from "@/lib/navigation/usePaginationPage";
 
 type Props = {
   initialQuery: string;
@@ -57,7 +58,7 @@ export default function SearchResultsPage({
     ram: [] as string[], gpu: [] as string[], color: [] as string[], screen: [] as string[],
     sort: "default",
   });
-  const [currentPage, setCurrentPage] = useState(1);
+  const { currentPage, setCurrentPage } = usePaginationPage();
   const [mobilePage, setMobilePage] = useState(1);
   const [view, setView] = useState<"grid" | "list">("grid");
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
@@ -112,8 +113,6 @@ export default function SearchResultsPage({
     }
 
     setLoading(true);
-    setCurrentPage(1);
-    setMobilePage(1);
     request(1)
       .then(async (first) => {
         const pages = Math.min(first.totalPages || 1, MAX_PAGES);
@@ -247,7 +246,11 @@ export default function SearchResultsPage({
               schema={schema}
               values={filterValues}
               priceBounds={priceBounds}
-              onChange={setFilterValues}
+              onChange={(values) => {
+                setFilterValues(values);
+                setCurrentPage(1);
+                setMobilePage(1);
+              }}
             />
           )}
         </div>
@@ -286,7 +289,11 @@ export default function SearchResultsPage({
                 values={filterValues}
                 priceBounds={priceBounds}
                 compact
-                onChange={setFilterValues}
+                onChange={(values) => {
+                  setFilterValues(values);
+                  setCurrentPage(1);
+                  setMobilePage(1);
+                }}
               />
             </div>
           )}
