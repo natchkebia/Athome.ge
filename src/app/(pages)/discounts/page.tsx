@@ -12,7 +12,7 @@ import ProductPagination, {
 import EmptyState from "@/components/products/EmptyState";
 import Breadcrumb from "@/components/ breadcrumb/Breadcrumb";
 import AtHomeLoader from "@/components/shared/AtHomeLoader";
-import { getAllStorefrontProducts } from "@/lib/api/storefront";
+import { getDealStorefrontProducts } from "@/lib/api/storefront";
 import {
   mapStorefrontProductToCard,
   StorefrontProductCard,
@@ -47,7 +47,7 @@ export default function DiscountsPage() {
   useEffect(() => {
     let active = true;
     setLoading(true);
-    getAllStorefrontProducts({ dealsOnly: true })
+    getDealStorefrontProducts(100)
       .then((items) => {
         if (!active) return;
         setProducts(items.map(mapStorefrontProductToCard));

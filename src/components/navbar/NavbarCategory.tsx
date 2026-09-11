@@ -152,8 +152,8 @@ export default function NavbarCategory() {
                     {hasSubcategories && (
                       <img
                         className={styles.arrow}
-                        src="/icons/Arrow.svg"
-                        alt="arrow"
+                        src="/icons/category-arrow.svg"
+                        alt=""
                       />
                     )}
                   </Link>

@@ -227,6 +227,8 @@ export default function Configurator() {
 
   const [modalProducts, setModalProducts] = useState<ConfiguratorProduct[]>([]);
   const [modalLoading, setModalLoading] = useState(false);
+  const [modalError, setModalError] = useState<string | null>(null);
+  const [modalRequestVersion, setModalRequestVersion] = useState(0);
   const [modalBrands, setModalBrands] = useState<ConfiguratorBrandFacet[]>([]);
   const [modalFilters, setModalFilters] = useState<StorefrontCategoryFilter[]>([]);
   const [filterValues, setFilterValues] = useState<DynamicFilterValues>(EMPTY_FILTERS);
@@ -308,13 +310,15 @@ export default function Configurator() {
 
     let active = true;
     setModalLoading(true);
+    setModalError(null);
     setModalProducts([]);
 
     const selectedIds = compatibilityFilterEnabled
       ? (Object.keys(selectedProducts) as ConfiguratorCategoryKey[])
       // Single slots replace their current item; multi slots keep existing items in the check.
       .filter((key) => (key !== selectedCategory || selectedCategoryDefinition?.acceptsMultiple) && Boolean(backendSlotForCategory(key)))
-          .flatMap((key) => selectedProducts[key]?.map((item) => item.id) ?? [])
+          .flatMap((key) => selectedProducts[key]?.map((item) => Number(item.id)) ?? [])
+          .filter((id) => Number.isInteger(id) && id > 0)
       : [];
     const request = backendSlot
       ? getConfiguratorSlotProducts(backendSlot, {
@@ -336,6 +340,12 @@ export default function Configurator() {
         if (!active) return;
         const items = Array.isArray(response) ? response : response.items;
         if (!Array.isArray(response)) {
+          if ((response.ignoredSelectedIds ?? 0) > 0) {
+            if (process.env.NODE_ENV !== "production") {
+              console.warn("Configurator API ignored malformed selectedIds", response.ignoredSelectedIds);
+            }
+            throw new Error("Configurator API ignored malformed selectedIds");
+          }
           setModalBrands(response.brands ?? []);
           setModalFilters(response.filters ?? []);
           setHiddenByCompatibility(response.hiddenByCompatibility ?? 0);
@@ -355,7 +365,12 @@ export default function Configurator() {
         );
       })
       .catch(() => {
-        if (active) setModalProducts([]);
+        if (active) {
+          setModalProducts([]);
+          setModalError(en
+            ? "Products could not be loaded. Please try again."
+            : "პროდუქტების ჩატვირთვა ვერ მოხერხდა. გთხოვთ, სცადოთ თავიდან.");
+        }
       })
       .finally(() => {
         if (active) setModalLoading(false);
@@ -364,7 +379,7 @@ export default function Configurator() {
     return () => {
       active = false;
     };
-  }, [selectedCategory, selectedCategoryDefinition?.acceptsMultiple, filterValues, selectedProducts, compatibilityFilterEnabled]);
+  }, [selectedCategory, selectedCategoryDefinition?.acceptsMultiple, filterValues, selectedProducts, compatibilityFilterEnabled, modalRequestVersion, en]);
 
   useEffect(() => {
     setFilterValues(EMPTY_FILTERS);
@@ -925,6 +940,7 @@ export default function Configurator() {
             title={selectedCategory && en ? EN_CATEGORY_TITLES[selectedCategory] ?? activeCategoryTitle : activeCategoryTitle || (en ? "Details" : "დეტალები")}
             products={modalProducts}
             loading={modalLoading}
+            error={modalError}
             selectedProducts={selectedProducts[selectedCategory] || []}
             onClose={() => setSelectedCategory(null)}
             onSelect={handleSelectProduct}
@@ -940,6 +956,7 @@ export default function Configurator() {
             acceptsMultiple={selectedCategoryDefinition?.acceptsMultiple ?? false}
             ports={modalPorts.length > 0 ? modalPorts : checkResult?.ports ?? []}
             onClearCompatibilityFilter={() => setCompatibilityFilterEnabled(false)}
+            onRetry={() => setModalRequestVersion((version) => version + 1)}
           />
         )}
 

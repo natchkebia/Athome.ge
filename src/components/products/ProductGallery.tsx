@@ -12,9 +12,13 @@ export type ProductGalleryImage = {
 
 interface ProductGalleryProps {
   images: ProductGalleryImage[];
+  discountPercent?: number;
 }
 
-export default function ProductGallery({ images }: ProductGalleryProps) {
+export default function ProductGallery({
+  images,
+  discountPercent = 0,
+}: ProductGalleryProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const thumbnailsRef = useRef<HTMLDivElement | null>(null);
   const thumbnailRefs = useRef<(HTMLButtonElement | null)[]>([]);
@@ -51,6 +55,12 @@ export default function ProductGallery({ images }: ProductGalleryProps) {
   return (
     <div className={styles.gallery}>
       <div className={styles.mainImageWrapper}>
+        {discountPercent > 0 && (
+          <div className={styles.discountBadge}>
+            {Math.abs(discountPercent)}%
+          </div>
+        )}
+
         <button
           className={`${styles.arrowBtn} ${styles.left}`}
           onClick={handlePrev}

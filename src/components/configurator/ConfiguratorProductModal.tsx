@@ -18,6 +18,7 @@ type Props = {
   title: string;
   products: ConfiguratorProduct[];
   loading?: boolean;
+  error?: string | null;
   selectedProducts: SelectedConfiguratorProduct[];
   onClose: () => void;
   onSelect: (
@@ -34,6 +35,7 @@ type Props = {
   hiddenByStock?: number;
   totalCount?: number;
   onClearCompatibilityFilter?: () => void;
+  onRetry?: () => void;
   acceptsMultiple?: boolean;
   ports?: ConfiguratorPortUsage[];
 };
@@ -57,6 +59,7 @@ export default function ConfiguratorProductModal({
   title,
   products,
   loading = false,
+  error = null,
   selectedProducts,
   onClose,
   onSelect,
@@ -70,6 +73,7 @@ export default function ConfiguratorProductModal({
   hiddenByStock = 0,
   totalCount = 0,
   onClearCompatibilityFilter,
+  onRetry,
   acceptsMultiple = false,
   ports = [],
 }: Props) {
@@ -284,6 +288,13 @@ export default function ConfiguratorProductModal({
             )}
             {loading ? (
               <AtHomeLoader variant="section" />
+            ) : error ? (
+              <div className={styles.productLoadError} role="alert">
+                <span>{error}</span>
+                <button type="button" onClick={onRetry}>
+                  {en ? "Try again" : "თავიდან ცდა"}
+                </button>
+              </div>
             ) : filteredProducts.length === 0 ? (
               <div className={styles.emptyProducts}>
                 {en ? "No matching products found" : "შესაბამისი პროდუქტი ვერ მოიძებნა"}

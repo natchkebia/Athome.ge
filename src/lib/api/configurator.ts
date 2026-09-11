@@ -93,6 +93,7 @@ export type ConfiguratorProductsResponse = {
   hiddenByCompatibility: number;
   hiddenByStock: number;
   unknownCount: number;
+  ignoredSelectedIds?: number;
   ports?: ConfiguratorPortUsage[];
 };
 
@@ -232,6 +233,10 @@ export function getConfiguratorSlotProducts(
   slot: ConfiguratorSlot,
   params: SlotProductsQuery = {}
 ) {
+  const selectedIds = (params.selectedIds ?? [])
+    .map((id) => Number(id))
+    .filter((id) => Number.isInteger(id) && id > 0);
+
   return apiRequest<ConfiguratorProductsResponse>(
     `/api/storefront/configurator/slots/${encodeURIComponent(slot)}/products`,
     {
@@ -239,7 +244,7 @@ export function getConfiguratorSlotProducts(
         search: params.search,
         brandSlug: params.brandSlug,
         brandSlugs: params.brandSlugs,
-        selectedIds: params.selectedIds,
+        selectedIds: selectedIds.length > 0 ? selectedIds : undefined,
         minPrice: params.minPrice,
         maxPrice: params.maxPrice,
         page: params.page,

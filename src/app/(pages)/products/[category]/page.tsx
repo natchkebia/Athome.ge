@@ -1,8 +1,8 @@
 "use client";
 
-import { Suspense, useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, usePathname, useRouter, useSearchParams } from "next/navigation";
 import styles from "./products.module.scss";
 import DiscountCard from "@/components/discount/DiscountCard";
 import CategoryCard from "@/components/categorSection/CategoriCard";
@@ -33,7 +33,89 @@ import { usePaginationPage } from "@/lib/navigation/usePaginationPage";
 
 // ყველა პროდუქტი ჩაიტვირთოს (endpoint limit-ს არ ჭრის); 1000 ფარავს ყველაზე დიდ კატეგორიას.
 const PRODUCT_LIMIT = 1000;
+const FILTER_QUERY_PARAM = "filters";
 type CategoryLevel = "categories" | "subcategories" | "minicategories";
+
+type PersistedFilters = {
+  price: [number, number];
+  brandSlugs: string[];
+  attributes: Record<string, string[]>;
+  ranges: Record<string, number[]>;
+  sort: string;
+};
+
+function parsePersistedFilters(
+  raw: string | null,
+  priceBounds: [number, number]
+): PersistedFilters | null {
+  if (!raw) return null;
+
+  try {
+    const parsed = JSON.parse(raw) as Partial<PersistedFilters>;
+    const parsedPrice = Array.isArray(parsed.price) ? parsed.price : [];
+    const minPrice = Number(parsedPrice[0]);
+    const maxPrice = Number(parsedPrice[1]);
+    const price: [number, number] =
+      Number.isFinite(minPrice) && Number.isFinite(maxPrice)
+        ? [
+            Math.max(priceBounds[0], Math.min(minPrice, priceBounds[1])),
+            Math.max(priceBounds[0], Math.min(maxPrice, priceBounds[1])),
+          ]
+        : priceBounds;
+
+    const attributes = Object.fromEntries(
+      Object.entries(parsed.attributes ?? {}).flatMap(([key, values]) =>
+        Array.isArray(values)
+          ? [[key, values.filter((value): value is string => typeof value === "string")]]
+          : []
+      )
+    );
+    const ranges = Object.fromEntries(
+      Object.entries(parsed.ranges ?? {}).flatMap(([key, values]) =>
+        Array.isArray(values) && values.length === 2 && values.every(Number.isFinite)
+          ? [[key, values.map(Number)]]
+          : []
+      )
+    );
+    const allowedSorts = new Set([
+      "default",
+      "price-asc",
+      "price-desc",
+      "a-z",
+      "z-a",
+    ]);
+
+    return {
+      price: price[0] <= price[1] ? price : priceBounds,
+      brandSlugs: Array.isArray(parsed.brandSlugs)
+        ? parsed.brandSlugs.filter(
+            (value): value is string => typeof value === "string"
+          )
+        : [],
+      attributes,
+      ranges,
+      sort:
+        typeof parsed.sort === "string" && allowedSorts.has(parsed.sort)
+          ? parsed.sort
+          : "default",
+    };
+  } catch {
+    return null;
+  }
+}
+
+function hasDynamicFilters(
+  values: DynamicFilterValues,
+  priceBounds: [number, number]
+) {
+  return (
+    values.price[0] !== priceBounds[0] ||
+    values.price[1] !== priceBounds[1] ||
+    values.brandSlugs.length > 0 ||
+    Object.values(values.attributes).some((items) => items.length > 0) ||
+    Object.values(values.ranges).some((items) => items.length === 2)
+  );
+}
 
 // ქვეკატეგორიის ბარათების ფონის ფერები (მთავარი გვერდის კატეგორიების მსგავსი).
 const SUBCAT_BG = [
@@ -48,6 +130,10 @@ const SUBCAT_BG = [
 ];
 
 function ProductsPageInner() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const initialFilterQueryRef = useRef(searchParams.get(FILTER_QUERY_PARAM));
   const [filters, setFilters] = useState({
     price: [0, 8500] as [number, number],
     brands: [] as string[],
@@ -93,6 +179,10 @@ function ProductsPageInner() {
   // [category] param ინახავს ნებისმიერი დონის slug-ს (category/sub/mini) —
   // by-category endpoint ყველა მათგანზე ზუსტად იმ დონის პროდუქტებს აბრუნებს.
   const category = decodeURIComponent(params.category as string);
+
+  useEffect(() => {
+    initialFilterQueryRef.current = searchParams.get(FILTER_QUERY_PARAM);
+  }, [category, searchParams]);
 
   useEffect(() => {
     let isMounted = true;
@@ -220,14 +310,34 @@ function ProductsPageInner() {
           0,
           Math.max(1, Math.ceil(highestPrice / 100) * 100),
         ];
+        const restored = parsePersistedFilters(
+          initialFilterQueryRef.current,
+          nextBounds
+        );
+        const nextDynamicFilters: DynamicFilterValues = restored
+          ? {
+              price: restored.price,
+              brandSlugs: restored.brandSlugs,
+              inStockOnly: true,
+              attributes: restored.attributes,
+              ranges: restored.ranges,
+            }
+          : {
+              price: nextBounds,
+              brandSlugs: [],
+              inStockOnly: true,
+              attributes: {},
+              ranges: {},
+            };
         setPriceBounds(nextBounds);
-        setDynamicFilters({
-          price: nextBounds,
-          brandSlugs: [],
-          inStockOnly: true,
-          attributes: {},
-          ranges: {},
-        });
+        setDynamicFilters(nextDynamicFilters);
+        setDynamicFiltersActive(
+          restored !== null && hasDynamicFilters(nextDynamicFilters, nextBounds)
+        );
+        setFilters((current) => ({
+          ...current,
+          sort: restored?.sort ?? "default",
+        }));
       })
       .catch(() => {
         if (isMounted) setProducts([]);
@@ -417,9 +527,44 @@ function ProductsPageInner() {
     return result;
   }, [products, filters.sort]);
 
+  const persistFilters = (
+    values: DynamicFilterValues,
+    sort: string = filters.sort
+  ) => {
+    const nextParams = new URLSearchParams(searchParams.toString());
+    const shouldPersist =
+      hasDynamicFilters(values, priceBounds) || sort !== "default";
+
+    if (shouldPersist) {
+      nextParams.set(
+        FILTER_QUERY_PARAM,
+        JSON.stringify({
+          price: values.price,
+          brandSlugs: values.brandSlugs,
+          attributes: values.attributes,
+          ranges: values.ranges,
+          sort,
+        } satisfies PersistedFilters)
+      );
+    } else {
+      nextParams.delete(FILTER_QUERY_PARAM);
+    }
+    nextParams.delete("page");
+
+    const query = nextParams.toString();
+    router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+  };
+
+  const applyDynamicFilters = (values: DynamicFilterValues) => {
+    setDynamicFilters(values);
+    setDynamicFiltersActive(true);
+    persistFilters(values);
+  };
+
   const handleUpdateFilters = (newValues: Partial<typeof filters>) => {
+    const nextSort = newValues.sort ?? filters.sort;
     setFilters((prev) => ({ ...prev, ...newValues }));
-    setCurrentPage(1);
+    persistFilters(dynamicFilters, nextSort);
   };
 
   const allFilterKeys = [
@@ -524,9 +669,7 @@ function ProductsPageInner() {
               values={dynamicFilters}
               priceBounds={priceBounds}
               onChange={(values) => {
-                setDynamicFilters(values);
-                setDynamicFiltersActive(true);
-                setCurrentPage(1);
+                applyDynamicFilters(values);
               }}
             />
           )}
@@ -580,9 +723,7 @@ function ProductsPageInner() {
                 priceBounds={priceBounds}
                 compact
                 onChange={(values) => {
-                  setDynamicFilters(values);
-                  setDynamicFiltersActive(true);
-                  setCurrentPage(1);
+                  applyDynamicFilters(values);
                 }}
               />
             </div>

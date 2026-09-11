@@ -14,7 +14,8 @@
 
 .mainImageWrapper {
   width: 100%;
-  height: 608px;
+  height: 100%;
+  min-height: 608px;
   border-radius: 14px;
   background-color: rgba(246, 248, 251, 1);
   position: relative;
@@ -37,6 +38,33 @@
   @media (max-width: 480px) {
     min-height: 360px;
     padding-bottom: 112px;
+  }
+}
+
+.discountBadge {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  z-index: 2;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #d62f55;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 590;
+  line-height: 1;
+  white-space: nowrap;
+
+  @media (max-width: 480px) {
+    top: 12px;
+    left: 12px;
+    width: 40px;
+    height: 40px;
+    font-size: 12px;
   }
 }
 

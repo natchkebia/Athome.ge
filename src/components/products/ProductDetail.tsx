@@ -12,6 +12,7 @@ import ProductGallery, { type ProductGalleryImage } from "./ProductGallery";
 import StockCheck from "./StockCheck";
 import ProductSection from "../shared/ProductSection";
 import {
+  getDealStorefrontProducts,
   getStorefrontProductsByCategory,
   StorefrontProductDetail,
 } from "@/lib/api/storefront";
@@ -156,6 +157,11 @@ export default function ProductDetail({
   const [showFullShortDescription, setShowFullShortDescription] = useState(false);
   const [configuredPrice, setConfiguredPrice] = useState<number | null>(null);
   const [quotedParts, setQuotedParts] = useState<PrebuiltPart[] | null>(null);
+  const [dealPricing, setDealPricing] = useState<{
+    referencePrice: number;
+    effectivePrice: number;
+    discountPercent?: number;
+  } | null>(null);
   const [isShortDescriptionOverflowing, setIsShortDescriptionOverflowing] =
     useState(false);
   const shortDescriptionRef = useRef<HTMLDivElement>(null);
@@ -229,10 +235,75 @@ export default function ProductDetail({
     backendRelatedProducts.length > 0
       ? backendRelatedProducts.map(mapStorefrontProductToCard)
       : fallbackRelatedProducts;
+  const detailReferencePrice = Math.max(
+    product.oldPrice ?? 0,
+    product.pricing.sellingPrice
+  );
+  const currentPrice =
+    dealPricing?.effectivePrice ?? product.pricing.effectivePrice;
+  const referencePrice = Math.max(
+    detailReferencePrice,
+    dealPricing?.referencePrice ?? 0
+  );
   const oldPrice =
-    product.pricing.sellingPrice > product.pricing.effectivePrice
-      ? product.pricing.sellingPrice
+    referencePrice > currentPrice
+      ? referencePrice
       : undefined;
+  const discountPercent = oldPrice
+    ? product.discountPercent && product.discountPercent > 0
+      ? product.discountPercent
+      : dealPricing?.discountPercent && dealPricing.discountPercent > 0
+        ? dealPricing.discountPercent
+      : Math.round(
+          ((oldPrice - currentPrice) / oldPrice) * 100
+        )
+    : 0;
+
+  useEffect(() => {
+    let isMounted = true;
+
+    if (
+      (product.discountPercent ?? 0) > 0 ||
+      detailReferencePrice > product.pricing.effectivePrice
+    ) {
+      setDealPricing(null);
+      return;
+    }
+
+    getDealStorefrontProducts(100)
+      .then((items) => {
+        if (!isMounted) return;
+
+        const deal = items.find(
+          (item) => item.id === product.id || item.slug === product.slug
+        );
+        setDealPricing(
+          deal
+            ? {
+                referencePrice: Math.max(
+                  deal.oldPrice ?? 0,
+                  deal.sellingPrice
+                ),
+                effectivePrice: deal.effectivePrice,
+                discountPercent: deal.discountPercent,
+              }
+            : null
+        );
+      })
+      .catch(() => {
+        if (isMounted) setDealPricing(null);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [
+    detailReferencePrice,
+    product.discountPercent,
+    product.id,
+    product.pricing.effectivePrice,
+    product.slug,
+  ]);
 
   useEffect(() => {
     let isMounted = true;
@@ -292,7 +363,7 @@ export default function ProductDetail({
       productName: product.name,
       imageUrl: galleryImages[0].url,
       slug: product.slug,
-      sellingPrice: product.pricing.effectivePrice,
+      sellingPrice: currentPrice,
       oldPrice,
       isInStock: isAvailable && product.totalEffectiveQuantity > 0,
       availableQuantity: Math.max(0, product.totalEffectiveQuantity),
@@ -324,7 +395,7 @@ export default function ProductDetail({
       category: product.category?.slug || routeCategory || "",
       title: product.name,
       image: galleryImages[0].url,
-      newPrice: product.pricing.effectivePrice,
+      newPrice: currentPrice,
       oldPrice,
     });
 
@@ -340,7 +411,10 @@ export default function ProductDetail({
           !isAthomePrebuilt ? styles.standardProductContainer : ""
         }`}
       >
-        <ProductGallery images={galleryImages} />
+        <ProductGallery
+          images={galleryImages}
+          discountPercent={discountPercent}
+        />
 
         <div className={styles.textContainer}>
           {product.activePromotion?.promotionName && (
@@ -429,7 +503,7 @@ export default function ProductDetail({
             <div className={styles.prices}>
               <div className={styles.priceContainer}>
                 <span className={styles.newPrice}>
-                  {(configuredPrice ?? product.pricing.effectivePrice).toFixed(2)} ₾
+                  {(configuredPrice ?? currentPrice).toFixed(2)} ₾
                 </span>
                 {oldPrice && (
                   <span className={styles.oldPrice}>
