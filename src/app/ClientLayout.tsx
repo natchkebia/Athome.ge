@@ -181,6 +181,7 @@ export default function ClientLayout({
           )}
 
           <header className={`fixed-header ${hideTopBar ? "scrolled" : ""}`}>
+            <TestModeBadge />
             <div className={`topbar-wrapper ${hideTopBar ? "hidden" : ""}`}>
               <TopBar />
             </div>
@@ -197,10 +198,7 @@ export default function ClientLayout({
           <MobileBottomNav />
           <FloatingContactButtons />
           {!isAuthorizationPage && (
-            <>
-              <CompareBar />
-              <TestModeBadge />
-            </>
+            <CompareBar />
           )}
           </LoadingProvider>
         </CompareProvider>
