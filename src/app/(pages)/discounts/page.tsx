@@ -10,8 +10,8 @@ import ProductPagination, { PRODUCTS_PER_PAGE } from "@/components/products/Prod
 import EmptyState from "@/components/products/EmptyState";
 import Breadcrumb from "@/components/ breadcrumb/Breadcrumb";
 import AtHomeLoader from "@/components/shared/AtHomeLoader";
-import { getAllDealStorefrontProducts, getDealStorefrontCategories, type StorefrontDealCategory } from "@/lib/api/storefront";
-import { mapStorefrontProductToCard, StorefrontProductCard } from "@/lib/storefront/products";
+import { getAllDealStorefrontProducts, getDealStorefrontCategories, type StorefrontDealCategory, type StorefrontProduct } from "@/lib/api/storefront";
+import { mapStorefrontProductToCard } from "@/lib/storefront/products";
 import { useCommerce } from "@/contexts/CommerceContext";
 import { useStorefrontLocale } from "@/lib/i18n/useStorefrontLocale";
 import { usePaginationPage } from "@/lib/navigation/usePaginationPage";
@@ -20,10 +20,9 @@ export default function DiscountsPage() {
   const en = useStorefrontLocale() === "en";
   const { wishlistProductIds, toggleWishlist, addToCart } = useCommerce();
   const { currentPage, setCurrentPage } = usePaginationPage();
-  const [matchingProducts, setMatchingProducts] = useState<StorefrontProductCard[]>([]);
+  const [availableDeals, setAvailableDeals] = useState<StorefrontProduct[]>([]);
   const [categories, setCategories] = useState<StorefrontDealCategory[]>([]);
   const [selectedSlugs, setSelectedSlugs] = useState<string[]>([]);
-  const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [categoriesLoading, setCategoriesLoading] = useState(true);
   const [loadFailed, setLoadFailed] = useState(false);
@@ -32,42 +31,67 @@ export default function DiscountsPage() {
 
   useEffect(() => {
     let active = true;
-    getDealStorefrontCategories()
-      .then((items) => { if (active) setCategories(items); })
-      .catch(() => { if (active) setCategories([]); })
-      .finally(() => { if (active) setCategoriesLoading(false); });
-    return () => { active = false; };
-  }, []);
-
-  useEffect(() => {
-    let active = true;
-    setLoading(true);
-    setLoadFailed(false);
-    getAllDealStorefrontProducts({ categorySlugs: selectedSlugs })
-      .then((response) => {
+    Promise.all([getDealStorefrontCategories(), getAllDealStorefrontProducts()])
+      .then(([categoryItems, products]) => {
         if (!active) return;
-        const availableProducts = response
-          .filter((product) => product.isAvailable)
-          .map(mapStorefrontProductToCard);
-        setMatchingProducts(availableProducts);
-        setTotalCount(availableProducts.length);
+        const inStockProducts = products.filter((product) => product.isAvailable);
+        setAvailableDeals(inStockProducts);
+        setCategories(categoryItems);
       })
       .catch(() => {
         if (!active) return;
-        setMatchingProducts([]);
-        setTotalCount(0);
+        setAvailableDeals([]);
+        setCategories([]);
         setLoadFailed(true);
       })
-      .finally(() => { if (active) setLoading(false); });
+      .finally(() => {
+        if (!active) return;
+        setLoading(false);
+        setCategoriesLoading(false);
+      });
     return () => { active = false; };
-  }, [selectedSlugs]);
+  }, []);
+
+  const productIdsByCategorySlug = useMemo(() => {
+    const index = new Map<string, Set<number>>();
+    categories.forEach((category) => index.set(category.slug, new Set<number>()));
+
+    availableDeals.forEach((product) => {
+      const slugs = [product.category?.slug, product.subCategory?.slug].filter(Boolean) as string[];
+      slugs.forEach((slug) => index.get(slug)?.add(product.id));
+    });
+
+    return index;
+  }, [availableDeals, categories]);
+
+  const visibleCategories = useMemo(() => categories
+    .map((category) => ({
+      ...category,
+      count: productIdsByCategorySlug.get(category.slug)?.size ?? 0,
+    }))
+    .filter((category) => category.count > 0), [categories, productIdsByCategorySlug]);
+
+  const matchingProducts = useMemo(() => {
+    if (selectedSlugs.length === 0) return availableDeals.map(mapStorefrontProductToCard);
+
+    const selectedProductIds = new Set<number>();
+    selectedSlugs.forEach((slug) => {
+      productIdsByCategorySlug.get(slug)?.forEach((id) => selectedProductIds.add(id));
+    });
+
+    return availableDeals
+      .filter((product) => selectedProductIds.has(product.id))
+      .map(mapStorefrontProductToCard);
+  }, [availableDeals, productIdsByCategorySlug, selectedSlugs]);
+
+  const totalCount = matchingProducts.length;
 
   const products = useMemo(() => {
     const start = (currentPage - 1) * PRODUCTS_PER_PAGE;
     return matchingProducts.slice(start, start + PRODUCTS_PER_PAGE);
   }, [currentPage, matchingProducts]);
 
-  const categoryNames = useMemo(() => new Map(categories.map((category) => [category.slug, category.name])), [categories]);
+  const categoryNames = useMemo(() => new Map(visibleCategories.map((category) => [category.slug, category.name])), [visibleCategories]);
   const updateCategories = (slugs: string[]) => {
     setSelectedSlugs(slugs);
     setCurrentPage(1);
@@ -81,7 +105,7 @@ export default function DiscountsPage() {
       <Breadcrumb items={breadcrumbs} />
       <div className={`${styles.container} site-wrapper`}>
         <div className={`${styles.sidebar} ${styles.desktopSidebar} ${filterStyles.sidebar}`}>
-          <DealsCategoryFilter categories={categories} selectedSlugs={selectedSlugs} loading={categoriesLoading} onChange={updateCategories} />
+          <DealsCategoryFilter categories={visibleCategories} selectedSlugs={selectedSlugs} loading={categoriesLoading} onChange={updateCategories} />
         </div>
 
         <div className={styles.content}>
@@ -96,7 +120,7 @@ export default function DiscountsPage() {
             </div>
           </div>
 
-          {mobileFiltersOpen && <div className={styles.mobileFilterPanel}><DealsCategoryFilter categories={categories} selectedSlugs={selectedSlugs} loading={categoriesLoading} onChange={updateCategories} /></div>}
+          {mobileFiltersOpen && <div className={styles.mobileFilterPanel}><DealsCategoryFilter categories={visibleCategories} selectedSlugs={selectedSlugs} loading={categoriesLoading} onChange={updateCategories} /></div>}
 
           {selectedSlugs.length > 0 && (
             <div className={styles.activeFilters}>
