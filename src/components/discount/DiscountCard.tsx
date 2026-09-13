@@ -71,6 +71,9 @@ export default function DiscountCard({
 }: ProductCardProps) {
   const locale = useStorefrontLocale();
   const en = locale === "en";
+  const savedAmount = oldPrice !== undefined && newPrice !== undefined
+    ? Math.max(0, oldPrice - newPrice)
+    : 0;
   const { toggleCompare, compareIds, maxItems } = useCompare();
   const { showToast } = useToast();
   const isCompared = compareIds.has(Number(id));
@@ -203,7 +206,15 @@ export default function DiscountCard({
       <div className={`${styles.cardList} ${!isAvailable ? styles.outOfStockCard : ""}`}>
         <div className={styles.listImage} ref={imageRef}>
           {(promotionLabel || discount > 0) && (
-            <div className={styles.discountBadge}>{promotionLabel || `${Math.abs(discount)}%`}</div>
+            <div className={`${styles.discountBadge} ${styles.listDiscountBadge}`}>
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M20.6 13.6 13.7 20.5a2 2 0 0 1-2.8 0L3.5 13.1a2 2 0 0 1-.6-1.4V5a2 2 0 0 1 2-2h6.7a2 2 0 0 1 1.4.6l7.5 7.2a2 2 0 0 1 .1 2.8ZM7.4 7.5a1.4 1.4 0 1 0 0-2.8 1.4 1.4 0 0 0 0 2.8Z" />
+              </svg>
+              <span>
+                <small>SALE</small>
+                <strong>{discount > 0 ? `-${Math.abs(discount)}%` : promotionLabel}</strong>
+              </span>
+            </div>
           )}
           {isNew && <div className={styles.newBadge}>NEW</div>}
           {!isAvailable && <div className={styles.outOfStockBadge}>{en ? "Out of stock" : "ამოწურულია"}</div>}
@@ -218,12 +229,17 @@ export default function DiscountCard({
 
         <div className={styles.listMain}>
           <h3 className={styles.listTitle}>{title}</h3>
-          <div className={styles.priceBox}>
+          <div className={styles.listPriceRow}>
             {newPrice !== undefined && (
               <span className={styles.newPrice}>{newPrice.toFixed(2)} ₾</span>
             )}
             {oldPrice !== undefined && (
               <span className={styles.oldPrice}>{oldPrice.toFixed(2)} ₾</span>
+            )}
+            {savedAmount > 0 && (
+              <span className={styles.savingsBadge}>
+                {en ? "Save" : "დაზოგე"} {savedAmount.toFixed(2)} ₾
+              </span>
             )}
           </div>
         </div>

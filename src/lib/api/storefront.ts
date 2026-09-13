@@ -663,6 +663,22 @@ export async function getDealStorefrontProducts(
   return response;
 }
 
+export async function getAllDealStorefrontProducts(
+  query: Omit<StorefrontDealsQuery, "page" | "pageSize" | "limit"> = {},
+) {
+  const pageSize = 100;
+  const first = await getDealStorefrontProducts({ ...query, page: 1, pageSize });
+  if (first.totalPages <= 1) return first.items;
+
+  const rest = await Promise.all(
+    Array.from({ length: first.totalPages - 1 }, (_, index) =>
+      getDealStorefrontProducts({ ...query, page: index + 2, pageSize }),
+    ),
+  );
+
+  return [first, ...rest].flatMap((page) => page.items);
+}
+
 export function getDealStorefrontCategories() {
   return apiRequest<StorefrontDealCategory[]>(
     "/api/storefront/products/deals/categories",

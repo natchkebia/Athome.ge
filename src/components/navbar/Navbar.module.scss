@@ -125,9 +125,13 @@
 
 @media (max-width: 1024px) {
   .navbar {
-    position: absolute;
-    top: 46px;
-    right: 0;
+    position: relative;
+    top: auto;
+    right: auto;
+    grid-row: 3;
+    grid-column: 1;
+    justify-self: end;
+    align-self: center;
     width: 58px;
     height: 58px;
     border: 0;

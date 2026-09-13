@@ -10,7 +10,7 @@ import ProductPagination, { PRODUCTS_PER_PAGE } from "@/components/products/Prod
 import EmptyState from "@/components/products/EmptyState";
 import Breadcrumb from "@/components/ breadcrumb/Breadcrumb";
 import AtHomeLoader from "@/components/shared/AtHomeLoader";
-import { getDealStorefrontCategories, getDealStorefrontProducts, type StorefrontDealCategory } from "@/lib/api/storefront";
+import { getAllDealStorefrontProducts, getDealStorefrontCategories, type StorefrontDealCategory } from "@/lib/api/storefront";
 import { mapStorefrontProductToCard, StorefrontProductCard } from "@/lib/storefront/products";
 import { useCommerce } from "@/contexts/CommerceContext";
 import { useStorefrontLocale } from "@/lib/i18n/useStorefrontLocale";
@@ -20,7 +20,7 @@ export default function DiscountsPage() {
   const en = useStorefrontLocale() === "en";
   const { wishlistProductIds, toggleWishlist, addToCart } = useCommerce();
   const { currentPage, setCurrentPage } = usePaginationPage();
-  const [products, setProducts] = useState<StorefrontProductCard[]>([]);
+  const [matchingProducts, setMatchingProducts] = useState<StorefrontProductCard[]>([]);
   const [categories, setCategories] = useState<StorefrontDealCategory[]>([]);
   const [selectedSlugs, setSelectedSlugs] = useState<string[]>([]);
   const [totalCount, setTotalCount] = useState(0);
@@ -43,21 +43,29 @@ export default function DiscountsPage() {
     let active = true;
     setLoading(true);
     setLoadFailed(false);
-    getDealStorefrontProducts({ categorySlugs: selectedSlugs, page: currentPage, pageSize: PRODUCTS_PER_PAGE })
+    getAllDealStorefrontProducts({ categorySlugs: selectedSlugs })
       .then((response) => {
         if (!active) return;
-        setProducts(response.items.map(mapStorefrontProductToCard));
-        setTotalCount(response.totalCount);
+        const availableProducts = response
+          .filter((product) => product.isAvailable)
+          .map(mapStorefrontProductToCard);
+        setMatchingProducts(availableProducts);
+        setTotalCount(availableProducts.length);
       })
       .catch(() => {
         if (!active) return;
-        setProducts([]);
+        setMatchingProducts([]);
         setTotalCount(0);
         setLoadFailed(true);
       })
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
-  }, [currentPage, selectedSlugs]);
+  }, [selectedSlugs]);
+
+  const products = useMemo(() => {
+    const start = (currentPage - 1) * PRODUCTS_PER_PAGE;
+    return matchingProducts.slice(start, start + PRODUCTS_PER_PAGE);
+  }, [currentPage, matchingProducts]);
 
   const categoryNames = useMemo(() => new Map(categories.map((category) => [category.slug, category.name])), [categories]);
   const updateCategories = (slugs: string[]) => {

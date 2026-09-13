@@ -306,16 +306,19 @@
   height: 172px;
   border: 1px solid rgba(236, 242, 246, 1);
   border-radius: 14px;
-  background: #fff;
+  background:
+    radial-gradient(circle at 9% 50%, rgba(213, 39, 77, 0.055), transparent 21%),
+    #fff;
   display: flex;
   align-items: center;
   gap: 20px;
   padding: 16px 24px;
   box-sizing: border-box;
-  transition: box-shadow 0.2s ease;
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
 
   &:hover {
-    box-shadow: 0 8px 16px rgba(32, 78, 81, 0.07);
+    border-color: rgba(213, 39, 77, 0.14);
+    box-shadow: 0 10px 24px rgba(32, 78, 81, 0.08);
   }
 }
 
@@ -335,12 +338,71 @@
     height: 80%;
     object-fit: contain;
     mix-blend-mode: multiply;
+    transform: translateY(9px);
   }
 
   .discountBadge,
   .newBadge {
     top: 10px;
     left: 10px;
+  }
+
+  .listDiscountBadge {
+    top: -5px;
+    left: -7px;
+    width: 88px;
+    height: 42px;
+    padding: 0 11px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 13px 18px 18px 3px;
+    background: linear-gradient(135deg, #f23b61 0%, #d31f49 48%, #9d1033 100%);
+    box-shadow:
+      0 6px 13px rgba(181, 19, 57, 0.22),
+      inset 0 1px 0 rgba(255, 255, 255, 0.24);
+    justify-content: flex-start;
+    gap: 6px;
+    transform: skewX(-5deg) rotate(-1.5deg);
+
+    &::after {
+      content: "";
+      position: absolute;
+      top: -6px;
+      right: -8px;
+      width: 10px;
+      height: 11px;
+      border-top: 2px solid #df2c50;
+      border-right: 2px solid #df2c50;
+      transform: rotate(-18deg) skew(-10deg);
+    }
+
+    svg {
+      width: 16px;
+      height: 16px;
+      flex: 0 0 16px;
+      fill: #fff;
+      transform: skewX(5deg);
+    }
+
+    span {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      line-height: 1;
+      transform: skewX(5deg);
+    }
+
+    small {
+      margin-bottom: 2px;
+      font-size: 6px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+    }
+
+    strong {
+      font-size: 14px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
   }
 }
 
@@ -363,6 +425,36 @@
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
+}
+
+.listPriceRow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 7px 14px;
+
+  .newPrice {
+    color: #b50e39;
+    font-size: 21px;
+    font-weight: 750;
+    line-height: 1;
+  }
+
+  .oldPrice {
+    color: #50575c;
+    font-size: 14px;
+  }
+}
+
+.savingsBadge {
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: #fff0f3;
+  color: #d01f49;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
 }
 
 .listActions {
@@ -409,6 +501,28 @@
     width: 96px;
     height: 96px;
     flex-basis: 96px;
+
+    .listDiscountBadge {
+      top: -4px;
+      left: -4px;
+      width: 72px;
+      height: 36px;
+      padding: 0 8px;
+
+      svg {
+        width: 14px;
+        height: 14px;
+        flex-basis: 14px;
+      }
+
+      strong {
+        font-size: 12px;
+      }
+    }
+
+    .productImage {
+      transform: translateY(6px);
+    }
   }
 
   .listActions {

@@ -98,6 +98,22 @@ img {
 
   .fixed-header {
     position: static;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .fixed-header > :nth-child(1) {
+    grid-row: 1;
+  }
+
+  .fixed-header > :nth-child(2) {
+    grid-row: 2;
+  }
+
+  .fixed-header > :nth-child(3),
+  .fixed-header > nav {
+    grid-row: 3;
+    grid-column: 1;
   }
 
   .topbar-wrapper.hidden {
