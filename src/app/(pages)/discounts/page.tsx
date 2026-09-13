@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
 import styles from "../products/[category]/products.module.scss";
 import filterStyles from "@/components/discount/DealsCategoryFilter.module.scss";
 import DiscountCard from "@/components/discount/DiscountCard";
@@ -16,8 +17,13 @@ import { useCommerce } from "@/contexts/CommerceContext";
 import { useStorefrontLocale } from "@/lib/i18n/useStorefrontLocale";
 import { usePaginationPage } from "@/lib/navigation/usePaginationPage";
 
+const DEAL_CATEGORY_QUERY_PARAM = "dealCategory";
+const DEAL_CATEGORY_STORAGE_KEY = "athome:discount-category-filters";
+
 export default function DiscountsPage() {
   const en = useStorefrontLocale() === "en";
+  const pathname = usePathname();
+  const router = useRouter();
   const { wishlistProductIds, toggleWishlist, addToCart } = useCommerce();
   const { currentPage, setCurrentPage } = usePaginationPage();
   const [availableDeals, setAvailableDeals] = useState<StorefrontProduct[]>([]);
@@ -28,6 +34,27 @@ export default function DiscountsPage() {
   const [loadFailed, setLoadFailed] = useState(false);
   const [view, setView] = useState<"grid" | "list">("grid");
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+
+  useEffect(() => {
+    const urlSlugs = new URLSearchParams(window.location.search)
+      .getAll(DEAL_CATEGORY_QUERY_PARAM)
+      .map((slug) => slug.trim())
+      .filter(Boolean);
+    let storedSlugs: string[] = [];
+
+    try {
+      const storedValue = window.sessionStorage.getItem(DEAL_CATEGORY_STORAGE_KEY);
+      const parsedValue = storedValue ? JSON.parse(storedValue) : [];
+      if (Array.isArray(parsedValue)) {
+        storedSlugs = parsedValue.filter((slug): slug is string => typeof slug === "string" && slug.trim().length > 0);
+      }
+    } catch {
+      storedSlugs = [];
+    }
+
+    const restoredSlugs = urlSlugs.length > 0 ? urlSlugs : storedSlugs;
+    setSelectedSlugs([...new Set(restoredSlugs)]);
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -93,8 +120,20 @@ export default function DiscountsPage() {
 
   const categoryNames = useMemo(() => new Map(visibleCategories.map((category) => [category.slug, category.name])), [visibleCategories]);
   const updateCategories = (slugs: string[]) => {
-    setSelectedSlugs(slugs);
-    setCurrentPage(1);
+    const uniqueSlugs = [...new Set(slugs.map((slug) => slug.trim()).filter(Boolean))];
+    setSelectedSlugs(uniqueSlugs);
+    if (uniqueSlugs.length > 0) {
+      window.sessionStorage.setItem(DEAL_CATEGORY_STORAGE_KEY, JSON.stringify(uniqueSlugs));
+    } else {
+      window.sessionStorage.removeItem(DEAL_CATEGORY_STORAGE_KEY);
+    }
+
+    const url = new URL(window.location.href);
+    url.searchParams.delete("page");
+    url.searchParams.delete(DEAL_CATEGORY_QUERY_PARAM);
+    uniqueSlugs.forEach((slug) => url.searchParams.append(DEAL_CATEGORY_QUERY_PARAM, slug));
+    const query = url.searchParams.toString();
+    router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
   };
   const breadcrumbs = en
     ? [{ label: "Home", href: "/" }, { label: "Discounts" }]
