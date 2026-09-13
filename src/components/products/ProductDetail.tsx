@@ -156,6 +156,8 @@ export default function ProductDetail({
     useState<ProductInfoTab>("additional");
   const [showFullShortDescription, setShowFullShortDescription] = useState(false);
   const [configuredPrice, setConfiguredPrice] = useState<number | null>(null);
+  const [quantity, setQuantity] = useState(1);
+  const [quantityInput, setQuantityInput] = useState("1");
   const [quotedParts, setQuotedParts] = useState<PrebuiltPart[] | null>(null);
   const [dealPricing, setDealPricing] = useState<{
     referencePrice: number;
@@ -171,6 +173,7 @@ export default function ProductDetail({
   const router = useRouter();
   const isCompared = compareIds.has(product.id);
   const isAvailable = product.isAvailable && product.stockStatus !== "OutOfStock";
+  const maxQuantity = Math.max(1, Math.floor(product.totalEffectiveQuantity || 1));
   const isAthomePrebuilt = product.brand?.slug?.toLocaleLowerCase() === "athomepc";
   const [fallbackRelatedProducts, setFallbackRelatedProducts] = useState<
     StorefrontProductCard[]
@@ -270,11 +273,18 @@ export default function ProductDetail({
       return;
     }
 
-    getDealStorefrontProducts(100)
-      .then((items) => {
+    const dealCategorySlug =
+      product.subCategory?.slug || product.category?.slug || routeCategory;
+
+    getDealStorefrontProducts({
+      categorySlugs: dealCategorySlug ? [dealCategorySlug] : undefined,
+      page: 1,
+      pageSize: 100,
+    })
+      .then((response) => {
         if (!isMounted) return;
 
-        const deal = items.find(
+        const deal = response.items.find(
           (item) => item.id === product.id || item.slug === product.slug
         );
         setDealPricing(
@@ -300,9 +310,12 @@ export default function ProductDetail({
   }, [
     detailReferencePrice,
     product.discountPercent,
+    product.category?.slug,
     product.id,
     product.pricing.effectivePrice,
     product.slug,
+    product.subCategory?.slug,
+    routeCategory,
   ]);
 
   useEffect(() => {
@@ -337,7 +350,45 @@ export default function ProductDetail({
     setIsShortDescriptionOverflowing(false);
     setActiveInfoTab("additional");
     setQuotedParts(null);
+    setQuantity(1);
+    setQuantityInput("1");
   }, [product.id]);
+
+  const updateQuantity = (value: number) => {
+    if (!Number.isFinite(value)) return;
+    const nextQuantity = Math.min(maxQuantity, Math.max(1, Math.trunc(value)));
+    setQuantity(nextQuantity);
+    setQuantityInput(String(nextQuantity));
+  };
+
+  const handleQuantityInput = (value: string) => {
+    if (!/^\d*$/.test(value)) return;
+
+    setQuantityInput(value);
+    if (value === "") return;
+
+    const nextQuantity = Number(value);
+    if (nextQuantity > maxQuantity) {
+      setQuantity(maxQuantity);
+      setQuantityInput(String(maxQuantity));
+      showToast(
+        en
+          ? `Only ${maxQuantity} item${maxQuantity === 1 ? "" : "s"} are available`
+          : `მარაგში მაქსიმუმ ${maxQuantity} ერთეულია`,
+        "error",
+      );
+      return;
+    }
+
+    if (nextQuantity >= 1) setQuantity(nextQuantity);
+  };
+
+  const commitQuantityInput = () => {
+    if (quantityInput === "" || Number(quantityInput) < 1) {
+      setQuantity(1);
+      setQuantityInput("1");
+    }
+  };
 
   useEffect(() => {
     const description = shortDescriptionRef.current;
@@ -373,7 +424,7 @@ export default function ProductDetail({
   const handleBuyNow = async () => {
     if (!isAvailable) return;
     cacheInfo();
-    await addToCart(product.id);
+    await addToCart(product.id, quantity);
     router.push("/basket");
   };
 
@@ -383,7 +434,7 @@ export default function ProductDetail({
     const sourceEl = event.currentTarget as HTMLElement;
     cacheInfo();
     flyToTarget(sourceEl, galleryImages[0].url, "cart");
-    await addToCart(product.id);
+    await addToCart(product.id, quantity);
   };
 
   // "შედარება" — შედარების სიაში ამატებს/ხსნის.
@@ -511,9 +562,19 @@ export default function ProductDetail({
                   </span>
                 )}
               </div>
-              <button onClick={handleBuyNow} disabled={!isAvailable || configuredPrice != null}>
-                {configuredPrice != null ? (en ? "Use configured cart button" : "გამოიყენეთ კონფიგურაციის ღილაკი") : isAvailable ? (en ? "Buy now" : "ყიდვა") : (en ? "Out of stock" : "ამოწურულია")}
-              </button>
+              <div className={styles.purchaseTopActions}>
+                <label className={styles.quantityPicker}>
+                  <span>{en ? "Quantity" : "რაოდენობა"}</span>
+                  <span className={styles.quantityControl}>
+                    <button type="button" onClick={() => updateQuantity(quantity - 1)} disabled={quantity <= 1 || !isAvailable} aria-label={en ? "Decrease quantity" : "რაოდენობის შემცირება"}>−</button>
+                    <input type="text" inputMode="numeric" pattern="[0-9]*" value={quantityInput} onFocus={(event) => event.currentTarget.select()} onChange={(event) => handleQuantityInput(event.target.value)} onBlur={commitQuantityInput} onWheel={(event) => event.currentTarget.blur()} aria-label={en ? "Product quantity" : "პროდუქტის რაოდენობა"} />
+                    <button type="button" onClick={() => updateQuantity(quantity + 1)} disabled={quantity >= maxQuantity || !isAvailable} aria-label={en ? "Increase quantity" : "რაოდენობის გაზრდა"}>+</button>
+                  </span>
+                </label>
+                <button className={styles.buyNowButton} onClick={handleBuyNow} disabled={!isAvailable || configuredPrice != null}>
+                  {configuredPrice != null ? (en ? "Use configured cart button" : "გამოიყენეთ კონფიგურაციის ღილაკი") : isAvailable ? (en ? "Buy now" : "ყიდვა") : (en ? "Out of stock" : "ამოწურულია")}
+                </button>
+              </div>
             </div>
 
             <div className={styles.actions}>
@@ -742,33 +803,26 @@ export default function ProductDetail({
             {en ? "from" : "თვეში:"} {Math.ceil((configuredPrice ?? product.pricing.effectivePrice) / 24)}₾ {en ? "/ month" : "-დან"}
           </span>
         </div>
+        <label className={`${styles.quantityPicker} ${styles.mobileQuantityPicker}`}>
+          <span>{en ? "Quantity" : "რაოდენობა"}</span>
+          <span className={styles.quantityControl}>
+            <button type="button" onClick={() => updateQuantity(quantity - 1)} disabled={quantity <= 1 || !isAvailable} aria-label={en ? "Decrease quantity" : "რაოდენობის შემცირება"}>−</button>
+            <input type="text" inputMode="numeric" pattern="[0-9]*" value={quantityInput} onFocus={(event) => event.currentTarget.select()} onChange={(event) => handleQuantityInput(event.target.value)} onBlur={commitQuantityInput} onWheel={(event) => event.currentTarget.blur()} aria-label={en ? "Product quantity" : "პროდუქტის რაოდენობა"} />
+            <button type="button" onClick={() => updateQuantity(quantity + 1)} disabled={quantity >= maxQuantity || !isAvailable} aria-label={en ? "Increase quantity" : "რაოდენობის გაზრდა"}>+</button>
+          </span>
+        </label>
 
-        <button
-          type="button"
-          className={`${styles.mobileRoundAction} ${isCompared ? styles.mobileRoundActionActive : ""}`}
-          onClick={handleCompare}
-          aria-label={en ? "Compare" : "შედარება"}
-          aria-pressed={isCompared}
-        >
-          <img src="/icons/Arrows.svg" alt="" />
-        </button>
-        <button
-          type="button"
-          className={styles.mobileRoundAction}
-          onClick={handleAddToCart}
-          disabled={!isAvailable || configuredPrice != null}
-          aria-label={en ? "Add to cart" : "კალათაში დამატება"}
-        >
-          <img src="/icons/Cart.svg" alt="" />
-        </button>
-        <button
-          type="button"
-          className={styles.mobileBuyButton}
-          onClick={handleBuyNow}
-          disabled={!isAvailable || configuredPrice != null}
-        >
-          {isAvailable ? (en ? "Buy" : "ყიდვა") : (en ? "Out of stock" : "ამოწურულია")}
-        </button>
+        <div className={styles.mobilePurchaseActions}>
+          <button type="button" className={`${styles.mobileRoundAction} ${isCompared ? styles.mobileRoundActionActive : ""}`} onClick={handleCompare} aria-label={en ? "Compare" : "შედარება"} aria-pressed={isCompared}>
+            <img src="/icons/Arrows.svg" alt="" />
+          </button>
+          <button type="button" className={styles.mobileRoundAction} onClick={handleAddToCart} disabled={!isAvailable || configuredPrice != null} aria-label={en ? "Add to cart" : "კალათაში დამატება"}>
+            <img src="/icons/Cart.svg" alt="" />
+          </button>
+          <button type="button" className={styles.mobileBuyButton} onClick={handleBuyNow} disabled={!isAvailable || configuredPrice != null}>
+            {isAvailable ? (en ? "Buy" : "ყიდვა") : (en ? "Out of stock" : "ამოწურულია")}
+          </button>
+        </div>
       </div>
     </div>
   );

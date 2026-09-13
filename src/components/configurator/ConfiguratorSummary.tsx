@@ -12,6 +12,7 @@ type Props = {
   onSaveConfiguration: () => void;
   onAddToCart: () => void;
   saving?: boolean;
+  saveDisabled?: boolean;
   addingToCart?: boolean;
   guestBuilds?: { token: string; name: string; expiresAt: string }[];
   onOpenGuestBuild?: (token: string) => void;
@@ -27,6 +28,7 @@ export default function ConfiguratorSummary({
   onSaveConfiguration,
   onAddToCart,
   saving = false,
+  saveDisabled = false,
   addingToCart = false,
   guestBuilds = [],
   onOpenGuestBuild,
@@ -85,9 +87,13 @@ export default function ConfiguratorSummary({
 
       <div className={styles.summaryActions}>
         <div>
-          <button type="button" onClick={onSaveConfiguration} disabled={saving}>
+          <button type="button" onClick={onSaveConfiguration} disabled={saving || saveDisabled}>
             <img src="/images/conf1.svg" alt="configurator" />
-            <span>{saving ? (en ? "Saving..." : "ინახება...") : (en ? "Save configuration" : "კონფიგურაციის შენახვა")}</span>
+            <span>{saving
+              ? (en ? "Saving..." : "ინახება...")
+              : saveDisabled
+                ? (en ? "Resolve compatibility issue" : "მოაგვარეთ თავსებადობა")
+                : (en ? "Save configuration" : "კონფიგურაციის შენახვა")}</span>
           </button>
         </div>
 

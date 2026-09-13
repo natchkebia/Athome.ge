@@ -74,6 +74,10 @@ function translateCompatibilityIssue(issue: ConfiguratorIssue, en: boolean) {
       return en ? "The motherboard form factor is not compatible with the selected case." : "დედა დაფის ზომა არჩეულ ქეისში თავსებადი არ არის.";
     case "COOLER_SOCKET_MISMATCH":
       return en ? "The CPU cooler is not compatible with the selected processor socket." : "პროცესორის ქულერი არჩეული პროცესორის სოკეტთან თავსებადი არ არის.";
+    case "CPU_COOLER_CONFLICT":
+      return en
+        ? "A processor needs one cooler. Remove either the air cooler or the liquid cooler."
+        : "პროცესორს ერთი გაგრილება სჭირდება. წაშალეთ ჰაერის ან წყლის გაგრილებიდან ერთ-ერთი.";
     case "GPU_LENGTH_EXCEEDS_CASE":
       return en ? "The graphics card is too long for the selected case." : "ვიდეობარათის სიგრძე არჩეული ქეისისთვის ზედმეტად დიდია.";
     case "COOLER_HEIGHT_EXCEEDS_CASE":
@@ -119,16 +123,6 @@ type GuestBuild = {
 };
 
 const GUEST_BUILDS_KEY = "athomeGuestConfiguratorBuilds";
-
-const REQUIRED_SYSTEM_CATEGORIES: ConfiguratorCategoryKey[] = [
-  "processor",
-  "motherboard",
-  "ram",
-  "gpu",
-  "psu",
-  "case",
-  "storage",
-];
 
 const EMPTY_FILTERS: DynamicFilterValues = {
   price: [0, 0],
@@ -196,6 +190,7 @@ function adaptCard(
     id: card.id,
     category,
     title: card.name ?? "",
+    slug: card.slug ?? undefined,
     image: normalizeMediaUrl(card.thumbnailUrl ?? undefined) || "/images/case.svg",
     price: card.effectivePrice,
     stock,
@@ -408,10 +403,6 @@ export default function Configurator() {
     );
   }, [allSelectedProducts]);
 
-  const totalQuantity = useMemo(() => {
-    return allSelectedProducts.reduce((sum, product) => sum + product.quantity, 0);
-  }, [allSelectedProducts]);
-
   // Every distinct product is one entry; quantity carries repeated identical items.
   const backendSlots = useMemo<ConfiguratorBuildSlot[]>(() => {
     const slots: ConfiguratorBuildSlot[] = [];
@@ -492,6 +483,18 @@ export default function Configurator() {
   const recommendedFilled = recommendedCategories.filter(
     (category) => (selectedProducts[category.key]?.length ?? 0) > 0,
   ).length;
+  const hasAirCooler = (selectedProducts.cooler?.length ?? 0) > 0;
+  const hasLiquidCooler = (selectedProducts.liquidCooler?.length ?? 0) > 0;
+  const coolerConflictIssue = checkResult?.allIssues.find(
+    (issue) => issue.ruleCode?.toUpperCase() === "CPU_COOLER_CONFLICT",
+  );
+  const hasBlockingIssues = Boolean(
+    checkResult && (
+      checkResult.verdict === "incompatible" ||
+      checkResult.blockingCount > 0 ||
+      checkResult.allIssues.some((issue) => issue.severity?.toLowerCase() === "blocking")
+    ),
+  );
 
   const getSafeQuantity = (product: ConfiguratorProduct, quantity: number) => {
     return product.stock > 0
@@ -636,24 +639,12 @@ export default function Configurator() {
   };
 
   const handleSaveConfiguration = useCallback(async () => {
-    const allCategories = [...systemUnitCategories, ...peripheralCategories];
-
-    const missingCategories = REQUIRED_SYSTEM_CATEGORIES.filter((categoryKey) => {
-      const categoryProducts = selectedProducts[categoryKey];
-      return !categoryProducts || categoryProducts.length === 0;
-    })
-      .map((categoryKey) =>
-        allCategories.find((category) => category.key === categoryKey)
-      )
-      .filter(Boolean);
-
-    if (missingCategories.length > 0) {
-      const missingNames = missingCategories
-        .map((category) => en ? EN_CATEGORY_TITLES[category!.key] : category!.title)
-        .join(", ");
+    if (hasBlockingIssues) {
       setAlert({
         type: "warning",
-        message: en ? `Select the following required components before saving: ${missingNames}` : `სისტემის შესანახად სავალდებულოა შემდეგი კომპონენტების არჩევა: ${missingNames}`,
+        message: en
+          ? "Resolve the blocking compatibility issue before saving."
+          : "შენახვამდე მოაგვარეთ თავსებადობის დამბლოკავი პრობლემა.",
       });
       return;
     }
@@ -695,15 +686,19 @@ export default function Configurator() {
           ? en ? `Configuration saved. Share link: ${shareUrl}` : `კონფიგურაცია შენახულია. გასაზიარებელი ბმული: ${shareUrl}`
           : en ? "Configuration saved." : "კონფიგურაცია შენახულია.",
       });
-    } catch {
+    } catch (error) {
       setAlert({
         type: "warning",
-        message: en ? "Could not save the configuration. Please try again later." : "კონფიგურაციის შენახვა ვერ მოხერხდა. სცადეთ მოგვიანებით.",
+        message: error instanceof Error && error.message
+          ? error.message
+          : en
+            ? "Could not save the configuration. Please try again later."
+            : "კონფიგურაციის შენახვა ვერ მოხერხდა. სცადეთ მოგვიანებით.",
       });
     } finally {
       setSaving(false);
     }
-  }, [backendSlots, en, selectedProducts]);
+  }, [backendSlots, en, hasBlockingIssues]);
 
   const handleAddToCart = useCallback(async () => {
     if (allSelectedProducts.length === 0) {
@@ -906,15 +901,37 @@ export default function Configurator() {
               )}
 
               <div className={styles.grid}>
-                {visibleCategories.map((category) => (
-                  <ConfiguratorCategoryCard
-                    key={category.key}
-                    category={category}
-                    selectedProducts={selectedProducts[category.key] || []}
-                    onClick={() => setSelectedCategory(category.key)}
-                    onRemove={() => handleRemoveProduct(category.key)}
-                  />
-                ))}
+                {visibleCategories.map((category) => {
+                  const categoryProducts = selectedProducts[category.key] || [];
+                  const isAirCoolerBlocked = category.key === "cooler" && categoryProducts.length === 0 && hasLiquidCooler;
+                  const isLiquidCoolerBlocked = category.key === "liquidCooler" && categoryProducts.length === 0 && hasAirCooler;
+                  const isCoolerBlocked = isAirCoolerBlocked || isLiquidCoolerBlocked;
+                  const hasCategoryConflict = Boolean(
+                    coolerConflictIssue &&
+                    (category.key === "cooler" || category.key === "liquidCooler") &&
+                    categoryProducts.some((product) =>
+                      !coolerConflictIssue.involvedProductIds?.length ||
+                      coolerConflictIssue.involvedProductIds.includes(product.id),
+                    ),
+                  );
+
+                  return (
+                    <ConfiguratorCategoryCard
+                      key={category.key}
+                      category={category}
+                      selectedProducts={categoryProducts}
+                      disabled={isCoolerBlocked}
+                      restrictionMessage={isCoolerBlocked
+                        ? (en ? "Cooling is already selected" : "გაგრილება უკვე არჩეულია")
+                        : undefined}
+                      compatibilityIssue={hasCategoryConflict
+                        ? translateCompatibilityIssue(coolerConflictIssue!, en)
+                        : undefined}
+                      onClick={() => setSelectedCategory(category.key)}
+                      onRemove={() => handleRemoveProduct(category.key)}
+                    />
+                  );
+                })}
               </div>
             </section>
 
@@ -925,6 +942,7 @@ export default function Configurator() {
               onSaveConfiguration={handleSaveConfiguration}
               onAddToCart={handleAddToCart}
               saving={saving}
+              saveDisabled={hasBlockingIssues}
               addingToCart={addingToCart}
               guestBuilds={guestBuilds}
               onOpenGuestBuild={(token) => router.push(`/configurator?build=${encodeURIComponent(token)}`)}

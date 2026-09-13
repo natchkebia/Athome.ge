@@ -69,6 +69,8 @@
   line-height: 1.15;
   text-align: center;
   white-space: nowrap;
+  z-index: 5;
+  pointer-events: none;
 }
 .newBadge {
   width: 32px;

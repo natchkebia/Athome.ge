@@ -33,6 +33,7 @@ export default function ClientLayout({
     pathname === "/authorization" || pathname.startsWith("/authorization/");
   const isInnerPage = pathname !== "/";
   const previousPathname = useRef(pathname);
+  const headerRef = useRef<HTMLElement>(null);
   const [hideTopBar, setHideTopBar] = useState(false);
   const [isRouteLoading, setIsRouteLoading] = useState(false);
 
@@ -55,17 +56,48 @@ export default function ClientLayout({
   }, []);
 
   useEffect(() => {
+    const header = headerRef.current;
+    if (!header) return;
+
+    const updateHeaderHeight = () => {
+      document.documentElement.style.setProperty(
+        "--header-height",
+        `${Math.ceil(header.getBoundingClientRect().height)}px`,
+      );
+    };
+
+    updateHeaderHeight();
+    const observer = new ResizeObserver(updateHeaderHeight);
+    observer.observe(header);
+    window.addEventListener("resize", updateHeaderHeight);
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", updateHeaderHeight);
+      document.documentElement.style.removeProperty("--header-height");
+    };
+  }, []);
+
+  useEffect(() => {
     if (previousPathname.current === pathname) {
       return;
     }
 
     previousPathname.current = pathname;
+    setHideTopBar(false);
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+    const scrollFrame = window.requestAnimationFrame(() => {
+      window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+    });
 
     const timeout = window.setTimeout(() => {
       setIsRouteLoading(false);
     }, 250);
 
-    return () => window.clearTimeout(timeout);
+    return () => {
+      window.cancelAnimationFrame(scrollFrame);
+      window.clearTimeout(timeout);
+    };
   }, [pathname]);
 
   useEffect(() => {
@@ -180,7 +212,7 @@ export default function ClientLayout({
             <AtHomeLoader variant="overlay" label="იტვირთება" />
           )}
 
-          <header className={`fixed-header ${hideTopBar ? "scrolled" : ""}`}>
+          <header ref={headerRef} className={`fixed-header ${hideTopBar ? "scrolled" : ""}`}>
             <TestModeBadge />
             <div className={`topbar-wrapper ${hideTopBar ? "hidden" : ""}`}>
               <TopBar />

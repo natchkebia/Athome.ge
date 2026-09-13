@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import styles from "./Configurator.module.scss";
 import AtHomeLoader from "@/components/shared/AtHomeLoader";
 import ProductThumb from "./ProductThumb";
@@ -314,10 +315,27 @@ export default function ConfiguratorProductModal({
                       isSelected ? styles.productRowSelected : ""
                     }`}
                   >
-                    <ProductThumb src={product.image} alt={product.title} />
+                    {product.slug ? (
+                      <Link
+                        href={`/products/search/${encodeURIComponent(product.slug)}`}
+                        className={styles.productImageLink}
+                        aria-label={en ? `View ${product.title}` : `${product.title} — დათვალიერება`}
+                      >
+                        <ProductThumb src={product.image} alt="" />
+                      </Link>
+                    ) : (
+                      <ProductThumb src={product.image} alt={product.title} />
+                    )}
 
                     <div className={styles.productInfo}>
-                      <h3>{product.title}</h3>
+                      <h3>
+                        {product.slug ? (
+                          <Link href={`/products/search/${encodeURIComponent(product.slug)}`}>
+                            <span>{product.title}</span>
+                            <i aria-hidden="true">↗</i>
+                          </Link>
+                        ) : product.title}
+                      </h3>
 
                       <ul>
                         {product.specs.map((spec) => (

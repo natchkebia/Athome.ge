@@ -1,4 +1,5 @@
 import styles from "./Configurator.module.scss";
+import Link from "next/link";
 import ProductThumb from "./ProductThumb";
 import {
   ConfiguratorCategory,
@@ -21,6 +22,9 @@ type Props = {
   selectedProducts: SelectedConfiguratorProduct[];
   onClick: () => void;
   onRemove: () => void;
+  disabled?: boolean;
+  restrictionMessage?: string;
+  compatibilityIssue?: string;
 };
 
 export default function ConfiguratorCategoryCard({
@@ -28,6 +32,9 @@ export default function ConfiguratorCategoryCard({
   selectedProducts,
   onClick,
   onRemove,
+  disabled = false,
+  restrictionMessage,
+  compatibilityIssue,
 }: Props) {
   const en = useStorefrontLocale() === "en";
   const title = en ? EN_TITLES[category.title] ?? category.title : category.title;
@@ -45,7 +52,7 @@ export default function ConfiguratorCategoryCard({
   const hasSelectedProducts = selectedProducts.length > 0;
 
   return (
-    <div className={styles.categoryCard}>
+    <div className={`${styles.categoryCard} ${disabled ? styles.categoryCardDisabled : ""} ${compatibilityIssue ? styles.categoryCardConflict : ""}`}>
       {hasSelectedProducts && (
         <button
           type="button"
@@ -60,7 +67,22 @@ export default function ConfiguratorCategoryCard({
         </button>
       )}
 
-      <button type="button" className={styles.cardBody} onClick={onClick}>
+      <div
+        role="button"
+        tabIndex={disabled ? -1 : 0}
+        aria-disabled={disabled}
+        className={`${styles.cardBody} ${hasSelectedProducts ? styles.selectedCardBody : ""}`}
+        onClick={() => {
+          if (!disabled) onClick();
+        }}
+        onKeyDown={(event) => {
+          if (disabled || event.target !== event.currentTarget) return;
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            onClick();
+          }
+        }}
+      >
         {firstSelectedProduct ? (
           <ProductThumb
             key={firstSelectedProduct.id}
@@ -75,6 +97,31 @@ export default function ConfiguratorCategoryCard({
 
         {hasSelectedProducts ? (
           <>
+            <span className={styles.selectedProductIdentity}>
+              <small>{en ? "Selected model" : "არჩეული მოდელი"}</small>
+              {firstSelectedProduct.slug ? (
+                <Link
+                  href={`/products/search/${encodeURIComponent(firstSelectedProduct.slug)}`}
+                  className={styles.selectedProductLink}
+                  title={firstSelectedProduct.title}
+                  onClick={(event) => event.stopPropagation()}
+                >
+                  {firstSelectedProduct.title}
+                </Link>
+              ) : (
+                <strong title={firstSelectedProduct.title}>
+                  {firstSelectedProduct.title}
+                </strong>
+              )}
+              {selectedProducts.length > 1 && (
+                <em>
+                  {en
+                    ? `+${selectedProducts.length - 1} more`
+                    : `+${selectedProducts.length - 1} სხვა`}
+                </em>
+              )}
+            </span>
+
             <p className={styles.selectedTitle}>
               {en ? `${selectedProducts.length} selected` : `არჩეულია ${selectedProducts.length} პროდუქტი`}
               <br />
@@ -89,7 +136,14 @@ export default function ConfiguratorCategoryCard({
         ) : (
           <span className={styles.addText}>{en ? "Add" : "დამატება"}</span>
         )}
-      </button>
+
+        {restrictionMessage && (
+          <span className={styles.cardRestriction}>{restrictionMessage}</span>
+        )}
+        {compatibilityIssue && (
+          <span className={styles.categoryIssue}>{compatibilityIssue}</span>
+        )}
+      </div>
     </div>
   );
 }

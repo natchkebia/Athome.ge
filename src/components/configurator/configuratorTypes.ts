@@ -33,6 +33,7 @@ export type ConfiguratorProduct = {
   id: number;
   category: ConfiguratorCategoryKey;
   title: string;
+  slug?: string;
   image: string;
   price: number;
   stock: number;

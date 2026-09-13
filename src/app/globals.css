@@ -49,7 +49,8 @@ body {
 }
 
 .page-content {
-  margin-top: 242px;
+  /* Header contents can change; ClientLayout keeps this value in sync. */
+  margin-top: var(--header-height, 242px);
   transition: margin-top 0.3s ease;
   flex: 1 0 auto;
 }
@@ -64,7 +65,7 @@ body {
 }
 
 .fixed-header.scrolled + .page-content {
-  margin-top: 200px;
+  margin-top: var(--header-height, 200px);
 }
 
 * {
@@ -73,6 +74,7 @@ body {
 
 html {
   overflow-x: hidden;
+  scroll-padding-top: calc(var(--header-height, 242px) + 16px);
 }
 
 footer {

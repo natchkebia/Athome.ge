@@ -315,6 +315,21 @@ export type StorefrontPagedResult<T> = {
   hasPrev: boolean;
 };
 
+export type StorefrontDealCategory = {
+  slug: string;
+  name: string;
+  level: "category" | "subCategory";
+  count: number;
+};
+
+export type StorefrontDealsQuery = {
+  categorySlugs?: string[];
+  categorySlug?: string;
+  page?: number;
+  pageSize?: number;
+  limit?: number;
+};
+
 export type StorefrontProductsSortBy =
   | "relevance"
   | "priceAsc"
@@ -612,11 +627,47 @@ export function getBestSellerStorefrontProducts(limit = 8) {
   );
 }
 
-export function getDealStorefrontProducts(limit = 6) {
-  return apiRequest<StorefrontProduct[]>("/api/storefront/products/deals", {
-    query: { limit, InStockOnly: true },
+export async function getDealStorefrontProducts(
+  queryOrLimit: StorefrontDealsQuery | number = { limit: 6 },
+) {
+  const params = typeof queryOrLimit === "number" ? { limit: queryOrLimit } : queryOrLimit;
+  const categorySlugs = (params.categorySlugs ?? [])
+    .map((slug) => slug.trim())
+    .filter(Boolean);
+  const response = await apiRequest<
+    StorefrontPagedResult<StorefrontProduct> | StorefrontProduct[]
+  >("/api/storefront/products/deals", {
+    query: {
+      categorySlugs: categorySlugs.length > 0 ? categorySlugs : undefined,
+      categorySlug: categorySlugs.length === 0 ? params.categorySlug : undefined,
+      page: params.page,
+      pageSize: params.pageSize,
+      limit: params.limit,
+      InStockOnly: true,
+    },
     useProxy: true,
   });
+
+  if (Array.isArray(response)) {
+    return {
+      items: response,
+      page: params.page ?? 1,
+      pageSize: params.pageSize ?? params.limit ?? 6,
+      totalCount: response.length,
+      totalPages: response.length > 0 ? 1 : 0,
+      hasNext: false,
+      hasPrev: false,
+    } satisfies StorefrontPagedResult<StorefrontProduct>;
+  }
+
+  return response;
+}
+
+export function getDealStorefrontCategories() {
+  return apiRequest<StorefrontDealCategory[]>(
+    "/api/storefront/products/deals/categories",
+    { useProxy: true },
+  );
 }
 
 export function getStorefrontProduct(slug: string) {

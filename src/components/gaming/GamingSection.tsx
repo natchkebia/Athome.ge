@@ -8,7 +8,7 @@ const gamingItems = [
   {
     title: "სათამაშო კონსოლი",
     image: "/images/gaming-console.png",
-    slug: "console",
+    slug: "satamasho-konsolebi",
     className: "large",
   },
   {
@@ -45,7 +45,7 @@ export default function GamingSection() {
     <section className={styles.gamingSection}>
       <div className={styles.gamingGrid}>
         <Link
-          href={`/gaming/${gamingItems[0].slug}`}
+          href={`/products/${gamingItems[0].slug}`}
           className={`${styles.gamingCard} ${styles.large}`}
         >
           <img src={gamingItems[0].image} alt={title(0)} />
@@ -54,7 +54,7 @@ export default function GamingSection() {
 
         <div className={styles.middleGrid}>
           <Link
-            href={`/gaming/${gamingItems[1].slug}`}
+            href={`/products/${gamingItems[1].slug}`}
             className={`${styles.gamingCard} ${styles.small}`}
           >
             <img src={gamingItems[1].image} alt={title(1)} />
@@ -62,7 +62,7 @@ export default function GamingSection() {
           </Link>
 
           <Link
-            href={`/gaming/${gamingItems[2].slug}`}
+            href={`/products/${gamingItems[2].slug}`}
             className={`${styles.gamingCard} ${styles.small}`}
           >
             <img src={gamingItems[2].image} alt={title(2)} />
@@ -70,7 +70,7 @@ export default function GamingSection() {
           </Link>
 
           <Link
-            href={`/gaming/${gamingItems[3].slug}`}
+            href={`/products/${gamingItems[3].slug}`}
             className={`${styles.gamingCard} ${styles.wide}`}
           >
             <img src={gamingItems[3].image} alt={title(3)} />
@@ -79,7 +79,7 @@ export default function GamingSection() {
         </div>
 
         <Link
-          href={`/gaming/${gamingItems[4].slug}`}
+          href={`/products/${gamingItems[4].slug}`}
           className={`${styles.gamingCard} ${styles.large}`}
         >
           <img src={gamingItems[4].image} alt={title(4)} />

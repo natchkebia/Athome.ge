@@ -43,8 +43,8 @@ export default function Discount() {
     setLoading(true);
 
     getDealStorefrontProducts(48)
-      .then((items) => {
-        if (isMounted) setProducts(items.map(mapStorefrontProductToCard));
+      .then((response) => {
+        if (isMounted) setProducts(response.items.map(mapStorefrontProductToCard));
       })
       .catch(() => {
         if (isMounted) setProducts([]);
