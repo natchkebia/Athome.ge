@@ -97,30 +97,27 @@ export default function ConfiguratorCategoryCard({
 
         {hasSelectedProducts ? (
           <>
-            <span className={styles.selectedProductIdentity}>
-              <small>{en ? "Selected model" : "არჩეული მოდელი"}</small>
-              {firstSelectedProduct.slug ? (
-                <Link
-                  href={`/products/search/${encodeURIComponent(firstSelectedProduct.slug)}`}
-                  className={styles.selectedProductLink}
-                  title={firstSelectedProduct.title}
-                  onClick={(event) => event.stopPropagation()}
-                >
-                  {firstSelectedProduct.title}
-                </Link>
-              ) : (
-                <strong title={firstSelectedProduct.title}>
-                  {firstSelectedProduct.title}
-                </strong>
-              )}
-              {selectedProducts.length > 1 && (
-                <em>
-                  {en
-                    ? `+${selectedProducts.length - 1} more`
-                    : `+${selectedProducts.length - 1} სხვა`}
-                </em>
-              )}
-            </span>
+            <div className={styles.selectedProductsViewport}>
+              {selectedProducts.map((product, index) => (
+                <span className={styles.selectedProductIdentity} key={product.id}>
+                  <small>
+                    {en ? `Selected model ${index + 1}` : `არჩეული მოდელი ${index + 1}`}
+                  </small>
+                  {product.slug ? (
+                    <Link
+                      href={`/products/search/${encodeURIComponent(product.slug)}`}
+                      className={styles.selectedProductLink}
+                      title={product.title}
+                      onClick={(event) => event.stopPropagation()}
+                    >
+                      {product.title}
+                    </Link>
+                  ) : (
+                    <strong title={product.title}>{product.title}</strong>
+                  )}
+                </span>
+              ))}
+            </div>
 
             <p className={styles.selectedTitle}>
               {en ? `${selectedProducts.length} selected` : `არჩეულია ${selectedProducts.length} პროდუქტი`}
