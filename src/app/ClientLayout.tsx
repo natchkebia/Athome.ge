@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import { usePathname } from "next/navigation";
 import TopBar from "@/components/TopBar/TopBar";
@@ -36,6 +36,25 @@ export default function ClientLayout({
   const headerRef = useRef<HTMLElement>(null);
   const [hideTopBar, setHideTopBar] = useState(false);
   const [isRouteLoading, setIsRouteLoading] = useState(false);
+
+  useEffect(() => {
+    const previousScrollRestoration = window.history.scrollRestoration;
+    window.history.scrollRestoration = "manual";
+
+    const resetScroll = () => {
+      window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+      window.requestAnimationFrame(() => {
+        window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+      });
+    };
+
+    window.addEventListener("popstate", resetScroll);
+
+    return () => {
+      window.history.scrollRestoration = previousScrollRestoration;
+      window.removeEventListener("popstate", resetScroll);
+    };
+  }, []);
 
   useEffect(() => {
     const desktopQuery = window.matchMedia("(min-width: 1025px)");
@@ -78,7 +97,7 @@ export default function ClientLayout({
     };
   }, []);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (previousPathname.current === pathname) {
       return;
     }
@@ -89,6 +108,9 @@ export default function ClientLayout({
     const scrollFrame = window.requestAnimationFrame(() => {
       window.scrollTo({ top: 0, left: 0, behavior: "auto" });
     });
+    const scrollTimeout = window.setTimeout(() => {
+      window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+    }, 100);
 
     const timeout = window.setTimeout(() => {
       setIsRouteLoading(false);
@@ -96,6 +118,7 @@ export default function ClientLayout({
 
     return () => {
       window.cancelAnimationFrame(scrollFrame);
+      window.clearTimeout(scrollTimeout);
       window.clearTimeout(timeout);
     };
   }, [pathname]);

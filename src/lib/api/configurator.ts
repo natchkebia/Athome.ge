@@ -94,6 +94,7 @@ export type ConfiguratorProductsResponse = {
   hiddenByStock: number;
   unknownCount: number;
   ignoredSelectedIds?: number;
+  selectionHints?: string[];
   ports?: ConfiguratorPortUsage[];
 };
 
@@ -244,7 +245,9 @@ export function getConfiguratorSlotProducts(
         search: params.search,
         brandSlug: params.brandSlug,
         brandSlugs: params.brandSlugs,
-        selectedIds: selectedIds.length > 0 ? selectedIds : undefined,
+        // Keep duplicates: two identical parts consume capacity twice. A single
+        // comma-separated value also survives proxies that collapse repeated keys.
+        selectedIds: selectedIds.length > 0 ? selectedIds.join(",") : undefined,
         minPrice: params.minPrice,
         maxPrice: params.maxPrice,
         page: params.page,

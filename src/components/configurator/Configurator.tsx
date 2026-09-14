@@ -230,6 +230,7 @@ export default function Configurator() {
   const [hiddenByCompatibility, setHiddenByCompatibility] = useState(0);
   const [hiddenByStock, setHiddenByStock] = useState(0);
   const [modalTotalCount, setModalTotalCount] = useState(0);
+  const [selectionHints, setSelectionHints] = useState<string[]>([]);
   const [modalPorts, setModalPorts] = useState<ConfiguratorPortUsage[]>([]);
   const [compatibilityFilterEnabled, setCompatibilityFilterEnabled] = useState(true);
   const [servedSlots, setServedSlots] = useState<ConfiguratorSlotDefinition[] | null>(null);
@@ -346,6 +347,7 @@ export default function Configurator() {
           setHiddenByCompatibility(response.hiddenByCompatibility ?? 0);
           setHiddenByStock(response.hiddenByStock ?? 0);
           setModalTotalCount(response.totalCount ?? items.length);
+          setSelectionHints(response.selectionHints ?? []);
           setModalPorts(response.ports ?? []);
         } else {
           setModalBrands([]);
@@ -353,6 +355,7 @@ export default function Configurator() {
           setHiddenByCompatibility(0);
           setHiddenByStock(0);
           setModalTotalCount(items.length);
+          setSelectionHints([]);
           setModalPorts([]);
         }
         setModalProducts(
@@ -971,6 +974,7 @@ export default function Configurator() {
             hiddenByCompatibility={hiddenByCompatibility}
             hiddenByStock={hiddenByStock}
             totalCount={modalTotalCount}
+            selectionHints={selectionHints}
             acceptsMultiple={selectedCategoryDefinition?.acceptsMultiple ?? false}
             ports={modalPorts.length > 0 ? modalPorts : checkResult?.ports ?? []}
             onClearCompatibilityFilter={() => setCompatibilityFilterEnabled(false)}

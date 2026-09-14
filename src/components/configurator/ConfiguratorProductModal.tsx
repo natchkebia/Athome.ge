@@ -35,6 +35,7 @@ type Props = {
   hiddenByCompatibility?: number;
   hiddenByStock?: number;
   totalCount?: number;
+  selectionHints?: string[];
   onClearCompatibilityFilter?: () => void;
   onRetry?: () => void;
   acceptsMultiple?: boolean;
@@ -73,6 +74,7 @@ export default function ConfiguratorProductModal({
   hiddenByCompatibility = 0,
   hiddenByStock = 0,
   totalCount = 0,
+  selectionHints = [],
   onClearCompatibilityFilter,
   onRetry,
   acceptsMultiple = false,
@@ -253,6 +255,13 @@ export default function ConfiguratorProductModal({
           </aside>
 
           <div className={styles.productList}>
+            {selectionHints.includes("no_cpu_in_selection") && (
+              <div className={styles.stockFilterNotice} role="status">
+                {en
+                  ? "All motherboards are shown — select a processor to check socket compatibility"
+                  : "ნაჩვენებია ყველა დედა დაფა — პროცესორი ჯერ არ არის არჩეული"}
+              </div>
+            )}
             {hiddenByCompatibility > 0 && (
               <div className={styles.compatibilityFilterNotice}>
                 <span>

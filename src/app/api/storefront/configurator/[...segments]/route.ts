@@ -28,7 +28,7 @@ async function proxyConfiguratorRequest(
   );
 
   request.nextUrl.searchParams.forEach((value, key) => {
-    url.searchParams.set(key, value);
+    url.searchParams.append(key, value);
   });
 
   const body =
