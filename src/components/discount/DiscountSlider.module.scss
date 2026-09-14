@@ -3,7 +3,7 @@
   max-width: var(--site-max-width);
   box-sizing: border-box;
   margin: 0 auto;
-  margin-bottom: 72px;
+  margin-bottom: 0;
   overflow: hidden;
   padding: 0 var(--site-gutter);
 }
@@ -135,7 +135,7 @@
 
 @media (max-width: 768px) {
   .sliderWrapper {
-    margin-bottom: 48px;
+    margin-bottom: 0;
     padding: 0 12px;
   }
 

@@ -1,7 +1,7 @@
 .gamingSection {
   max-width: var(--site-max-width);
   width: 100%;
-  margin: 0 auto;
+  margin: 64px auto 0;
   padding: 0 var(--site-gutter);
 }
 
@@ -83,6 +83,7 @@
 
 @media (max-width: 576px) {
   .gamingSection {
+    margin-top: 40px;
     overflow: hidden;
     padding: 0 16px;
   }

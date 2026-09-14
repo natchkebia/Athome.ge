@@ -1,7 +1,10 @@
+.section {
+  margin-top: 64px;
+}
+
 .sectionHeader {
   width: min(var(--site-max-width), 100%);
   margin: 0 auto;
-  margin-top: 72px;
   padding: 0 var(--site-gutter);
   display: flex;
   align-items: center;
@@ -26,13 +29,19 @@
 }
 
 @media (max-width: 768px) {
+  .section {
+    margin-top: 40px;
+  }
+
   .sectionHeader {
-    margin-top: 48px;
     padding: 0 12px;
   }
 
   .compactHeader {
     margin-top: 16px;
-    padding: 0;
+  }
+
+  .section:has(.compactHeader) {
+    margin-top: 0;
   }
 }

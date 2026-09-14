@@ -18,13 +18,13 @@ export default function Home() {
         <HeroSlider />
         <Categories />
         <Discount />
-        <Service />
         <ComputersSection />
         <MonitorsSection />
-        <GamingSection />
-        <ConfiguratorBanner />
         <PeripherySection />
         <TablesAndChairs />
+        <GamingSection />
+        <ConfiguratorBanner />
+        <Service />
         <BrandSlider />
       </main>
     </div>
