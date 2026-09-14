@@ -469,9 +469,8 @@ function ProductsPageInner() {
     priceBounds,
   ]);
 
-  // ქვეკატეგორიებს backend-ში სურათი არ აქვთ და ხის productCount არასანდოა.
-  // ერთ მოთხოვნაზე (pageSize:1) ვიღებთ ორივეს: წარმომადგენლობით სურათს (პირველი
-  // პროდუქტი) და ნამდვილ რაოდენობას (totalCount) — იმავე წყაროდან, რასაც listing.
+  // ქვეკატეგორიის ბარათზე ვაჩვენებთ იმავე მარაგში არსებული პროდუქტების
+  // პირველ ფოტოს და ზუსტად იმავე სრული სიის რაოდენობას, რასაც შიდა გვერდი.
   useEffect(() => {
     const subs = categoryDetails?.subCategories ?? [];
     if (subs.length === 0) {
@@ -484,12 +483,15 @@ function ProductsPageInner() {
 
     Promise.all(
       subs.map((sub) =>
-        getStorefrontProducts({ subCategorySlug: sub.slug, pageSize: 1 })
-          .then((res) => ({
-            image: res.items[0]
-              ? mapStorefrontProductToCard(res.items[0]).image
+        getAllStorefrontProducts({
+          subCategorySlug: sub.slug,
+          pageSize: PRODUCT_LIMIT,
+        })
+          .then((items) => ({
+            image: items[0]
+              ? mapStorefrontProductToCard(items[0]).image
               : "",
-            count: res.totalCount as number | undefined,
+            count: items.length,
           }))
           .catch(() => ({ image: "", count: undefined }))
       )
@@ -498,7 +500,7 @@ function ProductsPageInner() {
       const imageMap: Record<string, string> = {};
       const countMap: Record<string, number> = {};
       subs.forEach((sub, index) => {
-        imageMap[sub.slug] = results[index].image;
+        imageMap[sub.slug] = sub.imageUrl?.trim() || results[index].image;
         if (typeof results[index].count === "number") {
           countMap[sub.slug] = results[index].count as number;
         }

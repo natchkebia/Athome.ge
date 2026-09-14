@@ -39,14 +39,15 @@
 }
 
 // სურათი ბარათს ავსებს — იზრდება ხელმისაწვდომ სივრცეზე, label ბოლოში რჩება.
-// mix-blend-mode: multiply — პროდუქტის ფოტოს თეთრი ფონი ბარათის ღია ფერში ერწყმის (თეთრი ქრება).
+// Backend-ის JPEG სურათებში ჩაშენებულ თეთრ ფონს ბარათის ტონი ანაცვლებს,
+// პროდუქტისა და ბრენდის ფერები კი მკაფიოდ რჩება.
 .image {
   flex: 1 1 auto;
   width: 100%;
   min-height: 0;
   object-fit: contain;
   margin-bottom: 10px;
-  mix-blend-mode: multiply;
+  mix-blend-mode: darken;
 }
 
 .placeholder {
