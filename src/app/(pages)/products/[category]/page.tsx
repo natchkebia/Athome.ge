@@ -469,8 +469,9 @@ function ProductsPageInner() {
     priceBounds,
   ]);
 
-  // ქვეკატეგორიის ბარათზე ვაჩვენებთ იმავე მარაგში არსებული პროდუქტების
-  // პირველ ფოტოს და ზუსტად იმავე სრული სიის რაოდენობას, რასაც შიდა გვერდი.
+  // ქვეკატეგორიის ბარათზე მხოლოდ backend-ში მისთვის ატვირთული imageUrl ჩანს.
+  // თუ სურათი ჯერ არ არის, ადგილი ცარიელი რჩება. რაოდენობა კი იმავე მარაგში
+  // არსებული სრული სიიდან ითვლება, რასაც ქვეკატეგორიის შიდა გვერდი აჩვენებს.
   useEffect(() => {
     const subs = categoryDetails?.subCategories ?? [];
     if (subs.length === 0) {
@@ -487,20 +488,15 @@ function ProductsPageInner() {
           subCategorySlug: sub.slug,
           pageSize: PRODUCT_LIMIT,
         })
-          .then((items) => ({
-            image: items[0]
-              ? mapStorefrontProductToCard(items[0]).image
-              : "",
-            count: items.length,
-          }))
-          .catch(() => ({ image: "", count: undefined }))
+          .then((items) => ({ count: items.length }))
+          .catch(() => ({ count: undefined }))
       )
     ).then((results) => {
       if (!isMounted) return;
       const imageMap: Record<string, string> = {};
       const countMap: Record<string, number> = {};
       subs.forEach((sub, index) => {
-        imageMap[sub.slug] = sub.imageUrl?.trim() || results[index].image;
+        imageMap[sub.slug] = sub.imageUrl?.trim() || "";
         if (typeof results[index].count === "number") {
           countMap[sub.slug] = results[index].count as number;
         }
