@@ -327,6 +327,8 @@ export default function ConfiguratorProductModal({
                     {product.slug ? (
                       <Link
                         href={`/products/search/${encodeURIComponent(product.slug)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
                         className={styles.productImageLink}
                         aria-label={en ? `View ${product.title}` : `${product.title} — დათვალიერება`}
                       >
@@ -339,7 +341,11 @@ export default function ConfiguratorProductModal({
                     <div className={styles.productInfo}>
                       <h3>
                         {product.slug ? (
-                          <Link href={`/products/search/${encodeURIComponent(product.slug)}`}>
+                          <Link
+                            href={`/products/search/${encodeURIComponent(product.slug)}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
                             <span>{product.title}</span>
                             <i aria-hidden="true">↗</i>
                           </Link>

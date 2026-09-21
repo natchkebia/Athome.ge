@@ -106,6 +106,8 @@ export default function ConfiguratorCategoryCard({
                   {product.slug ? (
                     <Link
                       href={`/products/search/${encodeURIComponent(product.slug)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
                       className={styles.selectedProductLink}
                       title={product.title}
                       onClick={(event) => event.stopPropagation()}
