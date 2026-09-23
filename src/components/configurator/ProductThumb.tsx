@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { normalizeMediaUrl } from "@/lib/storefront/products";
 
 export const LOGO_FALLBACK = "/icons/Logo.svg";
 
@@ -13,14 +14,18 @@ export default function ProductThumb({
   src?: string;
   alt: string;
 }) {
-  const [imgSrc, setImgSrc] = useState(src || LOGO_FALLBACK);
+  const normalizedSrc = normalizeMediaUrl(src, LOGO_FALLBACK);
+  const [failedSrc, setFailedSrc] = useState<string | null>(null);
+  const imgSrc = failedSrc === normalizedSrc ? LOGO_FALLBACK : normalizedSrc;
 
   return (
     <img
       src={imgSrc}
       alt={alt}
+      loading="lazy"
+      decoding="async"
       onError={() => {
-        if (imgSrc !== LOGO_FALLBACK) setImgSrc(LOGO_FALLBACK);
+        if (imgSrc !== LOGO_FALLBACK) setFailedSrc(normalizedSrc);
       }}
     />
   );

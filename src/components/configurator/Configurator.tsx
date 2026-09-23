@@ -191,7 +191,7 @@ function adaptCard(
     category,
     title: card.name ?? "",
     slug: card.slug ?? undefined,
-    image: normalizeMediaUrl(card.thumbnailUrl ?? undefined) || "/images/case.svg",
+    image: normalizeMediaUrl(card.thumbnailUrl ?? undefined),
     price: card.effectivePrice,
     stock,
     stockStatus: card.stockStatus ?? undefined,
@@ -460,7 +460,7 @@ export default function Configurator() {
               id: slot.productId,
               category: key,
               title: slot.productName ?? "",
-              image: slot.thumbnailUrl || "/images/case.svg",
+              image: normalizeMediaUrl(slot.thumbnailUrl ?? undefined),
               price: slot.price,
               stock: slot.stockQuantity == null
                 ? ((slot.stockStatus ?? "").toLowerCase().includes("out") ? 0 : 99)
