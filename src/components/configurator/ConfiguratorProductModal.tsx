@@ -59,6 +59,14 @@ const EN_SPEC_LABELS: Record<string, string> = {
   ვერსია: "Version", ლიცენზია: "License", არქიტექტურა: "Architecture",
 };
 
+const ALWAYS_OPEN_FILTERS: Partial<Record<ConfiguratorCategoryKey, string[]>> = {
+  processor: ["cpu_series"],
+  motherboard: ["chipset"],
+  ram: ["ram_capacity_gb", "memory_type"],
+  gpu: ["gpu_chipset", "gpu_memory_gb"],
+  storage: ["storage_capacity", "storage_form_factor"],
+};
+
 export default function ConfiguratorProductModal({
   categoryKey,
   title,
@@ -254,13 +262,7 @@ export default function ConfiguratorProductModal({
               priceBounds={priceBounds}
               onChange={onFilterValuesChange}
               compact
-              alwaysOpenFieldKeys={
-                categoryKey === "processor"
-                  ? ["cpu_series"]
-                  : categoryKey === "motherboard"
-                    ? ["chipset"]
-                    : []
-              }
+              alwaysOpenFieldKeys={categoryKey ? ALWAYS_OPEN_FILTERS[categoryKey] : undefined}
               displayNameOverrides={
                 !en && categoryKey === "motherboard"
                   ? { motherboard_form_factor: "დედა დაფის ფორმ-ფაქტორი" }
