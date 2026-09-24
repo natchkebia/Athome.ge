@@ -268,15 +268,23 @@
     padding: 0 16px;
     box-sizing: border-box;
     cursor: pointer;
+    text-align: left;
 
     &.open {
       border-bottom: none;
     }
 
     > span {
+      flex: 1;
+      min-width: 0;
       color: rgba(59, 63, 66, 1);
       font-size: 14px;
       font-weight: 510;
+      text-align: left;
+    }
+
+    > svg {
+      flex-shrink: 0;
     }
   }
 
