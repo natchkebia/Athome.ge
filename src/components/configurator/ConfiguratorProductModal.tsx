@@ -65,6 +65,16 @@ const ALWAYS_OPEN_FILTERS: Partial<Record<ConfiguratorCategoryKey, string[]>> = 
   ram: ["ram_capacity_gb", "memory_type"],
   gpu: ["gpu_chipset", "gpu_memory_gb"],
   storage: ["storage_capacity", "storage_form_factor"],
+  drive: ["storage_capacity"],
+  psu: ["psu_wattage_w"],
+  case: ["case_type"],
+};
+
+const KA_FILTER_NAME_OVERRIDES: Partial<
+  Record<ConfiguratorCategoryKey, Record<string, string>>
+> = {
+  motherboard: { motherboard_form_factor: "დედა დაფის ფორმ-ფაქტორი" },
+  case: { motherboard_support: "დედა დაფის მხარდაჭერა" },
 };
 
 export default function ConfiguratorProductModal({
@@ -264,9 +274,7 @@ export default function ConfiguratorProductModal({
               compact
               alwaysOpenFieldKeys={categoryKey ? ALWAYS_OPEN_FILTERS[categoryKey] : undefined}
               displayNameOverrides={
-                !en && categoryKey === "motherboard"
-                  ? { motherboard_form_factor: "დედა დაფის ფორმ-ფაქტორი" }
-                  : undefined
+                !en && categoryKey ? KA_FILTER_NAME_OVERRIDES[categoryKey] : undefined
               }
             />
           </aside>
