@@ -24,10 +24,8 @@ import { cacheProductInfo } from "@/lib/commerce/guestStore";
 import { normalizeMediaUrl } from "@/lib/storefront/products";
 import {
   FRONTEND_TO_BACKEND_SLOT,
-  PERIPHERAL_PARENT_CATEGORY,
   PERIPHERAL_SLUGS,
   checkConfiguratorBuild,
-  getCategoryProductsBySlugs,
   getConfiguratorBuild,
   getConfiguratorSlots,
   getConfiguratorSlotProducts,
@@ -38,10 +36,16 @@ import {
   type ConfiguratorIssue,
   type ConfiguratorProductCard,
   type ConfiguratorPortUsage,
+  type ConfiguratorProductsResponse,
   type ConfiguratorSlot,
   type ConfiguratorSlotDefinition,
 } from "@/lib/api/configurator";
-import type { StorefrontCategoryFilter } from "@/lib/api/storefront";
+import {
+  getAllStorefrontProducts,
+  getStorefrontCategoryFilters,
+  type StorefrontCategoryFilter,
+  type StorefrontProduct,
+} from "@/lib/api/storefront";
 import type { DynamicFilterValues } from "../products/DynamicProductFilter";
 import { useStorefrontLocale } from "@/lib/i18n/useStorefrontLocale";
 
@@ -131,6 +135,104 @@ const EMPTY_FILTERS: DynamicFilterValues = {
   attributes: {},
   ranges: {},
 };
+
+function peripheralProductCard(product: StorefrontProduct): ConfiguratorProductCard {
+  return {
+    id: product.id,
+    name: product.name,
+    slug: product.slug,
+    sku: product.sku,
+    thumbnailUrl: product.thumbnailUrl,
+    effectivePrice: product.effectivePrice,
+    oldPrice: product.oldPrice,
+    discountPercent: product.discountPercent,
+    currencyCode: product.currencyCode,
+    brandName: product.brand?.name,
+    brandSlug: product.brand?.slug,
+    stockStatus: product.stockStatus,
+    stockQuantity: product.isAvailable ? 99 : 0,
+    ratingAverage: product.ratingAverage,
+    ratingCount: product.ratingCount,
+    keySpecs: [],
+  };
+}
+
+async function getPeripheralProducts(
+  category: ConfiguratorCategoryKey,
+  values: DynamicFilterValues,
+): Promise<ConfiguratorProductsResponse> {
+  const categoryLevel = category === "monitor" ? "categories" : "subcategories";
+  const attr = Object.entries(values.attributes)
+    .filter(([, selected]) => selected.length > 0)
+    .map(([fieldKey, selected]) => `${fieldKey}:${selected.join("|")}`);
+  const range = Object.entries(values.ranges)
+    .filter(([, bounds]) => bounds.length === 2)
+    .map(([fieldKey, bounds]) => `${fieldKey}:${bounds[0]}:${bounds[1]}`);
+  const hasPriceRange = values.price[1] > values.price[0];
+  const baseQuery = {
+    categorySlug: categoryLevel === "categories" ? category : undefined,
+    subCategorySlug: categoryLevel === "subcategories" ? category : undefined,
+    brandSlugs: values.brandSlugs,
+    inStockOnly: values.inStockOnly,
+    minPrice: hasPriceRange ? values.price[0] : undefined,
+    maxPrice: hasPriceRange ? values.price[1] : undefined,
+    pageSize: 100,
+  };
+
+  const schemaPromise = getStorefrontCategoryFilters(category, categoryLevel, {
+    attr,
+    range,
+    brandSlugs: values.brandSlugs,
+    inStockOnly: values.inStockOnly,
+    minPrice: baseQuery.minPrice,
+    maxPrice: baseQuery.maxPrice,
+  });
+  const groups = await Promise.all([
+    ...Object.entries(values.attributes)
+      .filter(([, selected]) => selected.length > 0)
+      .map(([fieldKey, selected]) =>
+        getAllStorefrontProducts({
+          ...baseQuery,
+          attr: [`${fieldKey}:${selected.join("|")}`],
+        })
+      ),
+    ...Object.entries(values.ranges)
+      .filter(([, bounds]) => bounds.length === 2)
+      .map(([fieldKey, bounds]) =>
+        getAllStorefrontProducts({
+          ...baseQuery,
+          range: [`${fieldKey}:${bounds[0]}:${bounds[1]}`],
+        })
+      ),
+  ]);
+  const products = groups.length === 0
+    ? await getAllStorefrontProducts(baseQuery)
+    : groups[0].filter((product) =>
+        groups.slice(1).every((group) =>
+          group.some((candidate) => candidate.id === product.id)
+        )
+      );
+  const schema = await schemaPromise;
+  const items = products.map(peripheralProductCard);
+
+  return {
+    items,
+    totalCount: items.length,
+    page: 1,
+    pageSize: items.length,
+    totalPages: 1,
+    brands: schema.brands.map((brand) => ({
+      id: brand.brandId,
+      name: brand.name,
+      slug: brand.slug,
+      productCount: brand.productCount,
+    })),
+    filters: schema.filters,
+    hiddenByCompatibility: 0,
+    hiddenByStock: 0,
+    unknownCount: 0,
+  };
+}
 
 const BACKEND_SLOT_META: Record<string, Pick<ConfiguratorCategory, "key" | "title" | "icon">> = {
   cpu: { key: "processor", title: "პროცესორი", icon: "/images/processor.svg" },
@@ -327,37 +429,25 @@ export default function Configurator() {
           maxPrice: filterValues.price[1] > filterValues.price[0] ? filterValues.price[1] : undefined,
           pageSize: 1000,
         })
-      : getCategoryProductsBySlugs(PERIPHERAL_PARENT_CATEGORY, [
-          selectedCategory,
-        ]);
+      : getPeripheralProducts(selectedCategory, filterValues);
 
     request
       .then((response) => {
         if (!active) return;
-        const items = Array.isArray(response) ? response : response.items;
-        if (!Array.isArray(response)) {
-          if ((response.ignoredSelectedIds ?? 0) > 0) {
-            if (process.env.NODE_ENV !== "production") {
-              console.warn("Configurator API ignored malformed selectedIds", response.ignoredSelectedIds);
-            }
-            throw new Error("Configurator API ignored malformed selectedIds");
+        const items = response.items;
+        if ((response.ignoredSelectedIds ?? 0) > 0) {
+          if (process.env.NODE_ENV !== "production") {
+            console.warn("Configurator API ignored malformed selectedIds", response.ignoredSelectedIds);
           }
-          setModalBrands(response.brands ?? []);
-          setModalFilters(response.filters ?? []);
-          setHiddenByCompatibility(response.hiddenByCompatibility ?? 0);
-          setHiddenByStock(response.hiddenByStock ?? 0);
-          setModalTotalCount(response.totalCount ?? items.length);
-          setSelectionHints(response.selectionHints ?? []);
-          setModalPorts(response.ports ?? []);
-        } else {
-          setModalBrands([]);
-          setModalFilters([]);
-          setHiddenByCompatibility(0);
-          setHiddenByStock(0);
-          setModalTotalCount(items.length);
-          setSelectionHints([]);
-          setModalPorts([]);
+          throw new Error("Configurator API ignored malformed selectedIds");
         }
+        setModalBrands(response.brands ?? []);
+        setModalFilters(response.filters ?? []);
+        setHiddenByCompatibility(response.hiddenByCompatibility ?? 0);
+        setHiddenByStock(response.hiddenByStock ?? 0);
+        setModalTotalCount(response.totalCount ?? items.length);
+        setSelectionHints(response.selectionHints ?? []);
+        setModalPorts(response.ports ?? []);
         setModalProducts(
           (items ?? []).map((card) => adaptCard(card, selectedCategory))
         );
