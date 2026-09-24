@@ -958,6 +958,7 @@ export default function Configurator() {
 
         {selectedCategory && (
           <ConfiguratorProductModal
+            categoryKey={selectedCategory}
             title={selectedCategory && en ? EN_CATEGORY_TITLES[selectedCategory] ?? activeCategoryTitle : activeCategoryTitle || (en ? "Details" : "დეტალები")}
             products={modalProducts}
             loading={modalLoading}

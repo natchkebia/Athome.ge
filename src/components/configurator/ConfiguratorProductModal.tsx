@@ -6,6 +6,7 @@ import styles from "./Configurator.module.scss";
 import AtHomeLoader from "@/components/shared/AtHomeLoader";
 import ProductThumb from "./ProductThumb";
 import {
+  ConfiguratorCategoryKey,
   ConfiguratorProduct,
   SelectedConfiguratorProduct,
 } from "./configuratorTypes";
@@ -16,6 +17,7 @@ import type { StorefrontCategoryFilter, StorefrontCategoryFilterSet } from "@/li
 import DynamicProductFilter, { type DynamicFilterValues } from "../products/DynamicProductFilter";
 
 type Props = {
+  categoryKey?: ConfiguratorCategoryKey;
   title: string;
   products: ConfiguratorProduct[];
   loading?: boolean;
@@ -58,6 +60,7 @@ const EN_SPEC_LABELS: Record<string, string> = {
 };
 
 export default function ConfiguratorProductModal({
+  categoryKey,
   title,
   products,
   loading = false,
@@ -251,6 +254,18 @@ export default function ConfiguratorProductModal({
               priceBounds={priceBounds}
               onChange={onFilterValuesChange}
               compact
+              alwaysOpenFieldKeys={
+                categoryKey === "processor"
+                  ? ["cpu_series"]
+                  : categoryKey === "motherboard"
+                    ? ["chipset"]
+                    : []
+              }
+              displayNameOverrides={
+                !en && categoryKey === "motherboard"
+                  ? { motherboard_form_factor: "დედა დაფის ფორმ-ფაქტორი" }
+                  : undefined
+              }
             />
           </aside>
 

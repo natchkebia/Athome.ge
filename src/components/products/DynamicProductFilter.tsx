@@ -20,6 +20,8 @@ type Props = {
   priceBounds: [number, number];
   onChange: (values: DynamicFilterValues) => void;
   compact?: boolean;
+  alwaysOpenFieldKeys?: string[];
+  displayNameOverrides?: Record<string, string>;
 };
 
 export default function DynamicProductFilter({
@@ -28,6 +30,8 @@ export default function DynamicProductFilter({
   priceBounds,
   onChange,
   compact = false,
+  alwaysOpenFieldKeys = [],
+  displayNameOverrides = {},
 }: Props) {
   const en = useStorefrontLocale() === "en";
   const [open, setOpen] = useState<Record<string, boolean>>({});
@@ -215,22 +219,27 @@ export default function DynamicProductFilter({
             </div>
           )}
           {sortedFilters.map((filter, index) => {
-            const isOpen = !!open[filter.fieldKey];
+            const isAlwaysOpen = alwaysOpenFieldKeys.includes(filter.fieldKey);
+            const isOpen = isAlwaysOpen || !!open[filter.fieldKey];
+            const displayName = displayNameOverrides[filter.fieldKey] ?? filter.displayName;
             return (
               <div key={filter.fieldId}>
                 <button
                   className={`${styles.dropdownHeader} ${
                     index === sortedFilters.length - 1 ? styles.last : ""
                   } ${isOpen ? styles.open : ""}`}
-                  onClick={() =>
+                  aria-expanded={isOpen}
+                  aria-disabled={isAlwaysOpen}
+                  onClick={() => {
+                    if (isAlwaysOpen) return;
                     setOpen((current) => ({
                       ...current,
                       [filter.fieldKey]: !current[filter.fieldKey],
-                    }))
-                  }
+                    }));
+                  }}
                 >
                   <span>
-                    {filter.displayName}
+                    {displayName}
                     {filter.unit ? ` (${filter.unit})` : ""}
                   </span>
                   {isOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
@@ -250,8 +259,8 @@ export default function DynamicProductFilter({
                           <span>{min}{unit ? ` ${unit}` : ""}</span>
                           <span>{max}{unit ? ` ${unit}` : ""}</span>
                         </div>
-                        <input type="range" min={absoluteMin} max={absoluteMax} step={filter.range!.step || 1} value={min} aria-label={`${filter.displayName} minimum`} onChange={(event) => updateRange(filter.fieldKey, Math.min(Number(event.target.value), max), max)} />
-                        <input type="range" min={absoluteMin} max={absoluteMax} step={filter.range!.step || 1} value={max} aria-label={`${filter.displayName} maximum`} onChange={(event) => updateRange(filter.fieldKey, min, Math.max(Number(event.target.value), min))} />
+                        <input type="range" min={absoluteMin} max={absoluteMax} step={filter.range!.step || 1} value={min} aria-label={`${displayName} minimum`} onChange={(event) => updateRange(filter.fieldKey, Math.min(Number(event.target.value), max), max)} />
+                        <input type="range" min={absoluteMin} max={absoluteMax} step={filter.range!.step || 1} value={max} aria-label={`${displayName} maximum`} onChange={(event) => updateRange(filter.fieldKey, min, Math.max(Number(event.target.value), min))} />
                       </>;
                     })()}
                   </div>
