@@ -3,7 +3,7 @@
   flex-direction: column;
   margin-top: 0;
 
-  @media (max-width: 992px) {
+  @media (max-width: 1024px) {
     width: 100%;
     max-width: 720px;
     align-items: stretch;
@@ -40,7 +40,7 @@
   }
 }
 
-@media (max-width: 992px) {
+@media (max-width: 1024px) {
   .compact {
     align-items: stretch;
     margin-top: 0;
@@ -93,7 +93,7 @@
 }
 
 .filterBox {
-  width: 330px;
+  width: min(330px, 100%);
   height: auto;
   margin-top: 24px;
   background-color: #fff;
@@ -107,7 +107,7 @@
   box-sizing: border-box;
   overflow: hidden;
 
-  @media (max-width: 992px) {
+  @media (max-width: 1024px) {
     width: 100%;
     height: auto;
     max-height: none;
@@ -147,12 +147,12 @@
 /* --- ფასი --- */
 .rangeWrapper {
   position: relative;
-  width: 295px;
+  width: 100%;
   height: 6px;
   display: flex;
   align-items: center;
 
-  @media (max-width: 992px) {
+  @media (max-width: 1024px) {
     width: 100%;
   }
 
@@ -202,17 +202,13 @@
 
 /* --- ფასი input --- */
 .priceInputs {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   align-items: center;
   gap: 12px;
 
-  @media (max-width: 992px) {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
   input {
-    width: 141px;
+    width: 100%;
     height: 48px;
     background-color: rgba(255, 255, 255, 1);
     border: 1px solid rgba(236, 242, 246, 1);
@@ -223,10 +219,6 @@
     outline: none;
     transition: 0.2s;
     box-sizing: border-box;
-
-    @media (max-width: 992px) {
-      width: 100%;
-    }
 
     &:focus {
       border-color: rgba(16, 181, 192, 1);
@@ -239,7 +231,7 @@
 }
 
 .dropdownWraper {
-  width: 330px;
+  width: calc(100% + 34px);
   margin-left: -17px;
   display: flex;
   flex-direction: column;
@@ -249,7 +241,7 @@
   border-end-start-radius: 18px;
   border-end-end-radius: 18px;
 
-  @media (max-width: 992px) {
+  @media (max-width: 1024px) {
     width: calc(100% + 32px);
     margin-left: -16px;
   }

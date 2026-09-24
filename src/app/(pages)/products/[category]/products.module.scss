@@ -7,7 +7,7 @@
   padding-bottom: 32px;
   box-sizing: border-box;
 
-  @media (max-width: 992px) {
+  @media (max-width: 1024px) {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -21,7 +21,7 @@
   width: 100%;
   min-width: 0;
 
-  @media (max-width: 992px) {
+  @media (max-width: 1024px) {
     flex: 0 0 auto;
     width: 100%;
     display: flex;
@@ -29,7 +29,7 @@
   }
 }
 
-@media (min-width: 993px) {
+@media (min-width: 1025px) {
   .desktopSidebar {
     position: sticky;
     top: 216px;
@@ -55,7 +55,7 @@
   flex-direction: column;
   min-width: 0;
 
-  @media (max-width: 992px) {
+  @media (max-width: 1024px) {
     width: 100%;
     align-items: center;
   }
@@ -68,7 +68,7 @@
   margin-top: 24px;
   width: 100%;
 
-  @media (max-width: 992px) {
+  @media (max-width: 1024px) {
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     justify-content: center;
   }
@@ -78,7 +78,7 @@
   }
 }
 
-@media (min-width: 993px) and (max-width: 1199px) {
+@media (min-width: 1025px) and (max-width: 1199px) {
   .container {
     grid-template-columns: 280px minmax(0, 1fr);
   }
@@ -153,7 +153,7 @@
   justify-content: flex-end;
   gap: 16px;
 
-  @media (max-width: 992px) {
+  @media (max-width: 1024px) {
     width: 100%;
     justify-content: space-between;
     margin-top: 0;
@@ -163,7 +163,7 @@
     display: flex;
     gap: 8px;
 
-    @media (max-width: 992px) {
+    @media (max-width: 1024px) {
       display: none;
     }
   }
@@ -186,7 +186,7 @@
     height: 24px;
   }
 
-  @media (max-width: 992px) {
+  @media (max-width: 1024px) {
     display: flex;
   }
 }
@@ -198,14 +198,14 @@
 .mobileFilterPanel {
   display: none;
 
-  @media (max-width: 992px) {
+  @media (max-width: 1024px) {
     display: block;
     width: 100%;
     margin-top: 12px;
   }
 }
 
-@media (max-width: 992px) {
+@media (max-width: 1024px) {
   .desktopSidebar {
     display: none;
   }
