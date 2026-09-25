@@ -1,11 +1,18 @@
+import { StorefrontProduct } from "@/lib/api/storefront";
 import StorefrontCategoryProductSection from "../shared/StorefrontCategoryProductSection";
 
-export default function ComputersSection() {
+type ComputersSectionProps = {
+  initialProducts?: StorefrontProduct[];
+};
+
+export default function ComputersSection({ initialProducts }: ComputersSectionProps) {
   return (
     <StorefrontCategoryProductSection
       icon="/icons/Computer.svg"
       title="კომპიუტერები"
       categorySlug="geimingsarendero-kompiuterebi"
+      initialProducts={initialProducts}
     />
   );
 }
+

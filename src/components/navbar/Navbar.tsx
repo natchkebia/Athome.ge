@@ -8,19 +8,34 @@ import NavbarCategory, { categoryIcon, localCategoryIcon } from "./NavbarCategor
 import { useStorefrontLocale } from "@/lib/i18n/useStorefrontLocale";
 import { getStorefrontCategories, type StorefrontCategory } from "@/lib/api/storefront";
 
-export default function Navbar() {
+type NavbarProps = {
+  initialCategories?: StorefrontCategory[];
+};
+
+export default function Navbar({ initialCategories }: NavbarProps) {
   const pathname = usePathname();
   const locale = useStorefrontLocale();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [mobileCategories, setMobileCategories] = useState<StorefrontCategory[]>([]);
-  const [activeMobileCategory, setActiveMobileCategory] = useState<StorefrontCategory | null>(null);
+  const [mobileCategories, setMobileCategories] = useState<
+    StorefrontCategory[]
+  >(
+    initialCategories && initialCategories.length > 0
+      ? initialCategories.filter((category) => category.productCount > 0)
+      : []
+  );
+  const [activeMobileCategory, setActiveMobileCategory] =
+    useState<StorefrontCategory | null>(null);
 
   useEffect(() => {
+    if (initialCategories && initialCategories.length > 0) return;
+
     let active = true;
     getStorefrontCategories()
       .then((data) => {
         if (active) {
-          setMobileCategories(data.filter((category) => category.productCount > 0));
+          setMobileCategories(
+            data.filter((category) => category.productCount > 0)
+          );
         }
       })
       .catch(() => {
@@ -29,7 +44,7 @@ export default function Navbar() {
     return () => {
       active = false;
     };
-  }, [locale]);
+  }, [initialCategories, locale]);
 
   useEffect(() => {
     if (!isMenuOpen) return;
@@ -51,28 +66,29 @@ export default function Navbar() {
     setActiveMobileCategory(null);
   };
 
-  const menuItems = locale === "en"
-    ? [
-        { title: "Configurator", href: "/configurator" },
-        { title: "Discounts", href: "/discounts" },
-        { title: "Delivery", href: "/delivery-info" },
-        { title: "News", href: "/news" },
-        { title: "Service", href: "/services" },
-        { title: "Contact", href: "/contact" },
-      ]
-    : [
-        { title: "კონფიგურატორი", href: "/configurator" },
-        { title: "ფასდაკლებები", href: "/discounts" },
-        { title: "მიწოდება", href: "/delivery-info" },
-        { title: "სიახლეები", href: "/news" },
-        { title: "სერვისი", href: "/services" },
-        { title: "კონტაქტი", href: "/contact" },
-      ];
+  const menuItems =
+    locale === "en"
+      ? [
+          { title: "Configurator", href: "/configurator" },
+          { title: "Discounts", href: "/discounts" },
+          { title: "Delivery", href: "/delivery-info" },
+          { title: "News", href: "/news" },
+          { title: "Service", href: "/services" },
+          { title: "Contact", href: "/contact" },
+        ]
+      : [
+          { title: "კონფიგურატორი", href: "/configurator" },
+          { title: "ფასდაკლებები", href: "/discounts" },
+          { title: "მიწოდება", href: "/delivery-info" },
+          { title: "სიახლეები", href: "/news" },
+          { title: "სერვისი", href: "/services" },
+          { title: "კონტაქტი", href: "/contact" },
+        ];
 
   return (
     <nav className={styles.navbar}>
       <div>
-        <NavbarCategory />
+        <NavbarCategory initialCategories={initialCategories} />
 
         <button
           type="button"

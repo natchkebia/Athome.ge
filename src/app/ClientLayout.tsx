@@ -24,10 +24,14 @@ import {
   shouldRefreshAccessToken,
 } from "@/lib/auth/tokens";
 
+import type { StorefrontCategory } from "@/lib/api/storefront";
+
 export default function ClientLayout({
   children,
+  initialCategories,
 }: {
   children: React.ReactNode;
+  initialCategories?: StorefrontCategory[];
 }) {
   const pathname = usePathname();
   const isAuthorizationPage =
@@ -243,7 +247,7 @@ export default function ClientLayout({
               <TopBar />
             </div>
             <Header />
-            <Navbar />
+            <Navbar initialCategories={initialCategories} />
           </header>
 
           <main
@@ -251,7 +255,7 @@ export default function ClientLayout({
           >
             {children}
           </main>
-          <Footer />
+          <Footer initialCategories={initialCategories} />
           <MobileBottomNav />
           <FloatingContactButtons />
           {!isAuthorizationPage && (

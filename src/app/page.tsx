@@ -10,23 +10,67 @@ import TablesAndChairs from "@/components/tablesAndChairs/TablesAndChairs";
 import BrandSlider from "@/components/brands/BrandSlider";
 import GamingSection from "@/components/gaming/GamingSection";
 import ConfiguratorBanner from "@/components/ConfiguratorBanner/ConfiguratorBanner";
+import { headers } from "next/headers";
+import { StorefrontLocale } from "@/lib/i18n/locale";
+import {
+  getDealStorefrontProductsServer,
+  getStorefrontBannersServer,
+  getStorefrontBrandsServer,
+  getStorefrontCategoriesServer,
+  getStorefrontHomeServer,
+  getStorefrontProductsByCategoryServer,
+} from "@/lib/api/storefrontServer";
 
-export default function Home() {
+export const revalidate = 60;
+
+export default async function Home() {
+  const requestHeaders = await headers();
+  const locale = (
+    requestHeaders.get("x-lang") === "en" ? "en" : "ka"
+  ) as StorefrontLocale;
+
+  const [
+    homeData,
+    bannersData,
+    categoriesData,
+    dealsData,
+    computersData,
+    monitorsData,
+    peripheryData,
+    tablesData,
+    brandsData,
+  ] = await Promise.all([
+    getStorefrontHomeServer(locale),
+    getStorefrontBannersServer(locale),
+    getStorefrontCategoriesServer(locale),
+    getDealStorefrontProductsServer(48, locale),
+    getStorefrontProductsByCategoryServer(
+      "geimingsarendero-kompiuterebi",
+      8,
+      locale
+    ),
+    getStorefrontProductsByCategoryServer("monitor", 8, locale),
+    getStorefrontProductsByCategoryServer("peripherials", 8, locale),
+    getStorefrontProductsByCategoryServer("gaming-accessories", 8, locale),
+    getStorefrontBrandsServer({ featured: true, pageSize: 24 }, locale),
+  ]);
+
   return (
     <div className={styles.page}>
       <main className={styles.main}>
-        <HeroSlider />
-        <Categories />
-        <Discount />
-        <ComputersSection />
-        <MonitorsSection />
-        <PeripherySection />
-        <TablesAndChairs />
+        <HeroSlider initialHome={homeData} initialBanners={bannersData} />
+        <Categories initialCategories={categoriesData} />
+        <Discount initialProducts={dealsData} />
+        <ComputersSection initialProducts={computersData} />
+        <MonitorsSection initialProducts={monitorsData} />
+        <PeripherySection initialProducts={peripheryData} />
+        <TablesAndChairs initialProducts={tablesData} />
         <GamingSection />
         <ConfiguratorBanner />
         <Service />
-        <BrandSlider />
+        <BrandSlider initialBrands={brandsData} />
       </main>
     </div>
   );
 }
+

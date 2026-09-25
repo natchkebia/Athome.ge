@@ -1,11 +1,18 @@
+import { StorefrontProduct } from "@/lib/api/storefront";
 import StorefrontCategoryProductSection from "../shared/StorefrontCategoryProductSection";
 
-export default function MonitorsSection() {
+type MonitorsSectionProps = {
+  initialProducts?: StorefrontProduct[];
+};
+
+export default function MonitorsSection({ initialProducts }: MonitorsSectionProps) {
   return (
     <StorefrontCategoryProductSection
       icon="/icons/Monitor.svg"
       title="მონიტორები"
-      categorySlug="monitors-and-screens"
+      categorySlug="monitor"
+      initialProducts={initialProducts}
     />
   );
 }
+

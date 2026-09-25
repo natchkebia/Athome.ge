@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react";
 import {
-  getStorefrontCategoryProducts,
   getStorefrontProductsByCategory,
+  StorefrontProduct,
 } from "@/lib/api/storefront";
 import {
   mapStorefrontProductToCard,
@@ -17,6 +17,7 @@ type StorefrontCategoryProductSectionProps = {
   title: string;
   categorySlug: string;
   limit?: number;
+  initialProducts?: StorefrontProduct[];
 };
 
 export default function StorefrontCategoryProductSection({
@@ -24,28 +25,38 @@ export default function StorefrontCategoryProductSection({
   title,
   categorySlug,
   limit = 8,
+  initialProducts,
 }: StorefrontCategoryProductSectionProps) {
-  const [products, setProducts] = useState<StorefrontProductCard[]>([]);
-  const [loading, setLoading] = useState(true);
+  const initialMapped = (initialProducts ?? [])
+    .filter(
+      (product) => product.isAvailable && product.stockStatus !== "OutOfStock"
+    )
+    .map(mapStorefrontProductToCard);
+
+  const [products, setProducts] =
+    useState<StorefrontProductCard[]>(initialMapped);
+  const [loading, setLoading] = useState(initialMapped.length === 0);
 
   // inline ლოდერის ნაცვლად ვარეგისტრირებთ გლობალურ overlay-ში.
   usePageLoading(loading);
 
   useEffect(() => {
+    if (initialProducts && initialProducts.length > 0) return;
+
     let isMounted = true;
 
     setLoading(true);
 
-    getStorefrontCategoryProducts(categorySlug, limit)
-      .then(async (items) => {
-        const list = items.length > 0
-          ? items
-          : await getStorefrontProductsByCategory(categorySlug, limit);
+    getStorefrontProductsByCategory(categorySlug, limit)
+      .then((items) => {
         if (isMounted) {
           setProducts(
-            list
-              .filter((product) => product.isAvailable && product.stockStatus !== "OutOfStock")
-              .map(mapStorefrontProductToCard),
+            items
+              .filter(
+                (product) =>
+                  product.isAvailable && product.stockStatus !== "OutOfStock"
+              )
+              .map(mapStorefrontProductToCard)
           );
         }
       })
@@ -59,7 +70,8 @@ export default function StorefrontCategoryProductSection({
     return () => {
       isMounted = false;
     };
-  }, [categorySlug, limit]);
+  }, [categorySlug, initialProducts, limit]);
+
 
   if (loading) return null;
   if (products.length === 0) return null;

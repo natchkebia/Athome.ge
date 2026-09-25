@@ -131,8 +131,35 @@ export function CartQuoteProvider({ children }: { children: React.ReactNode }) {
   }, [cart.items, couponCode, couponLoaded, customerEmail, deliverySelection]);
 
   useEffect(() => {
-    void refreshQuote();
-  }, [refreshQuote]);
+    if (cart.items.length === 0) {
+      setQuote(null);
+      setLoading(false);
+      return;
+    }
+
+    if (typeof window !== "undefined" && "requestIdleCallback" in window) {
+      const handle = (
+        window as unknown as {
+          requestIdleCallback: (cb: () => void) => number;
+        }
+      ).requestIdleCallback(() => {
+        void refreshQuote();
+      });
+      return () => {
+        if ("cancelIdleCallback" in window) {
+          (
+            window as unknown as { cancelIdleCallback: (id: number) => void }
+          ).cancelIdleCallback(handle);
+        }
+      };
+    } else {
+      const timer = setTimeout(() => {
+        void refreshQuote();
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [refreshQuote, cart.items.length]);
+
 
   const applyCoupon = useCallback(
     async (code: string) => {

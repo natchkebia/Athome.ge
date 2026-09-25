@@ -48,6 +48,8 @@ export const metadata: Metadata = {
   },
 };
 
+import { getStorefrontCategoriesServer } from "@/lib/api/storefrontServer";
+
 export default async function RootLayout({
   children,
 }: {
@@ -55,13 +57,15 @@ export default async function RootLayout({
 }) {
   const requestHeaders = await headers();
   const locale = requestHeaders.get("x-lang") === "en" ? "en" : "ka";
+  const categories = await getStorefrontCategoriesServer(locale);
   return (
     <html lang={locale}>
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
         <StorefrontLocaleProvider locale={locale}>
-          <ClientLayout>{children}</ClientLayout>
+          <ClientLayout initialCategories={categories}>{children}</ClientLayout>
         </StorefrontLocaleProvider>
       </body>
     </html>
   );
 }
+

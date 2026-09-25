@@ -9,7 +9,7 @@ import "swiper/css";
 import styles from "./BrandSlider.module.scss";
 import BrandCard from "./BrandCard";
 import {
-  getAllStorefrontBrands,
+  getStorefrontBrands,
   StorefrontBrand,
 } from "@/lib/api/storefront";
 import { useStorefrontLocale } from "@/lib/i18n/useStorefrontLocale";
@@ -20,20 +20,32 @@ import { img } from "@/lib/media/img";
 // სრული სია /brands გვერდზეა (სათაური იქ მიდის).
 const HOME_BRAND_LIMIT = 24;
 
-export default function BrandSlider() {
+type BrandSliderProps = {
+  initialBrands?: StorefrontBrand[];
+};
+
+export default function BrandSlider({ initialBrands }: BrandSliderProps) {
   const locale = useStorefrontLocale();
-  const [brands, setBrands] = useState<StorefrontBrand[]>([]);
+  const [brands, setBrands] = useState<StorefrontBrand[]>(
+    initialBrands
+      ? [...initialBrands].sort((a, b) => a.displayOrder - b.displayOrder)
+      : []
+  );
   const swiperRef = useRef<SwiperInstance | null>(null);
   const autoplayRestartRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
+    if (initialBrands && initialBrands.length > 0) return;
+
     let isMounted = true;
 
-    getAllStorefrontBrands({ featured: true })
-      .then((items) => {
+    getStorefrontBrands({ featured: true, pageSize: HOME_BRAND_LIMIT })
+      .then((res) => {
         if (!isMounted) return;
 
-        setBrands([...items].sort((a, b) => a.displayOrder - b.displayOrder));
+        setBrands(
+          [...res.items].sort((a, b) => a.displayOrder - b.displayOrder)
+        );
       })
       .catch(() => {
         if (isMounted) setBrands([]);
@@ -45,7 +57,8 @@ export default function BrandSlider() {
         clearTimeout(autoplayRestartRef.current);
       }
     };
-  }, []);
+  }, [initialBrands]);
+
 
   const slides = useMemo(
     () =>

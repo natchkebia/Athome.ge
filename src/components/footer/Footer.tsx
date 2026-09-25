@@ -27,13 +27,28 @@ const serviceLinks = [
   { href: "/contact", ka: "კონტაქტი", en: "Contact" },
 ];
 
-export default function Footer() {
+type FooterProps = {
+  initialCategories?: StorefrontCategory[];
+};
+
+export default function Footer({ initialCategories }: FooterProps) {
   const locale = useStorefrontLocale();
   const en = locale === "en";
-  const [footerCategories, setFooterCategories] = useState<StorefrontCategory[]>([]);
+  const [footerCategories, setFooterCategories] = useState<
+    StorefrontCategory[]
+  >(
+    initialCategories && initialCategories.length > 0
+      ? initialCategories
+          .filter((category) => category.productCount > 0)
+          .sort((a, b) => a.sortOrder - b.sortOrder)
+          .slice(0, 6)
+      : []
+  );
   const [openMenu, setOpenMenu] = useState<number | null>(null);
 
   useEffect(() => {
+    if (initialCategories && initialCategories.length > 0) return;
+
     let active = true;
 
     getStorefrontCategories()
@@ -53,7 +68,8 @@ export default function Footer() {
     return () => {
       active = false;
     };
-  }, [locale]);
+  }, [initialCategories, locale]);
+
   return (
     <footer className={styles.footer}>
       <div className={styles.container}>

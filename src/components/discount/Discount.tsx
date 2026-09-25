@@ -11,6 +11,8 @@ import {
 import { usePageLoading } from "@/contexts/LoadingContext";
 import { useStorefrontLocale } from "@/lib/i18n/useStorefrontLocale";
 
+import { StorefrontProduct } from "@/lib/api/storefront";
+
 // tab label -> backend category slug (deal card carries the top-level slug)
 const FILTER_SLUGS: Record<string, string> = {
   კომპიუტერები: "computers",
@@ -20,7 +22,11 @@ const FILTER_SLUGS: Record<string, string> = {
   ნოუთბუქები: "laptop",
 };
 
-export default function Discount() {
+type DiscountProps = {
+  initialProducts?: StorefrontProduct[];
+};
+
+export default function Discount({ initialProducts }: DiscountProps) {
   const locale = useStorefrontLocale();
   const filters = Object.keys(FILTER_SLUGS);
   const filterLabels: Record<string, string> = {
@@ -31,20 +37,25 @@ export default function Discount() {
     ნოუთბუქები: "Laptops",
   };
 
+  const initialMapped = (initialProducts ?? []).map(mapStorefrontProductToCard);
   const [activeFilter, setActiveFilter] = useState(filters[0]);
-  const [products, setProducts] = useState<StorefrontProductCard[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [products, setProducts] =
+    useState<StorefrontProductCard[]>(initialMapped);
+  const [loading, setLoading] = useState(initialMapped.length === 0);
 
   usePageLoading(loading);
 
   useEffect(() => {
+    if (initialProducts && initialProducts.length > 0) return;
+
     let isMounted = true;
 
     setLoading(true);
 
     getDealStorefrontProducts(48)
       .then((response) => {
-        if (isMounted) setProducts(response.items.map(mapStorefrontProductToCard));
+        if (isMounted)
+          setProducts(response.items.map(mapStorefrontProductToCard));
       })
       .catch(() => {
         if (isMounted) setProducts([]);
@@ -56,7 +67,8 @@ export default function Discount() {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [initialProducts]);
+
 
   const availableFilters = filters.filter((filter) => {
     const slug = FILTER_SLUGS[filter];

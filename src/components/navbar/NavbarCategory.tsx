@@ -49,15 +49,29 @@ export function categoryIcon(cat: StorefrontCategory) {
   return cat.iconUrl || localCategoryIcon(cat.slug);
 }
 
-export default function NavbarCategory() {
+type NavbarCategoryProps = {
+  initialCategories?: StorefrontCategory[];
+};
+
+export default function NavbarCategory({
+  initialCategories,
+}: NavbarCategoryProps) {
   const locale = useStorefrontLocale();
   const [isOpen, setIsOpen] = useState(false);
-  const [categories, setCategories] = useState<StorefrontCategory[]>([]);
-  const [activeSlug, setActiveSlug] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const initialVisible = (initialCategories ?? []).filter(
+    (cat) => cat.productCount > 0
+  );
+  const [categories, setCategories] =
+    useState<StorefrontCategory[]>(initialVisible);
+  const [activeSlug, setActiveSlug] = useState<string | null>(
+    initialVisible.length > 0 ? initialVisible[0].slug : null
+  );
+  const [loading, setLoading] = useState(initialVisible.length === 0);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    if (initialCategories && initialCategories.length > 0) return;
+
     let isMounted = true;
 
     getStorefrontCategories()
@@ -78,7 +92,8 @@ export default function NavbarCategory() {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [initialCategories]);
+
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {

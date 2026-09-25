@@ -21,13 +21,25 @@ const bgColors = [
   "#F7F7FC",
 ];
 
-export default function Categories() {
+type CategoriesProps = {
+  initialCategories?: StorefrontCategory[];
+};
+
+export default function Categories({ initialCategories }: CategoriesProps) {
   const locale = useStorefrontLocale();
   const [storefrontCategories, setStorefrontCategories] = useState<
     StorefrontCategory[]
-  >([]);
+  >(
+    initialCategories && initialCategories.length > 0
+      ? [...initialCategories]
+          .sort((a, b) => a.sortOrder - b.sortOrder)
+          .slice(0, 8)
+      : []
+  );
 
   useEffect(() => {
+    if (initialCategories && initialCategories.length > 0) return;
+
     let isMounted = true;
 
     // მხოლოდ მთავარი (top-level) კატეგორიების ნეიმები, როგორც backend აბრუნებს
@@ -49,7 +61,8 @@ export default function Categories() {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [initialCategories]);
+
 
   const visibleCategories = useMemo(
     () =>
