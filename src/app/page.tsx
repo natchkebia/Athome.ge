@@ -19,6 +19,7 @@ import {
   getStorefrontCategoriesServer,
   getStorefrontHomeServer,
   getStorefrontProductsByCategoryServer,
+  getStorefrontTablesAndChairsServer,
 } from "@/lib/api/storefrontServer";
 
 export const revalidate = 60;
@@ -51,7 +52,7 @@ export default async function Home() {
     ),
     getStorefrontProductsByCategoryServer("monitor", 8, locale),
     getStorefrontProductsByCategoryServer("peripherials", 8, locale),
-    getStorefrontProductsByCategoryServer("gaming-accessories", 8, locale),
+    getStorefrontTablesAndChairsServer(12, locale),
     getStorefrontBrandsServer({ featured: true, pageSize: 24 }, locale),
   ]);
 

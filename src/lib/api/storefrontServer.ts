@@ -138,6 +138,24 @@ export async function getStorefrontCategoryProductsServer(
   return data ?? [];
 }
 
+export async function getStorefrontTablesAndChairsServer(
+  limit = 12,
+  locale: StorefrontLocale = "ka"
+): Promise<StorefrontProduct[]> {
+  const [tables, chairs] = await Promise.all([
+    getStorefrontProductsByCategoryServer("table", limit, locale),
+    getStorefrontProductsByCategoryServer("gaming-chair", limit, locale),
+  ]);
+
+  const combined: StorefrontProduct[] = [];
+  const maxLen = Math.max(tables.length, chairs.length);
+  for (let i = 0; i < maxLen; i++) {
+    if (tables[i]) combined.push(tables[i]);
+    if (chairs[i]) combined.push(chairs[i]);
+  }
+  return combined;
+}
+
 export async function getStorefrontBrandsServer(
   params: { featured?: boolean; pageSize?: number } = {},
   locale: StorefrontLocale = "ka"

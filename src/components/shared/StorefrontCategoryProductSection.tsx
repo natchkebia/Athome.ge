@@ -15,7 +15,8 @@ import { usePageLoading } from "@/contexts/LoadingContext";
 type StorefrontCategoryProductSectionProps = {
   icon: string;
   title: string;
-  categorySlug: string;
+  categorySlug?: string;
+  categorySlugs?: string[];
   limit?: number;
   initialProducts?: StorefrontProduct[];
 };
@@ -24,6 +25,7 @@ export default function StorefrontCategoryProductSection({
   icon,
   title,
   categorySlug,
+  categorySlugs,
   limit = 8,
   initialProducts,
 }: StorefrontCategoryProductSectionProps) {
@@ -47,11 +49,26 @@ export default function StorefrontCategoryProductSection({
 
     setLoading(true);
 
-    getStorefrontProductsByCategory(categorySlug, limit)
-      .then((items) => {
+    const slugs = categorySlugs ?? (categorySlug ? [categorySlug] : []);
+    if (slugs.length === 0) {
+      setLoading(false);
+      return;
+    }
+
+    Promise.all(
+      slugs.map((slug) => getStorefrontProductsByCategory(slug, limit))
+    )
+      .then((results) => {
         if (isMounted) {
+          const combined: StorefrontProduct[] = [];
+          const maxLen = Math.max(...results.map((r) => r.length), 0);
+          for (let i = 0; i < maxLen; i++) {
+            for (const list of results) {
+              if (list[i]) combined.push(list[i]);
+            }
+          }
           setProducts(
-            items
+            combined
               .filter(
                 (product) =>
                   product.isAvailable && product.stockStatus !== "OutOfStock"
@@ -70,7 +87,7 @@ export default function StorefrontCategoryProductSection({
     return () => {
       isMounted = false;
     };
-  }, [categorySlug, initialProducts, limit]);
+  }, [categorySlug, categorySlugs, initialProducts, limit]);
 
 
   if (loading) return null;

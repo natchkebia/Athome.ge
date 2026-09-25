@@ -602,6 +602,21 @@ export function getStorefrontProductsByCategory(
   );
 }
 
+export async function getStorefrontTablesAndChairs(limit = 12) {
+  const [tables, chairs] = await Promise.all([
+    getStorefrontProductsByCategory("table", limit),
+    getStorefrontProductsByCategory("gaming-chair", limit),
+  ]);
+
+  const combined: StorefrontProduct[] = [];
+  const maxLen = Math.max(tables.length, chairs.length);
+  for (let i = 0; i < maxLen; i++) {
+    if (tables[i]) combined.push(tables[i]);
+    if (chairs[i]) combined.push(chairs[i]);
+  }
+  return combined;
+}
+
 // Returns a top-level category's full product set. (For sub/mini slugs this
 // returns empty — callers should fall back to getStorefrontProductsByCategory.)
 export function getStorefrontCategoryProducts(

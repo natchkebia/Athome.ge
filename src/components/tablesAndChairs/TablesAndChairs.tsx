@@ -10,7 +10,7 @@ export default function TablesAndChairs({ initialProducts }: TablesAndChairsProp
     <StorefrontCategoryProductSection
       icon="/icons/Table.svg"
       title="მაგიდები და სავარძლები"
-      categorySlug="gaming-accessories"
+      categorySlugs={["table", "gaming-chair"]}
       initialProducts={initialProducts}
     />
   );
