@@ -193,6 +193,8 @@ export default function Step4Payment({
                     <img src="/icons/flitt-payment.png" className={styles.flittIcon} alt="Flitt TBC" />
                   ) : option.bank === "tbc" ? (
                     <img src="/icons/Tbc.svg" className={styles.bankIcon} alt={en ? "TBC Bank" : "თიბისი ბანკი"} />
+                  ) : option.bank === "bog" && option.method === "splitPayment" ? (
+                    <img src="/icons/bog-split-payment.png" className={styles.bogSplitIcon} alt={en ? "Bank of Georgia split payment" : "საქართველოს ბანკის ნაწილ-ნაწილი"} />
                   ) : option.bank === "bog" ? (
                     <img src="/icons/Bank_of_Georgia.svg" className={styles.bankIcon1} alt={en ? "Bank of Georgia" : "საქართველოს ბანკი"} />
                   ) : (
