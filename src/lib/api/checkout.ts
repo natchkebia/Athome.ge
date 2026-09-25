@@ -5,7 +5,7 @@ import { getStoredAuthTokens } from "@/lib/auth/tokens";
 
 export type CustomerType = "physical" | "legal";
 export type DeliveryType = "Pickup" | "Courier";
-export type PaymentMethod = "card" | "installment" | "bankTransfer";
+export type PaymentMethod = "card" | "installment" | "splitPayment" | "bankTransfer";
 export type SelectedBank = "bog" | "tbc" | "credo";
 
 export type CheckoutGuestItem = {

@@ -1,23 +1,38 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import styles from "./Step4Payment.module.scss";
 import TermsModal from "./components/TermsModal";
 import { useStorefrontLocale } from "@/lib/i18n/useStorefrontLocale";
 
 export type PaymentSelection = {
-  method: "card" | "invoice" | "installment";
+  method: "card" | "installment" | "splitPayment" | "bankTransfer";
   bank: string;
   email: string;
   installmentMonths: number;
 };
 
 const INSTALLMENT_MONTHS = [3, 6, 12, 18, 24];
+export const SPLIT_PAYMENT_MIN_GEL = 50;
+
+type BankPaymentOptions = Record<
+  "bog" | "tbc" | "credo",
+  { card: boolean; installment: boolean; splitPayment: boolean }
+>;
+
+// Keep bank capabilities in one place. Disabled options can be switched on
+// when production credentials are ready without changing the checkout UI.
+export const PAYMENT_OPTIONS: BankPaymentOptions = {
+  bog: { card: true, installment: false, splitPayment: false },
+  tbc: { card: true, installment: false, splitPayment: true },
+  credo: { card: false, installment: false, splitPayment: false },
+};
 
 interface Props {
   onNext?: (data: PaymentSelection) => void;
   onPrev?: () => void;
   submitting?: boolean;
   error?: string | null;
+  orderTotal?: number;
 }
 
 export default function Step4Payment({
@@ -25,16 +40,43 @@ export default function Step4Payment({
   onPrev,
   submitting = false,
   error = null,
+  orderTotal = 0,
 }: Props) {
   const en = useStorefrontLocale() === "en";
-  const [method, setMethod] = useState<"card" | "invoice" | "installment">(
-    "card"
-  );
+  const [method, setMethod] = useState<PaymentSelection["method"]>("card");
   const [bank, setBank] = useState<string>("tbc");
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [email, setEmail] = useState("");
   const [installmentMonths, setInstallmentMonths] = useState(6);
+  const splitPaymentEligible = orderTotal >= SPLIT_PAYMENT_MIN_GEL;
+  const availableBanks = useMemo(
+    () =>
+      (["tbc", "bog", "credo"] as const).filter(
+        (bankCode) =>
+          method !== "bankTransfer" && PAYMENT_OPTIONS[bankCode][method],
+      ),
+    [method],
+  );
+
+  useEffect(() => {
+    if (method === "splitPayment" && !splitPaymentEligible) {
+      setMethod("card");
+      setBank("tbc");
+      return;
+    }
+    if (method !== "bankTransfer" && !availableBanks.includes(bank as "tbc" | "bog" | "credo")) {
+      setBank(availableBanks[0] ?? "");
+    }
+  }, [availableBanks, bank, method, splitPaymentEligible]);
+
+  const chooseMethod = (nextMethod: PaymentSelection["method"]) => {
+    if (nextMethod === "splitPayment" && !splitPaymentEligible) return;
+    setMethod(nextMethod);
+    if (nextMethod === "splitPayment") setBank("tbc");
+    if (nextMethod === "card") setBank("tbc");
+    if (nextMethod === "bankTransfer") setBank("");
+  };
 
   return (
     <div className={styles.wrapper}>
@@ -55,10 +97,7 @@ export default function Step4Payment({
           className={`${styles.methodCard} ${
             method === "card" && styles.active
           }`}
-          onClick={() => {
-            setMethod("card");
-            setBank("tbc");
-          }}
+          onClick={() => chooseMethod("card")}
         >
           <img src="/icons/card.svg" alt="card" />
           <p>{en ? "Pay by card" : "ბარათით გადახდა"}</p>
@@ -68,160 +107,95 @@ export default function Step4Payment({
             </div>
           )}
         </div>
+        {Object.values(PAYMENT_OPTIONS).some((option) => option.installment) && (
+          <div
+            className={`${styles.methodCard} ${method === "installment" && styles.active}`}
+            onClick={() => chooseMethod("installment")}
+          >
+            <img src="/icons/Installment.svg" alt="installment" />
+            <p>{en ? "Installment" : "განვადება"}</p>
+            {method === "installment" && (
+              <div className={styles.checkCircle}><div className={styles.checkdiv} /></div>
+            )}
+          </div>
+        )}
+
         <div
-          className={`${styles.methodCard} ${
-            method === "invoice" && styles.active
+          className={`${styles.methodCard} ${method === "splitPayment" && styles.active} ${
+            !splitPaymentEligible ? styles.methodDisabled : ""
           }`}
-          onClick={() => {
-            setMethod("invoice");
-            setBank("credo");
-          }}
+          onClick={() => chooseMethod("splitPayment")}
+          aria-disabled={!splitPaymentEligible}
         >
-          <img src="/icons/Installment.svg" alt="invoice" />
-          <p>{en ? "Installment plan" : "განვადება და განაწილება"}</p>
-          {method === "invoice" && (
-            <div className={styles.checkCircle}>
-              <div className={styles.checkdiv} />
-            </div>
+          <img src="/icons/Installment.svg" alt="split payment" />
+          <p>{en ? "Split payment" : "ნაწილ-ნაწილი"}</p>
+          {!splitPaymentEligible && (
+            <span className={styles.availabilityNote}>
+              {en ? "Available from 50 ₾" : "ხელმისაწვდომია 50 ₾-დან"}
+            </span>
+          )}
+          {method === "splitPayment" && (
+            <div className={styles.checkCircle}><div className={styles.checkdiv} /></div>
           )}
         </div>
 
         <div
           className={`${styles.methodCard} ${
-            method === "installment" && styles.active
+            method === "bankTransfer" && styles.active
           }`}
-          onClick={() => {
-            setMethod("installment");
-            setBank("");
-          }}
+          onClick={() => chooseMethod("bankTransfer")}
         >
           <img src="/icons/Payment.svg" alt="Payment" />
           <p>{en ? "Bank transfer" : "გადარიცხვა"}</p>
-          {method === "installment" && (
+          {method === "bankTransfer" && (
             <div className={styles.checkCircle}>
               <div className={styles.checkdiv} />
             </div>
           )}
         </div>
       </div>
-      {method === "card" && (
+      {method !== "bankTransfer" && availableBanks.length > 0 && (
         <div className={styles.bankList}>
-          <div
-            className={`${styles.bank} ${bank === "tbc" && styles.bankActive}`}
-            onClick={() => setBank("tbc")}
-          >
-            <div className={styles.bankWrapper}>
-              <div className={styles.radio}>{bank === "tbc" && <div />}</div>
-              <img
-                src="/icons/flitt-payment.png"
-                className={styles.flittIcon}
-                alt="Flitt"
-              />
+          {availableBanks.map((bankCode) => (
+            <div
+              key={bankCode}
+              className={`${styles.bank} ${bank === bankCode && styles.bankActive}`}
+              onClick={() => setBank(bankCode)}
+            >
+              <div className={styles.bankWrapper}>
+                <div className={styles.radio}>{bank === bankCode && <div />}</div>
+                {bankCode === "tbc" && method === "card" ? (
+                  <img src="/icons/flitt-payment.png" className={styles.flittIcon} alt="Flitt" />
+                ) : bankCode === "tbc" ? (
+                  <img src="/icons/Tbc.svg" className={styles.bankIcon} alt={en ? "TBC Bank" : "თიბისი ბანკი"} />
+                ) : bankCode === "bog" ? (
+                  <img src="/icons/Bank_of_Georgia.svg" className={styles.bankIcon1} alt={en ? "Bank of Georgia" : "საქართველოს ბანკი"} />
+                ) : (
+                  <img src="/icons/kredo.svg" className={styles.bankIcon} alt={en ? "Credo Bank" : "კრედო ბანკი"} />
+                )}
+              </div>
+              {method === "card" && (
+                <div className={styles.cards}><img src="/icons/Group.svg" alt="Mastercard and Visa" /></div>
+              )}
+              {method === "splitPayment" && (
+                <span className={styles.bankMethodLabel}>{en ? "Split payment" : "ნაწილ-ნაწილი"}</span>
+              )}
             </div>
-            <div className={styles.cards}>
-              <img src="/icons/Group.svg" />
+          ))}
+          {method === "installment" && (
+            <div className={styles.termPicker}>
+              <label>{en ? "Preferred term (months)" : "სასურველი ვადა (თვე)"}</label>
+              <p>{en ? "You will confirm the final term on the bank's page." : "საბოლოო ვადას ბანკის გვერდზე დაადასტურებთ."}</p>
+              <div className={styles.termOptions}>
+                {INSTALLMENT_MONTHS.map((m) => (
+                  <button key={m} type="button" onClick={() => setInstallmentMonths(m)} className={installmentMonths === m ? styles.termActive : ""}>{m}</button>
+                ))}
+              </div>
             </div>
-          </div>
-          <div
-            className={`${styles.bank} ${bank === "boa" && styles.bankActive}`}
-            onClick={() => setBank("boa")}
-          >
-            <div className={styles.bankWrapper}>
-              <div className={styles.radio}>{bank === "boa" && <div />}</div>
-              <img
-                src="/icons/Bank_of_Georgia.svg"
-                className={styles.bankIcon1}
-              />
-            </div>
-            <div className={styles.cards}>
-              <img src="/icons/Group.svg" />
-            </div>
-          </div>
+          )}
         </div>
       )}
-      {method === "invoice" && (
-        <div className={styles.bankList}>
-          <div
-            className={`${styles.bank} ${bank === "tbc" && styles.bankActive}`}
-            onClick={() => setBank("tbc")}
-          >
-            <div className={styles.bankWrapper}>
-              <div className={styles.radio}>{bank === "tbc" && <div />}</div>
-              <img src="/icons/Tbc.svg" className={styles.bankIcon} alt={en ? "TBC Bank" : "თიბისი ბანკი"} />
-            </div>
-            <div className={styles.cards}>
-              <img src="/icons/Group.svg" />
-            </div>
-          </div>
-          <div
-            className={`${styles.bank} ${bank === "boa" && styles.bankActive}`}
-            onClick={() => setBank("boa")}
-          >
-            <div className={styles.bankWrapper}>
-              <div className={styles.radio}>{bank === "boa" && <div />}</div>
-              <img
-                src="/icons/Bank_of_Georgia.svg"
-                className={styles.bankIcon1}
-              />
-            </div>
-            <div className={styles.cards}>
-              <img src="/icons/Group.svg" />
-            </div>
-          </div>
-
-          <div
-            className={`${styles.bank} ${
-              bank === "credo" && styles.bankActive
-            }`}
-            onClick={() => setBank("credo")}
-          >
-            <div className={styles.bankWrapper}>
-              <div className={styles.radio}>{bank === "credo" && <div />}</div>
-              <img src="/icons/kredo.svg" className={styles.bankIcon} alt={en ? "Credo Bank" : "კრედო ბანკი"} />
-            </div>
-            <div className={styles.cards}>
-              <img src="/icons/Group.svg" />
-            </div>
-          </div>
-
-          <div
-            style={{
-              marginTop: 16,
-              display: "flex",
-              flexDirection: "column",
-              gap: 8,
-            }}
-          >
-            <label style={{ fontSize: 14, color: "#3b3f42" }}>
-              {en ? "Installment term (months)" : "განვადების ვადა (თვე)"}
-            </label>
-            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-              {INSTALLMENT_MONTHS.map((m) => (
-                <button
-                  key={m}
-                  type="button"
-                  onClick={() => setInstallmentMonths(m)}
-                  style={{
-                    padding: "8px 16px",
-                    borderRadius: 8,
-                    border:
-                      installmentMonths === m
-                        ? "2px solid #10b5c0"
-                        : "1px solid #ecf2f6",
-                    background: installmentMonths === m ? "#eef9fa" : "#fff",
-                    color: "#3b3f42",
-                    cursor: "pointer",
-                    fontWeight: installmentMonths === m ? 600 : 400,
-                  }}
-                >
-                  {m}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-      {method === "installment" && (
+      {method === "bankTransfer" && (
         <>
           <div className={styles.emailBox}>
             <label>{en ? "Email address" : "ელ.ფოსტის მისამართი"}</label>
@@ -251,7 +225,7 @@ export default function Step4Payment({
           </button>
         </span>
       </div>
-      {method === "installment" && (
+      {method === "bankTransfer" && (
         <p className={styles.invoice}>
           {en ? "The bank-transfer invoice will be sent to the email address you provided." : "გადარიცხვის ინვოისი გამოიგზავნება თქვენ მიერ მითითებულ ელ.ფოსტაზე"}
         </p>

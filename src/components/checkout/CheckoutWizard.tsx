@@ -57,15 +57,8 @@ type CheckoutProgress = {
   deliveryData: DeliverySelection | null;
 };
 
-// UI payment values differ from the backend enum — map them here.
-const PAYMENT_METHOD_MAP: Record<PaymentSelection["method"], PaymentMethod> = {
-  card: "card",
-  invoice: "installment", // "განვადება"
-  installment: "bankTransfer", // "გადარიცხვა"
-};
-
 function mapBank(bank: string): SelectedBank {
-  if (bank === "boa") return "bog";
+  if (bank === "boa" || bank === "bog") return "bog";
   if (bank === "tbc" || bank === "credo") return bank;
   return "bog";
 }
@@ -177,7 +170,7 @@ export default function CheckoutWizard({ onStepChange, onDeliverySummaryChange }
           .filter(Boolean)
           .join(" ");
 
-    const paymentMethod = PAYMENT_METHOD_MAP[payment.method];
+    const paymentMethod: PaymentMethod = payment.method;
     const isCourier = orderType === "delivery";
     const address = deliveryData?.address;
 
@@ -280,8 +273,17 @@ export default function CheckoutWizard({ onStepChange, onDeliverySummaryChange }
             return;
           }
         } catch {
-          // initiate ჩავარდა — გადავდივართ დასრულების გვერდზე (Step 5).
+          // A missing redirect is handled below as a payment-start failure.
         }
+      }
+
+      if (payload.paymentMethod !== "bankTransfer") {
+        setSubmitError(
+          en
+            ? "Payment could not be started. Please choose another bank or payment method."
+            : "გადახდის დაწყება ვერ მოხერხდა. გთხოვთ, აირჩიოთ სხვა ბანკი ან გადახდის მეთოდი.",
+        );
+        return;
       }
 
       await clearCart();
@@ -374,6 +376,7 @@ export default function CheckoutWizard({ onStepChange, onDeliverySummaryChange }
             onPrev={() => goToStep(orderType === "store" ? 2 : 3)}
             submitting={submitting}
             error={submitError}
+            orderTotal={cart.totalPrice}
           />
         )}
 

@@ -24,8 +24,8 @@ type CheckoutSummary = {
 };
 
 type ViewState = "loading" | "missing" | "error" | "pendingTimeout" | "ready";
-const POLL_INTERVAL_MS = 2_000;
-const POLL_LIMIT_MS = 30_000;
+const POLL_INTERVAL_MS = 3_000;
+const POLL_LIMIT_MS = 60_000;
 
 function readSummary(): CheckoutSummary | null {
   const stored = sessionStorage.getItem("pendingCheckoutSummary");
@@ -164,7 +164,7 @@ function PaymentStatusContent() {
   }
   if (status.state === "installmentPending") {
     const merchant = status.installment?.awaitingMerchantConfirmation;
-    return <StatusCard icon="pending" title={merchant ? "შეკვეთა ფორმდება" : "განვადების განაცხადი ბანკშია"} text={merchant ? "ბანკმა განაცხადი დაამტკიცა და მაღაზიის დადასტურებას ელოდება. დამატებითი მოქმედება არ გჭირდებათ." : "ბანკი განიხილავს განაცხადს. პასუხს დამატებით შეგატყობინებთ."} />;
+    return <StatusCard icon="pending" title={merchant ? "შეკვეთა ფორმდება" : "განვადების განაცხადი ბანკში განიხილება"} text={merchant ? "ბანკმა განაცხადი დაამტკიცა და მაღაზიის დადასტურებას ელოდება. დამატებითი მოქმედება არ გჭირდებათ." : "Credo-ს სტატუსი პირველ 30 წუთს შეიძლება არ გამოჩნდეს. დადასტურებას ელფოსტით მიიღებთ."} />;
   }
 
   return (
