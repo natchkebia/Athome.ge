@@ -162,9 +162,25 @@
 }
 
 .bankMethodLabel {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 3px;
   color: #10a6b0;
   font-size: 14px;
   font-weight: 650;
+  text-align: right;
+
+  small {
+    color: #7b888e;
+    font-size: 11px;
+    font-weight: 500;
+  }
+}
+
+.bankDisabled {
+  cursor: not-allowed;
+  opacity: 0.56;
 }
 
 .termPicker {
