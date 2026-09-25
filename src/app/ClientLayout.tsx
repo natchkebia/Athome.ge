@@ -14,6 +14,7 @@ import FloatingContactButtons from "@/components/shared/FloatingContactButtons";
 import { ContactProductProvider } from "@/components/shared/ContactProductContext";
 import MobileBottomNav from "@/components/mobileBottomNav/MobileBottomNav";
 import { CommerceProvider } from "@/contexts/CommerceContext";
+import { CartQuoteProvider } from "@/contexts/CartQuoteContext";
 import { CompareProvider } from "@/contexts/CompareContext";
 import { LoadingProvider } from "@/contexts/LoadingContext";
 import { ToastProvider } from "@/contexts/ToastContext";
@@ -228,6 +229,7 @@ export default function ClientLayout({
   return (
     <ContactProductProvider>
     <CommerceProvider>
+      <CartQuoteProvider>
       <ToastProvider>
         <CompareProvider>
           <LoadingProvider>
@@ -258,6 +260,7 @@ export default function ClientLayout({
           </LoadingProvider>
         </CompareProvider>
       </ToastProvider>
+      </CartQuoteProvider>
     </CommerceProvider>
     </ContactProductProvider>
   );

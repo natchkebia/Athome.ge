@@ -66,6 +66,7 @@ export type OrderItem = {
   productImageUrl?: string | null;
   brandName?: string | null;
   unitPrice: number;
+  originalUnitPrice?: number | null;
   lineTotal: number;
   quantity: number;
 };

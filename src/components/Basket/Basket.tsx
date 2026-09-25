@@ -19,8 +19,8 @@ export default function BasketPage() {
       id: String(item.productId),
       title: item.productName || item.productSku || (en ? `Product #${item.productId}` : `პროდუქტი #${item.productId}`),
       image: normalizeMediaUrl(item.imageUrl),
-      oldPrice: item.oldPrice,
-      newPrice: item.sellingPrice,
+      oldPrice: item.compareAtPrice ?? item.oldPrice,
+      newPrice: item.unitPrice ?? item.sellingPrice,
       quantity: item.quantity,
     }));
 

@@ -402,6 +402,10 @@ export default function ConfiguratorProductModal({
 
                     <div className={styles.productAction}>
                       <strong>{rowTotal} ₾</strong>
+                      {product.compareAtPrice != null && product.compareAtPrice > product.price && (
+                        <del>{(product.compareAtPrice * quantity).toFixed(2)} ₾</del>
+                      )}
+                      {product.promotionLabel && <small>{product.promotionLabel}</small>}
 
                       {product.priceDelta != null && Math.abs(product.priceDelta) >= 0.005 && (
                         <div className={product.priceDelta < 0 ? styles.negativeDelta : styles.positiveDelta}>

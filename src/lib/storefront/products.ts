@@ -46,21 +46,15 @@ export function normalizeMediaUrl(
 export function mapStorefrontProductToCard(
   product: StorefrontProduct
 ): StorefrontProductCard {
-  // The strikethrough/original price can come via oldPrice OR sellingPrice —
-  // deals carry the original in oldPrice while sellingPrice == effectivePrice.
-  const referencePrice = Math.max(
-    product.oldPrice ?? 0,
-    product.sellingPrice ?? 0
-  );
+  const referencePrice = product.compareAtPrice ?? 0;
   const hasDiscount = referencePrice > product.effectivePrice;
 
-  const discount =
-    product.discountPercent ??
-    (hasDiscount
-      ? Math.round(
-          ((referencePrice - product.effectivePrice) / referencePrice) * 100
-        )
-      : 0);
+  // პროცენტი მხოლოდ compareAtPrice-დან — promotion-ის დასრულებისას ბეჯი თავისით ქრება.
+  const discount = hasDiscount
+    ? Math.round(
+        ((referencePrice - product.effectivePrice) / referencePrice) * 100
+      )
+    : 0;
 
   return {
     id: product.id,
@@ -89,15 +83,16 @@ export function mapStorefrontSearchProductToCard(
     id: product.id ?? fallbackId,
     image: normalizeMediaUrl(product.thumbnailUrl),
     title: product.name,
-    oldPrice: product.oldPrice,
+    oldPrice: product.compareAtPrice ?? undefined,
     newPrice: product.effectivePrice,
     discount:
-      product.oldPrice && product.oldPrice > product.effectivePrice
+      product.compareAtPrice && product.compareAtPrice > product.effectivePrice
         ? Math.round(
-            ((product.oldPrice - product.effectivePrice) / product.oldPrice) *
+            ((product.compareAtPrice - product.effectivePrice) / product.compareAtPrice) *
               100
           )
       : 0,
+    promotionLabel: product.promotionLabel ?? undefined,
     isAvailable: product.isAvailable ?? product.stockStatus !== "OutOfStock",
     category: "search",
     slug: product.slug,

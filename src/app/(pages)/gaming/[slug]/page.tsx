@@ -42,8 +42,8 @@ function mapCard(card: ConfiguratorProductCard, slug: string): StorefrontProduct
     image: normalizeMediaUrl(card.thumbnailUrl ?? undefined),
     title: card.name ?? "",
     oldPrice:
-      card.oldPrice && card.oldPrice > card.effectivePrice
-        ? card.oldPrice
+      card.compareAtPrice && card.compareAtPrice > card.effectivePrice
+        ? card.compareAtPrice
         : undefined,
     newPrice: card.effectivePrice,
     discount: card.discountPercent ?? 0,

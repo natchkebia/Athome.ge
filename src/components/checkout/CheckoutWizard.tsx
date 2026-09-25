@@ -14,6 +14,7 @@ import { useToast } from "@/contexts/ToastContext";
 import { getCurrentUser } from "@/lib/api/auth";
 import { ApiError } from "@/lib/api/client";
 import { useStorefrontLocale } from "@/lib/i18n/useStorefrontLocale";
+import { useCartQuote } from "@/contexts/CartQuoteContext";
 import {
   submitCheckout,
   initiateFlittPayment,
@@ -66,6 +67,14 @@ function mapBank(bank: string): SelectedBank {
 export default function CheckoutWizard({ onStepChange, onDeliverySummaryChange }: CheckoutWizardProps) {
   const en = useStorefrontLocale() === "en";
   const { cart, clearCart } = useCommerce();
+  const {
+    quote,
+    couponCode,
+    setCustomerEmail,
+    setDeliverySelection,
+    setCouponError,
+    refreshQuote,
+  } = useCartQuote();
   const { showToast } = useToast();
   const router = useRouter();
   const [step, setStep] = useState(1);
@@ -147,11 +156,12 @@ export default function CheckoutWizard({ onStepChange, onDeliverySummaryChange }
 
   const handleOrderTypeChange = useCallback((value: "store" | "delivery") => {
     setOrderType(value);
+    setDeliverySelection({ deliveryType: value === "store" ? "pickup" : "courier" });
     onDeliverySummaryChange?.({
       mode: value === "store" ? "pickup" : "courier",
       amount: null,
     });
-  }, [onDeliverySummaryChange]);
+  }, [onDeliverySummaryChange, setDeliverySelection]);
 
   const handleDeliveryAmountChange = useCallback((amount: number | null) => {
     onDeliverySummaryChange?.({ mode: "courier", amount });
@@ -203,7 +213,8 @@ export default function CheckoutWizard({ onStepChange, onDeliverySummaryChange }
         paymentMethod === "bankTransfer" ? "bog" : mapBank(payment.bank),
       installmentMonths:
         paymentMethod === "installment" ? payment.installmentMonths : null,
-      couponCode: null,
+      // უარყოფილი კოდი არ იგზავნება — თორემ checkout 409-ს დააბრუნებს.
+      couponCode: couponCode && quote?.coupon?.applied ? couponCode : null,
       customerNote: null,
       termsAccepted: true,
       guestItems: cart.items.map((item) => ({
@@ -308,6 +319,13 @@ export default function CheckoutWizard({ onStepChange, onDeliverySummaryChange }
         return;
       }
 
+      if (code === "COUPON_NOT_APPLICABLE") {
+        setCouponError(message);
+        await refreshQuote();
+        setSubmitError(message);
+        return;
+      }
+
       // მარაგის დეფიციტი (409 OUT_OF_STOCK) — ბექი აბრუნებს მზა ქართულ ტექსტს
       // ყველა დეფიციტური პროდუქტით. ვაჩვენებთ და ვაბრუნებთ კალათაზე, სადაც
       // მომხმარებელი რაოდენობას შეასწორებს (შეკვეთა საერთოდ არ იქმნება).
@@ -338,6 +356,7 @@ export default function CheckoutWizard({ onStepChange, onDeliverySummaryChange }
           <Step1Contact
             onNext={(data) => {
               setContactData(data);
+              setCustomerEmail(data.email ?? "");
               goToStep(2);
             }}
           />
@@ -347,7 +366,13 @@ export default function CheckoutWizard({ onStepChange, onDeliverySummaryChange }
           <Step2Delivery
             onOptionChange={handleOrderTypeChange}
             onPickupBranchChange={setPickupBranchCode}
-            onShippingMethodChange={setShippingMethodId}
+            onShippingMethodChange={(methodId) => {
+              setShippingMethodId(methodId);
+              setDeliverySelection({
+                deliveryType: orderType === "store" ? "pickup" : "courier",
+                ...(methodId != null ? { shippingMethodId: methodId } : {}),
+              });
+            }}
             onNext={handleStep2Next}
             onPrev={() => goToStep(1)}
           />
@@ -361,9 +386,17 @@ export default function CheckoutWizard({ onStepChange, onDeliverySummaryChange }
                 : [contactData?.firstName, contactData?.lastName].filter(Boolean).join(" ")
             }
             customerPhone={contactData?.phone}
+            shippingMethodId={shippingMethodId}
             onDeliveryAmountChange={handleDeliveryAmountChange}
             onNext={(data: DeliverySelection) => {
               setDeliveryData(data);
+              setDeliverySelection({
+                deliveryType: "courier",
+                ...(shippingMethodId != null ? { shippingMethodId } : {}),
+                city: data.address?.city,
+                region: data.address?.region,
+                expressDelivery: data.expressDelivery ?? false,
+              });
               goToStep(4);
             }}
             onPrev={() => goToStep(2)}
@@ -376,7 +409,7 @@ export default function CheckoutWizard({ onStepChange, onDeliverySummaryChange }
             onPrev={() => goToStep(orderType === "store" ? 2 : 3)}
             submitting={submitting}
             error={submitError}
-            orderTotal={cart.totalPrice}
+            orderTotal={quote?.total ?? cart.totalPrice}
           />
         )}
 

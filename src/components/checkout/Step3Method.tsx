@@ -6,6 +6,7 @@ import AddressSelector from "./components/AddressSelector";
 import { useStorefrontLocale } from "@/lib/i18n/useStorefrontLocale";
 import { useCommerce } from "@/contexts/CommerceContext";
 import { getShippingQuote, type ShippingQuote } from "@/lib/api/checkout";
+import { useCartQuote } from "@/contexts/CartQuoteContext";
 
 type DeliveryAddress = {
   id?: string | number;
@@ -23,11 +24,13 @@ type Step3DeliveryProps = {
   customerName?: string;
   customerPhone?: string;
   onDeliveryAmountChange?: (amount: number | null) => void;
+  shippingMethodId?: number | null;
 };
 
-export default function Step3Delivery({ onNext, onPrev, customerName, customerPhone, onDeliveryAmountChange }: Step3DeliveryProps) {
+export default function Step3Delivery({ onNext, onPrev, customerName, customerPhone, onDeliveryAmountChange, shippingMethodId }: Step3DeliveryProps) {
   const en = useStorefrontLocale() === "en";
   const { cart } = useCommerce();
+  const { quote: cartQuote, setDeliverySelection } = useCartQuote();
   const [address, setAddress] = useState<DeliveryAddress | null>(null);
   const [quoteCity, setQuoteCity] = useState("");
   const [quote, setQuote] = useState<ShippingQuote | null>(null);
@@ -132,6 +135,17 @@ export default function Step3Delivery({ onNext, onPrev, customerName, customerPh
     onDeliveryAmountChange?.(deliveryAmount ?? null);
   }, [deliveryAmount, onDeliveryAmountChange]);
 
+  useEffect(() => {
+    if (!quoteCity) return;
+    setDeliverySelection({
+      deliveryType: "courier",
+      ...(shippingMethodId != null ? { shippingMethodId } : {}),
+      city: quoteCity,
+      region: address?.region,
+      expressDelivery: expressSelected,
+    });
+  }, [address?.region, expressSelected, quoteCity, setDeliverySelection, shippingMethodId]);
+
   return (
     <div className={styles.wrapper}>
       <div className={styles.header}>
@@ -212,7 +226,7 @@ export default function Step3Delivery({ onNext, onPrev, customerName, customerPh
             )}
           <div className={styles.quoteTotal}>
               <span>{en ? "Total" : "ჯამი"}</span>
-              <strong>{(itemsSubtotal + (deliveryAmount ?? 0)).toFixed(2)} ₾</strong>
+              <strong>{(cartQuote?.total ?? itemsSubtotal + (deliveryAmount ?? 0)).toFixed(2)} ₾</strong>
             </div>
           </div>
         </>

@@ -105,14 +105,16 @@ function hydrateCart(cart: ProfileCart): ProfileCart {
       const cached = getCachedInfo(item.productId);
       if (!cached) return item;
 
-      const sellingPrice = item.sellingPrice || cached.sellingPrice;
+      const sellingPrice = item.unitPrice ?? item.sellingPrice ?? cached.sellingPrice;
       return {
         ...item,
         productName: item.productName || cached.productName,
         imageUrl: item.imageUrl || cached.imageUrl,
         slug: item.slug || cached.slug,
         sellingPrice,
-        oldPrice: item.oldPrice ?? cached.oldPrice,
+        unitPrice: sellingPrice,
+        oldPrice: item.compareAtPrice ?? item.oldPrice ?? cached.oldPrice,
+        compareAtPrice: item.compareAtPrice ?? item.oldPrice ?? cached.oldPrice,
         lineTotal: item.lineTotal || sellingPrice * item.quantity,
         isInStock: item.isInStock ?? cached.isInStock ?? true,
         availableQuantity: item.availableQuantity ?? cached.availableQuantity,
@@ -161,7 +163,7 @@ async function hydrateConfiguratorCart(cart: ProfileCart): Promise<ProfileCart> 
           imageUrl: product.thumbnailUrl || "",
           slug: product.slug || "",
           sellingPrice: product.effectivePrice,
-          oldPrice: product.oldPrice ?? undefined,
+          oldPrice: product.compareAtPrice ?? undefined,
           isInStock: !String(product.stockStatus ?? "").toLowerCase().includes("out"),
         });
         missingIds.delete(product.id);

@@ -48,7 +48,7 @@ export default function BasketFullPage() {
             <CartTab showSummary={false} />
           </div>
 
-          <CartSummary showItems={false} deliveryMode="courier" deliveryAmount={0} />
+          <CartSummary showItems={false} deliveryMode="unknown" deliveryAmount={null} />
         </div>
       )}
     </div>

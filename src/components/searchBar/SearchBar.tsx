@@ -242,10 +242,10 @@ export default function SearchBar() {
                     {suggestion.sku && suggestion.effectivePrice != null && (
                       <i aria-hidden="true">•</i>
                     )}
-                    {suggestion.oldPrice != null &&
+                    {suggestion.compareAtPrice != null &&
                       suggestion.effectivePrice != null &&
-                      suggestion.oldPrice > suggestion.effectivePrice && (
-                        <del>{suggestion.oldPrice.toFixed(2)} ₾</del>
+                      suggestion.compareAtPrice > suggestion.effectivePrice && (
+                        <del>{suggestion.compareAtPrice.toFixed(2)} ₾</del>
                       )}
                     {suggestion.effectivePrice != null && (
                       <strong>{suggestion.effectivePrice.toFixed(2)} ₾</strong>

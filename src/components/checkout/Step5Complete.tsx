@@ -62,13 +62,16 @@ export default function Step5Complete({
   const items = sourceItems.filter((item) => item.productName);
   const bankTransfer = result?.bankTransferDetails;
   const subtotal = items.reduce(
-    (sum, item) => sum + item.sellingPrice * item.quantity,
+    (sum, item) => sum + (item.unitPrice ?? item.sellingPrice) * item.quantity,
     0
   );
   // ფასდაკლების გარეშე პროდუქტს oldPrice არ აქვს — მისი „ძველი ფასი" = მიმდინარეს,
   // რომ შერეულ კალათაშიც დანაზოგი სწორად დაითვალოს (და არა 0-ზე ჩამოიჭრას).
   const oldTotal = items.reduce(
-    (sum, item) => sum + (item.oldPrice ?? item.sellingPrice) * item.quantity,
+    (sum, item) =>
+      sum +
+      (item.compareAtPrice ?? item.oldPrice ?? item.unitPrice ?? item.sellingPrice) *
+        item.quantity,
     0
   );
   const discount = Math.max(oldTotal - subtotal, 0);
@@ -297,9 +300,9 @@ export default function Step5Complete({
                   </div>
                 </div>
                 <div className={styles.productPrice}>
-                  <strong>{formatPrice(item.sellingPrice * item.quantity)}</strong>
-                  {item.oldPrice && (
-                    <span>{formatPrice(item.oldPrice * item.quantity)}</span>
+                  <strong>{formatPrice((item.unitPrice ?? item.sellingPrice) * item.quantity)}</strong>
+                  {(item.compareAtPrice ?? item.oldPrice) && (
+                    <span>{formatPrice((item.compareAtPrice ?? item.oldPrice ?? 0) * item.quantity)}</span>
                   )}
                 </div>
               </div>

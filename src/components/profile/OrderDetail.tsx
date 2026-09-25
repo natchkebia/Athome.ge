@@ -211,7 +211,12 @@ export default function OrderDetail({ orderId, onBack }: Props) {
                   <span>რაოდენობა: {item.quantity}</span>
                 </div>
               </div>
-              <strong>{formatPrice(item.lineTotal, order.currency)}</strong>
+              <div>
+                <strong>{formatPrice(item.lineTotal, order.currency)}</strong>
+                {item.originalUnitPrice != null && item.originalUnitPrice > item.unitPrice && (
+                  <del>{formatPrice(item.originalUnitPrice * item.quantity, order.currency)}</del>
+                )}
+              </div>
             </div>
           ))}
         </div>

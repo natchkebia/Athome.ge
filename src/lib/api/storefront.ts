@@ -98,6 +98,7 @@ export type StorefrontProduct = {
   sellingPrice: number;
   oldPrice?: number;
   effectivePrice: number;
+  compareAtPrice?: number | null;
   discountPercent?: number;
   currencyCode: string;
   activePromotion?: {
@@ -105,6 +106,7 @@ export type StorefrontProduct = {
     promotionName: string;
     discountType: number;
     discountValue: number;
+    endsAt?: string | null;
   } | null;
   thumbnailUrl?: string;
   brand: {
@@ -173,6 +175,7 @@ export type StorefrontProductDetail = Omit<
   pricing: {
     sellingPrice: number;
     effectivePrice: number;
+    compareAtPrice?: number | null;
     discountAmount: number;
     priceWithVat: number;
     currencyCode: string;
@@ -259,7 +262,8 @@ export type StorefrontSearchProduct = {
   sku: string;
   thumbnailUrl?: string;
   effectivePrice: number;
-  oldPrice?: number;
+  compareAtPrice?: number | null;
+  promotionLabel?: string | null;
   currencyCode: string;
   brandName: string;
   categoryName: string;
@@ -276,7 +280,8 @@ export type StorefrontSearchSuggestion = {
   sku?: string;
   thumbnailUrl?: string;
   effectivePrice?: number;
-  oldPrice?: number;
+  compareAtPrice?: number | null;
+  promotionLabel?: string | null;
   currencyCode?: string;
 };
 
@@ -865,7 +870,8 @@ export async function getStorefrontSearchSuggestions(query: string) {
       sku: product.sku,
       thumbnailUrl: product.thumbnailUrl,
       effectivePrice: product.effectivePrice,
-      oldPrice: product.oldPrice,
+      compareAtPrice: product.compareAtPrice,
+      promotionLabel: product.promotionLabel,
       currencyCode: product.currencyCode,
     }),
   );

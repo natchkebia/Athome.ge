@@ -238,10 +238,7 @@ export default function ProductDetail({
     backendRelatedProducts.length > 0
       ? backendRelatedProducts.map(mapStorefrontProductToCard)
       : fallbackRelatedProducts;
-  const detailReferencePrice = Math.max(
-    product.oldPrice ?? 0,
-    product.pricing.sellingPrice
-  );
+  const detailReferencePrice = product.pricing.compareAtPrice ?? 0;
   const currentPrice =
     dealPricing?.effectivePrice ?? product.pricing.effectivePrice;
   const referencePrice = Math.max(
@@ -290,10 +287,7 @@ export default function ProductDetail({
         setDealPricing(
           deal
             ? {
-                referencePrice: Math.max(
-                  deal.oldPrice ?? 0,
-                  deal.sellingPrice
-                ),
+                referencePrice: deal.compareAtPrice ?? 0,
                 effectivePrice: deal.effectivePrice,
                 discountPercent: deal.discountPercent,
               }

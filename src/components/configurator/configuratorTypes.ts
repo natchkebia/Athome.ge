@@ -36,6 +36,8 @@ export type ConfiguratorProduct = {
   slug?: string;
   image: string;
   price: number;
+  compareAtPrice?: number;
+  promotionLabel?: string;
   stock: number;
   stockStatus?: string;
   hasOwnStock?: boolean;

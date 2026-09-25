@@ -61,7 +61,8 @@ export type ConfiguratorProductCard = {
   sku?: string | null;
   thumbnailUrl?: string | null;
   effectivePrice: number;
-  oldPrice?: number | null;
+  compareAtPrice?: number | null;
+  promotionLabel?: string | null;
   discountPercent?: number | null;
   currencyCode?: string | null;
   brandName?: string | null;

@@ -9,6 +9,9 @@ export type ProfileCartItem = {
   slug?: string;
   sellingPrice: number;
   oldPrice?: number;
+  unitPrice?: number;
+  compareAtPrice?: number | null;
+  promotionLabel?: string | null;
   quantity: number;
   lineTotal: number;
   isInStock: boolean;
