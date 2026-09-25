@@ -18,6 +18,9 @@ export default function BrandCard({ image, alt = "brand" }: BrandCardProps) {
         <img
           src={image}
           alt={alt}
+          width={72}
+          height={72}
+          decoding="async"
           onError={() => {
             setFailed(true);
           }}

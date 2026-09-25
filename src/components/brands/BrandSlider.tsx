@@ -14,6 +14,11 @@ import {
 } from "@/lib/api/storefront";
 import { useStorefrontLocale } from "@/lib/i18n/useStorefrontLocale";
 import { normalizeMediaUrl } from "@/lib/storefront/products";
+import { img } from "@/lib/media/img";
+
+// მთავარ გვერდზე ყველა (180+) ლოგო ერთბაშად ტრაფიკს ართმევს პროდუქტის სურათებს.
+// სრული სია /brands გვერდზეა (სათაური იქ მიდის).
+const HOME_BRAND_LIMIT = 24;
 
 export default function BrandSlider() {
   const locale = useStorefrontLocale();
@@ -44,11 +49,12 @@ export default function BrandSlider() {
 
   const slides = useMemo(
     () =>
-      brands.map((brand) => ({
-            slug: brand.slug,
-            name: brand.name,
-            logoUrl: normalizeMediaUrl(brand.logoUrl),
-          })),
+      brands.slice(0, HOME_BRAND_LIMIT).map((brand) => ({
+        slug: brand.slug,
+        name: brand.name,
+        // 72px ლოგოს retina-ზე ~150px სჭირდება → ?w=200.
+        logoUrl: img(normalizeMediaUrl(brand.logoUrl), 200),
+      })),
     [brands]
   );
   if (slides.length === 0) return null;

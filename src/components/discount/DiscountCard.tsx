@@ -29,6 +29,8 @@ export interface ProductCardProps {
   slug?: string;
   layout?: "grid" | "list";
   fixedSize?: boolean;
+  /** Swiper-ის შიგნით მშობლიური lazy ხშირად არ ირთვება (transform) — იქ eager. */
+  eager?: boolean;
 }
 
 function ZoomIcon() {
@@ -68,6 +70,7 @@ export default function DiscountCard({
   slug,
   layout = "grid",
   fixedSize = false,
+  eager = false,
 }: ProductCardProps) {
   const locale = useStorefrontLocale();
   const en = locale === "en";
@@ -336,6 +339,7 @@ export default function DiscountCard({
             alt={title}
             width={172}
             height={172}
+            loading={eager ? "eager" : "lazy"}
           />
         </div>
       </div>

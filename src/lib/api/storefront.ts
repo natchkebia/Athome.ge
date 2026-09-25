@@ -1,3 +1,4 @@
+import { getBrowserLocale } from "@/lib/i18n/locale";
 import { apiRequest } from "./client";
 import { getStoredAuthTokens } from "@/lib/auth/tokens";
 
@@ -461,10 +462,31 @@ export function getStorefrontBrandFilters(
   );
 }
 
+// კატეგორიების ხეს Navbar/Footer/SearchBar/გვერდები ერთდროულად ითხოვენ.
+// ერთ ენაზე ერთი მოთხოვნა იგზავნება და ყველა მას იზიარებს (backend 15 წთ ქეშავს).
+const CATEGORIES_TTL_MS = 5 * 60 * 1000;
+const categoriesCache = new Map<
+  string,
+  { at: number; promise: Promise<StorefrontCategory[]> }
+>();
+
 export function getStorefrontCategories() {
-  return apiRequest<StorefrontCategory[]>("/api/storefront/categories", {
-    useProxy: true,
+  const key = getBrowserLocale() ?? "";
+  const cached = categoriesCache.get(key);
+  if (cached && Date.now() - cached.at < CATEGORIES_TTL_MS) {
+    return cached.promise;
+  }
+
+  const promise = apiRequest<StorefrontCategory[]>(
+    "/api/storefront/categories",
+    { useProxy: true }
+  ).catch((error) => {
+    // შეცდომა არ დავქეშოთ — შემდეგი გამოძახება თავიდან სცდის.
+    if (categoriesCache.get(key)?.promise === promise) categoriesCache.delete(key);
+    throw error;
   });
+  categoriesCache.set(key, { at: Date.now(), promise });
+  return promise;
 }
 
 export type StorefrontService = {

@@ -141,6 +141,7 @@ export default function DiscountSlider({
                     }
                     onAddToCart={(id) => addToCart(Number(id))}
                     fixedSize={fixedCardSize}
+                    eager
                   />
                 </Link>
               ) : (
@@ -162,6 +163,7 @@ export default function DiscountSlider({
                   }
                   onAddToCart={(id) => addToCart(Number(id))}
                   fixedSize={fixedCardSize}
+                  eager
                 />
               )}
             </SwiperSlide>

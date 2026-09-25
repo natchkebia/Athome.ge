@@ -484,11 +484,12 @@ function ProductsPageInner() {
 
     Promise.all(
       subs.map((sub) =>
-        getAllStorefrontProducts({
+        // მხოლოდ რაოდენობა გვჭირდება — მთელი სიის ნაცვლად totalCount (1 ჩანაწერი).
+        getStorefrontProducts({
           subCategorySlug: sub.slug,
-          pageSize: PRODUCT_LIMIT,
+          pageSize: 1,
         })
-          .then((items) => ({ count: items.length }))
+          .then((page) => ({ count: page.totalCount }))
           .catch(() => ({ count: undefined }))
       )
     ).then((results) => {
