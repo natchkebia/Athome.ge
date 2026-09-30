@@ -185,10 +185,13 @@
 }
 
 .libertyBadge {
-  color: #34383b;
-  font-size: 6px;
-  font-weight: 700;
-  letter-spacing: -0.2px;
+  img {
+    width: 25px;
+    height: 8px;
+    max-width: none;
+    object-fit: cover;
+    object-position: top center;
+  }
 }
 
 .bogSplitIcon {

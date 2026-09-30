@@ -186,9 +186,11 @@ export default function Step4Payment({
                       <span
                         className={`${styles.paymentBadge} ${styles.libertyBadge}`}
                         title={en ? "Liberty Bank" : "ლიბერთი ბანკი"}
-                        aria-label={en ? "Liberty Bank" : "ლიბერთი ბანკი"}
                       >
-                        {en ? "Liberty" : "ლიბერთი"}
+                        <img
+                          src="/icons/liberty-bank.png"
+                          alt={en ? "Liberty Bank" : "ლიბერთი ბანკი"}
+                        />
                       </span>
                     </span>
                   </div>
