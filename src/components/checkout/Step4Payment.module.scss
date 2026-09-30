@@ -161,25 +161,20 @@
 .paymentBadges {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 10px;
 }
 
 .paymentBadge {
   width: 30px;
-  height: 30px;
+  height: 28px;
   flex: 0 0 30px;
-  border: 1px solid #edf1f4;
-  border-radius: 7px;
-  background: #fff;
-  box-shadow: 0 2px 7px rgba(42, 58, 68, 0.08);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
 
   img {
-    width: 23px;
-    height: 19px;
+    width: 28px;
+    height: 26px;
     object-fit: contain;
   }
 }
