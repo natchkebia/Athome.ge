@@ -206,7 +206,7 @@ export default function PrebuiltConfigurator({ productId, onConfiguredPrice, onQ
       <strong>{(quote?.price ?? base.basePrice).toFixed(2)} ₾</strong>
     </div>
     {priceDelta !== 0 && <div className={priceDelta < 0 ? styles.prebuiltSaving : styles.prebuiltIncrease}>{priceDelta > 0 ? "+" : ""}{priceDelta.toFixed(2)} ₾</div>}
-    <div className={styles.prebuiltParts}>{parts.map((part) => <div key={part.slot} className={styles.prebuiltPart}>
+    <div className={styles.prebuiltParts}>{parts.map((part, index) => <div key={`${part.slot}-${part.productId}-${index}`} className={styles.prebuiltPart}>
       <img src={normalizeMediaUrl(part.thumbnailUrl ?? undefined) || "/images/case.svg"} alt="" />
       <div><small>{part.slot}</small><strong>{part.productName}</strong><span>{part.quantity} × {part.unitPrice.toFixed(2)} ₾</span></div>
       {part.isSwappable && <button type="button" onClick={() => void openOptions(part)}>{en ? "Change" : "შეცვლა"}</button>}

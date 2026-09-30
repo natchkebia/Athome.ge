@@ -565,7 +565,11 @@ export default function ProductDetail({
                     <button type="button" onClick={() => updateQuantity(quantity + 1)} disabled={quantity >= maxQuantity || !isAvailable} aria-label={en ? "Increase quantity" : "რაოდენობის გაზრდა"}>+</button>
                   </span>
                 </label>
-                <button className={styles.buyNowButton} onClick={handleBuyNow} disabled={!isAvailable || configuredPrice != null}>
+                <button
+                  className={`${styles.buyNowButton} ${configuredPrice != null ? styles.buyNowButtonConfigured : ""}`}
+                  onClick={handleBuyNow}
+                  disabled={!isAvailable || configuredPrice != null}
+                >
                   {configuredPrice != null ? (en ? "Use configured cart button" : "გამოიყენეთ კონფიგურაციის ღილაკი") : isAvailable ? (en ? "Buy now" : "ყიდვა") : (en ? "Out of stock" : "ამოწურულია")}
                 </button>
               </div>
