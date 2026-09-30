@@ -30,12 +30,8 @@ export const PAYMENT_OPTIONS: BankPaymentOptions = {
 const CARD_OPTIONS = ["tbc", "bog", "flitt"] as const;
 
 const FLITT_PAYMENT_METHODS = [
-  { src: "/icons/card.svg", labelKa: "საბანკო ბარათი", labelEn: "Credit or debit card" },
   { src: "/icons/apple.svg", labelKa: "Apple Pay", labelEn: "Apple Pay" },
   { src: "/icons/google.svg", labelKa: "Google Pay", labelEn: "Google Pay" },
-  { src: "/icons/Tbc.svg", labelKa: "თიბისი ბანკი", labelEn: "TBC Bank" },
-  { src: "/icons/kredo.svg", labelKa: "კრედო ბანკი", labelEn: "Credo Bank" },
-  { src: "/icons/Bank_of_Georgia.svg", labelKa: "საქართველოს ბანკი", labelEn: "Bank of Georgia" },
 ] as const;
 
 const FINANCING_OPTIONS = [
@@ -183,15 +179,6 @@ export default function Step4Payment({
                           />
                         </span>
                       ))}
-                      <span
-                        className={`${styles.paymentBadge} ${styles.libertyBadge}`}
-                        title={en ? "Liberty Bank" : "ლიბერთი ბანკი"}
-                      >
-                        <img
-                          src="/icons/liberty-bank.png"
-                          alt={en ? "Liberty Bank" : "ლიბერთი ბანკი"}
-                        />
-                      </span>
                     </span>
                   </div>
                 ) : bankCode === "tbc" && method === "card" ? (
