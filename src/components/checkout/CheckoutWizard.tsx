@@ -60,7 +60,8 @@ type CheckoutProgress = {
 
 function mapBank(bank: string): SelectedBank {
   if (bank === "boa" || bank === "bog") return "bog";
-  if (bank === "tbc" || bank === "credo") return bank;
+  if (bank === "tbc" || bank === "flitt") return "tbc";
+  if (bank === "credo") return bank;
   return "bog";
 }
 
@@ -267,8 +268,8 @@ export default function CheckoutWizard({ onStepChange, onDeliverySummaryChange }
         return;
       }
 
-      // Fallback: TBC (flitt) ბარათით გადახდისას, თუ ბექმა redirect URL არ
-      // დააბრუნა, front თვითონ იძახებს flitt-ის initiate-ს და გადაამისამართებს.
+      // Fallback: Flitt-ით დამუშავებული ბარათის გადახდისას, თუ ბექმა redirect
+      // URL არ დააბრუნა, front თვითონ იძახებს initiate-ს და გადაამისამართებს.
       if (payload.paymentMethod === "card" && payload.selectedBank === "tbc") {
         try {
           // Flitt ამოწმებს, რომ email ემთხვევოდეს შეკვეთის email-ს. ავტორიზებულ

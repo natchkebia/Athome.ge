@@ -27,6 +27,17 @@ export const PAYMENT_OPTIONS: BankPaymentOptions = {
   credo: { card: false, installment: true, splitPayment: true },
 };
 
+const CARD_OPTIONS = ["tbc", "bog", "flitt"] as const;
+
+const FLITT_PAYMENT_METHODS = [
+  { src: "/icons/card.svg", labelKa: "საბანკო ბარათი", labelEn: "Credit or debit card" },
+  { src: "/icons/apple.svg", labelKa: "Apple Pay", labelEn: "Apple Pay" },
+  { src: "/icons/google.svg", labelKa: "Google Pay", labelEn: "Google Pay" },
+  { src: "/icons/Tbc.svg", labelKa: "თიბისი ბანკი", labelEn: "TBC Bank" },
+  { src: "/icons/kredo.svg", labelKa: "კრედო ბანკი", labelEn: "Credo Bank" },
+  { src: "/icons/Bank_of_Georgia.svg", labelKa: "საქართველოს ბანკი", labelEn: "Bank of Georgia" },
+] as const;
+
 const FINANCING_OPTIONS = [
   { bank: "tbc", method: "installment", labelKa: "თიბისი განვადება", labelEn: "TBC installment" },
   { bank: "bog", method: "installment", labelKa: "საქართველოს ბანკის განვადება", labelEn: "Bank of Georgia installment" },
@@ -60,14 +71,13 @@ export default function Step4Payment({
   const [installmentMonths, setInstallmentMonths] = useState(6);
   const splitPaymentEligible = orderTotal >= SPLIT_PAYMENT_MIN_GEL;
   const financingSelected = method === "installment" || method === "splitPayment";
-  const availableBanks = useMemo(
-    () =>
-      (["tbc", "bog", "credo"] as const).filter(
-        (bankCode) =>
-          method !== "bankTransfer" && PAYMENT_OPTIONS[bankCode][method],
-      ),
-    [method],
-  );
+  const availableBanks = useMemo<string[]>(() => {
+    if (method === "card") return [...CARD_OPTIONS];
+    if (method === "bankTransfer") return [];
+    return (["tbc", "bog", "credo"] as const).filter(
+      (bankCode) => PAYMENT_OPTIONS[bankCode][method],
+    );
+  }, [method]);
 
   useEffect(() => {
     if (method === "splitPayment" && !splitPaymentEligible) {
@@ -75,7 +85,7 @@ export default function Step4Payment({
       setBank("tbc");
       return;
     }
-    if (method !== "bankTransfer" && !availableBanks.includes(bank as "tbc" | "bog" | "credo")) {
+    if (method !== "bankTransfer" && !availableBanks.includes(bank)) {
       setBank(availableBanks[0] ?? "");
     }
   }, [availableBanks, bank, method, splitPaymentEligible]);
@@ -149,12 +159,40 @@ export default function Step4Payment({
           {availableBanks.map((bankCode) => (
             <div
               key={bankCode}
-              className={`${styles.bank} ${bank === bankCode && styles.bankActive}`}
+              className={`${styles.bank} ${bank === bankCode && styles.bankActive} ${bankCode === "flitt" ? styles.universalBank : ""}`}
               onClick={() => setBank(bankCode)}
             >
               <div className={styles.bankWrapper}>
                 <div className={styles.radio}>{bank === bankCode && <div />}</div>
-                {bankCode === "tbc" && method === "card" ? (
+                {bankCode === "flitt" ? (
+                  <div className={styles.universalFlittBrand}>
+                    <span className={styles.flittWordmarkCrop}>
+                      <img src="/icons/flitt-payment.png" alt="Flitt" />
+                    </span>
+                    <span className={styles.paymentDivider} aria-hidden="true" />
+                    <span className={styles.paymentBadges}>
+                      {FLITT_PAYMENT_METHODS.map((paymentMethod) => (
+                        <span
+                          key={paymentMethod.labelEn}
+                          className={styles.paymentBadge}
+                          title={en ? paymentMethod.labelEn : paymentMethod.labelKa}
+                        >
+                          <img
+                            src={paymentMethod.src}
+                            alt={en ? paymentMethod.labelEn : paymentMethod.labelKa}
+                          />
+                        </span>
+                      ))}
+                      <span
+                        className={`${styles.paymentBadge} ${styles.libertyBadge}`}
+                        title={en ? "Liberty Bank" : "ლიბერთი ბანკი"}
+                        aria-label={en ? "Liberty Bank" : "ლიბერთი ბანკი"}
+                      >
+                        {en ? "Liberty" : "ლიბერთი"}
+                      </span>
+                    </span>
+                  </div>
+                ) : bankCode === "tbc" && method === "card" ? (
                   <img src="/icons/flitt-payment.png" className={styles.flittIcon} alt="Flitt" />
                 ) : bankCode === "tbc" ? (
                   <img src="/icons/Tbc.svg" className={styles.bankIcon} alt={en ? "TBC Bank" : "თიბისი ბანკი"} />
