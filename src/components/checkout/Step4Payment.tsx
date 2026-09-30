@@ -33,7 +33,7 @@ const FINANCING_OPTIONS = [
   { bank: "credo", method: "installment", labelKa: "კრედო განვადება", labelEn: "Credo installment" },
   { bank: "tbc", method: "splitPayment", labelKa: "Flitt TBC ნაწილ-ნაწილი", labelEn: "Flitt TBC split payment" },
   { bank: "bog", method: "splitPayment", labelKa: "საქართველოს ბანკის ნაწილ-ნაწილი", labelEn: "Bank of Georgia split payment" },
-  { bank: "credo", method: "splitPayment", labelKa: "კრედო ბანკის ნაწილ-ნაწილი", labelEn: "Credo split payment" },
+  { bank: "credo", method: "splitPayment", labelKa: "კრედო ბანკის და-ყა-ვი", labelEn: "Credo Bank DA-YA-VI" },
 ] as const;
 
 interface Props {
@@ -197,6 +197,8 @@ export default function Step4Payment({
                     <img src="/icons/bog-split-payment.png" className={styles.bogSplitIcon} alt={en ? "Bank of Georgia split payment" : "საქართველოს ბანკის ნაწილ-ნაწილი"} />
                   ) : option.bank === "bog" ? (
                     <img src="/icons/Bank_of_Georgia.svg" className={styles.bankIcon1} alt={en ? "Bank of Georgia" : "საქართველოს ბანკი"} />
+                  ) : option.bank === "credo" && option.method === "splitPayment" ? (
+                    <img src="/icons/credo-dayavi.png" className={styles.credoDayaviIcon} alt={en ? "Credo Bank DA-YA-VI" : "კრედო ბანკის და-ყა-ვი"} />
                   ) : (
                     <img src="/icons/kredo.svg" className={styles.bankIcon} alt={en ? "Credo Bank" : "კრედო ბანკი"} />
                   )}
