@@ -30,6 +30,8 @@ export const PAYMENT_OPTIONS: BankPaymentOptions = {
 const CARD_OPTIONS = ["tbc", "bog", "flitt"] as const;
 
 const FLITT_PAYMENT_METHODS = [
+  { src: "/icons/visa-mark.svg", labelKa: "Visa", labelEn: "Visa" },
+  { src: "/icons/mastercard-mark.svg", labelKa: "Mastercard", labelEn: "Mastercard" },
   { src: "/icons/google.svg", labelKa: "Google Pay", labelEn: "Google Pay" },
   { src: "/icons/apple-mark.svg", labelKa: "Apple Pay", labelEn: "Apple Pay" },
 ] as const;
