@@ -88,6 +88,7 @@ export default function ConfiguratorCategoryCard({
             key={firstSelectedProduct.id}
             src={firstSelectedProduct.image}
             alt={firstSelectedProduct.title}
+            width={100}
           />
         ) : (
           <img src={category.icon} alt={title} />

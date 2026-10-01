@@ -18,6 +18,7 @@ import {
 } from "@/lib/api/prebuilt";
 import { useStorefrontLocale } from "@/lib/i18n/useStorefrontLocale";
 import { printConfiguration } from "@/lib/configurator/printConfiguration";
+import { img, imgSrcset } from "@/lib/media/img";
 import styles from "./ProductDetail.module.scss";
 
 const EMPTY_FILTERS: DynamicFilterValues = { price: [0, 0], brandSlugs: [], inStockOnly: true, attributes: {}, ranges: {} };
@@ -207,7 +208,13 @@ export default function PrebuiltConfigurator({ productId, onConfiguredPrice, onQ
     </div>
     {priceDelta !== 0 && <div className={priceDelta < 0 ? styles.prebuiltSaving : styles.prebuiltIncrease}>{priceDelta > 0 ? "+" : ""}{priceDelta.toFixed(2)} ₾</div>}
     <div className={styles.prebuiltParts}>{parts.map((part, index) => <div key={`${part.slot}-${part.productId}-${index}`} className={styles.prebuiltPart}>
-      <img src={normalizeMediaUrl(part.thumbnailUrl ?? undefined) || "/images/case.svg"} alt="" />
+      <img
+        src={img(normalizeMediaUrl(part.thumbnailUrl ?? undefined) || "/images/case.svg", 100)}
+        srcSet={imgSrcset(normalizeMediaUrl(part.thumbnailUrl ?? undefined), 100) || undefined}
+        loading="lazy"
+        decoding="async"
+        alt=""
+      />
       <div><small>{part.slot}</small><strong>{part.productName}</strong><span>{part.quantity} × {part.unitPrice.toFixed(2)} ₾</span></div>
       {part.isSwappable && <button type="button" onClick={() => void openOptions(part)}>{en ? "Change" : "შეცვლა"}</button>}
     </div>)}</div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useId } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import Link from "next/link";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation } from "swiper/modules";
@@ -29,6 +29,7 @@ interface DiscountSliderProps {
   compact?: boolean;
   flush?: boolean;
   fixedCardSize?: boolean;
+  deferOffscreenImages?: boolean;
 }
 
 export default function DiscountSlider({
@@ -37,10 +38,38 @@ export default function DiscountSlider({
   compact = false,
   flush = false,
   fixedCardSize = false,
+  deferOffscreenImages = false,
 }: DiscountSliderProps) {
   const [progress, setProgress] = useState(10);
+  const [isNearViewport, setIsNearViewport] = useState(!deferOffscreenImages);
+  const [loadedThrough, setLoadedThrough] = useState(
+    deferOffscreenImages ? -1 : Number.POSITIVE_INFINITY,
+  );
+  const sliderRef = useRef<HTMLDivElement>(null);
   const sliderId = useId().replace(/:/g, "");
   const { wishlistProductIds, toggleWishlist, addToCart } = useCommerce();
+
+  useEffect(() => {
+    if (!deferOffscreenImages) {
+      setIsNearViewport(true);
+      setLoadedThrough(Number.POSITIVE_INFINITY);
+      return;
+    }
+
+    const slider = sliderRef.current;
+    if (!slider) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting) return;
+        setIsNearViewport(true);
+        setLoadedThrough(5);
+        observer.disconnect();
+      },
+      { rootMargin: "400px 0px" },
+    );
+    observer.observe(slider);
+    return () => observer.disconnect();
+  }, [deferOffscreenImages]);
 
   const updateProgress = (swiper: {
     activeIndex: number;
@@ -52,10 +81,16 @@ export default function DiscountSlider({
     const rawProgress = total > 0 ? (swiper.activeIndex / total) * 100 : 100;
 
     setProgress(swiper.activeIndex === 0 ? 10 : Math.min(rawProgress, 100));
+    if (isNearViewport && deferOffscreenImages) {
+      setLoadedThrough((current) =>
+        Math.max(current, swiper.activeIndex + Math.ceil(visibleSlides) + 1),
+      );
+    }
   };
 
   return (
     <div
+      ref={sliderRef}
       className={`${styles.sliderWrapper} ${
         compact ? styles.compactSlider : ""
       } ${flush ? styles.flushSlider : ""} ${
@@ -116,7 +151,7 @@ export default function DiscountSlider({
           onAfterInit={updateProgress}
           className={styles.swiper}
         >
-          {products.map((item) => (
+          {products.map((item, index) => (
             <SwiperSlide key={item.id}>
               {item.category && item.slug ? (
                 <Link
@@ -141,7 +176,8 @@ export default function DiscountSlider({
                     }
                     onAddToCart={(id) => addToCart(Number(id))}
                     fixedSize={fixedCardSize}
-                    eager
+                    eager={isNearViewport && index <= loadedThrough}
+                    renderImage={!deferOffscreenImages || index <= loadedThrough}
                   />
                 </Link>
               ) : (
@@ -163,7 +199,8 @@ export default function DiscountSlider({
                   }
                   onAddToCart={(id) => addToCart(Number(id))}
                   fixedSize={fixedCardSize}
-                  eager
+                  eager={isNearViewport && index <= loadedThrough}
+                  renderImage={!deferOffscreenImages || index <= loadedThrough}
                 />
               )}
             </SwiperSlide>

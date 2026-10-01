@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import styles from "./ProductGallery.module.scss";
 import Image from "next/image";
 import { img } from "@/lib/media/img";
@@ -20,12 +20,53 @@ export default function ProductGallery({
   discountPercent = 0,
 }: ProductGalleryProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [initialImageLoaded, setInitialImageLoaded] = useState(false);
+  const [zooming, setZooming] = useState(false);
+  const [zoomReadyUrls, setZoomReadyUrls] = useState<Set<string>>(() => new Set());
   const thumbnailsRef = useRef<HTMLDivElement | null>(null);
   const thumbnailRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const imageUrlsKey = images.map((image) => image.url).join("\u0000");
+
+  const currentImage = images[currentIndex];
+  const currentUrl = currentImage?.url ?? "";
+  const mainSrc = useMemo(() => {
+    if (zooming && zoomReadyUrls.has(currentUrl)) return img(currentUrl, 1600);
+    return img(currentUrl, 800);
+  }, [currentUrl, zoomReadyUrls, zooming]);
+  const mainSrcSet = zooming && zoomReadyUrls.has(currentUrl)
+    ? `${img(currentUrl, 1600)} 1x`
+    : `${img(currentUrl, 800)} 1x, ${img(currentUrl, 1200)} 2x`;
 
   useEffect(() => {
     setCurrentIndex(0);
-  }, [images]);
+    setInitialImageLoaded(false);
+    setZooming(false);
+    setZoomReadyUrls(new Set());
+  }, [imageUrlsKey]);
+
+  useEffect(() => {
+    const imageUrls = imageUrlsKey ? imageUrlsKey.split("\u0000") : [];
+    if (!initialImageLoaded || imageUrls.length < 2) return;
+
+    const preload = () => {
+      imageUrls.forEach((url) => {
+        const preloadImage = new window.Image();
+        preloadImage.src = img(url, 800);
+      });
+    };
+    const idleWindow = window as typeof window & {
+      requestIdleCallback?: (callback: () => void) => number;
+      cancelIdleCallback?: (id: number) => void;
+    };
+
+    if (idleWindow.requestIdleCallback) {
+      const idleId = idleWindow.requestIdleCallback(preload);
+      return () => idleWindow.cancelIdleCallback?.(idleId);
+    }
+
+    const timeoutId = window.setTimeout(preload, 250);
+    return () => window.clearTimeout(timeoutId);
+  }, [imageUrlsKey, initialImageLoaded]);
 
   useEffect(() => {
     const container = thumbnailsRef.current;
@@ -41,16 +82,36 @@ export default function ProductGallery({
   }, [currentIndex]);
 
   const handlePrev = () => {
+    setZooming(false);
     setCurrentIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
   };
 
   const handleNext = () => {
+    setZooming(false);
     setCurrentIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
   };
 
   const handleSelect = (index: number) => {
+    setZooming(false);
     setCurrentIndex(index);
   };
+
+  const handleZoomStart = useCallback(() => {
+    if (!currentUrl) return;
+    setZooming(true);
+    if (zoomReadyUrls.has(currentUrl)) return;
+
+    const zoomImage = new window.Image();
+    zoomImage.onload = () => {
+      setZoomReadyUrls((readyUrls) => {
+        if (readyUrls.has(currentUrl)) return readyUrls;
+        const next = new Set(readyUrls);
+        next.add(currentUrl);
+        return next;
+      });
+    };
+    zoomImage.src = img(currentUrl, 1600);
+  }, [currentUrl, zoomReadyUrls]);
 
   return (
     <div className={styles.gallery}>
@@ -68,12 +129,23 @@ export default function ProductGallery({
           <img src="/icons/DiscountArrow.svg" alt="DiscountArrow.svg" />
         </button>
 
-        <Image
-          src={img(images[currentIndex]?.url, 800)}
-          alt={images[currentIndex]?.altText || `product-image-${currentIndex}`}
+        {/* Explicit API srcSet keeps the first paint light and the hover zoom sharp. */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={mainSrc}
+          srcSet={mainSrcSet}
+          alt={currentImage?.altText || `product-image-${currentIndex}`}
           width={300}
           height={300}
           className={styles.mainImage}
+          loading={currentIndex === 0 ? "eager" : "lazy"}
+          fetchPriority={currentIndex === 0 ? "high" : "auto"}
+          decoding="async"
+          onLoad={() => {
+            if (currentIndex === 0) setInitialImageLoaded(true);
+          }}
+          onMouseEnter={handleZoomStart}
+          onMouseLeave={() => setZooming(false)}
         />
 
         <button

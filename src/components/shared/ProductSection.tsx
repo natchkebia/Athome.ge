@@ -22,6 +22,7 @@ interface ProductSectionProps {
   compact?: boolean;
   flush?: boolean;
   fixedCardSize?: boolean;
+  deferOffscreenImages?: boolean;
 }
 
 export default function ProductSection({
@@ -31,6 +32,7 @@ export default function ProductSection({
   compact = false,
   flush = false,
   fixedCardSize = false,
+  deferOffscreenImages = false,
 }: ProductSectionProps) {
   const locale = useStorefrontLocale();
   const englishTitles: Record<string, string> = {
@@ -63,6 +65,7 @@ export default function ProductSection({
           ...p,
           oldPrice: p.oldPrice ?? undefined,
         }))}
+        deferOffscreenImages={deferOffscreenImages}
       />
     </div>
   );

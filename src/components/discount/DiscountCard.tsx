@@ -31,6 +31,8 @@ export interface ProductCardProps {
   fixedSize?: boolean;
   /** Swiper-ის შიგნით მშობლიური lazy ხშირად არ ირთვება (transform) — იქ eager. */
   eager?: boolean;
+  /** Slider can hold the image out of the DOM until its own observer activates it. */
+  renderImage?: boolean;
 }
 
 function ZoomIcon() {
@@ -71,6 +73,7 @@ export default function DiscountCard({
   layout = "grid",
   fixedSize = false,
   eager = false,
+  renderImage = true,
 }: ProductCardProps) {
   const locale = useStorefrontLocale();
   const en = locale === "en";
@@ -333,14 +336,16 @@ export default function DiscountCard({
         </div>
 
         <div className={styles.imageWrapper} ref={imageRef}>
-          <Image
-            className={styles.productImage}
-            src={img(image, 400)}
-            alt={title}
-            width={172}
-            height={172}
-            loading={eager ? "eager" : "lazy"}
-          />
+          {renderImage && (
+            <Image
+              className={styles.productImage}
+              src={img(image, 400)}
+              alt={title}
+              width={172}
+              height={172}
+              loading={eager ? "eager" : "lazy"}
+            />
+          )}
         </div>
       </div>
 

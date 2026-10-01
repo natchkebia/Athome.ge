@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useId, useMemo, useState } from "react";
 import Link from "next/link";
 import styles from "./Configurator.module.scss";
 import AtHomeLoader from "@/components/shared/AtHomeLoader";
@@ -102,6 +102,7 @@ export default function ConfiguratorProductModal({
   ports = [],
 }: Props) {
   const en = useStorefrontLocale() === "en";
+  const titleId = useId();
   const [searchValue, setSearchValue] = useState("");
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [checkingProductId, setCheckingProductId] = useState<number | null>(null);
@@ -215,7 +216,12 @@ export default function ConfiguratorProductModal({
 
   return (
     <div className={styles.modalOverlay}>
-      <div className={styles.modal}>
+      <div
+        className={styles.modal}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+      >
         <button
           type="button"
           className={styles.modalClose}
@@ -225,7 +231,7 @@ export default function ConfiguratorProductModal({
           ×
         </button>
 
-        <h2>{title}</h2>
+        <h2 id={titleId}>{title}</h2>
 
         <div
           className={`${styles.modalContent} ${

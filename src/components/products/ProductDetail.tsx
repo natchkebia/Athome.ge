@@ -748,6 +748,7 @@ export default function ProductDetail({
               title={group.heading}
               products={group.products}
               compact
+              deferOffscreenImages
             />
           ))}
         </div>
@@ -758,6 +759,7 @@ export default function ProductDetail({
           icon="/icons/Monitor.svg"
           title="ალტერნატივები"
           products={alternativeProducts}
+          deferOffscreenImages
         />
       )}
 
@@ -768,6 +770,7 @@ export default function ProductDetail({
           products={relatedProducts}
           flush
           fixedCardSize
+          deferOffscreenImages
         />
       )}
 
@@ -776,6 +779,7 @@ export default function ProductDetail({
           icon="/icons/Monitor.svg"
           title="აქსესუარები"
           products={accessoryProducts}
+          deferOffscreenImages
         />
       )}
 
@@ -784,6 +788,7 @@ export default function ProductDetail({
           icon="/icons/Monitor.svg"
           title="დაამატე შეკვეთას"
           products={upsellProducts}
+          deferOffscreenImages
         />
       )}
 
