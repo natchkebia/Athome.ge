@@ -4,62 +4,62 @@ export const systemUnitCategories: ConfiguratorCategory[] = [
   {
     key: "processor",
     title: "პროცესორი",
-    icon: "/images/processor.svg",
+    icon: "/images/processor.webp",
   },
   {
     key: "motherboard",
     title: "დედა დაფა",
-    icon: "/images/motherboard.svg",
+    icon: "/images/motherboard.webp",
   },
   {
     key: "ram",
     title: "ოპერატიული მეხსიერება",
-    icon: "/images/ram.svg",
+    icon: "/images/ram.webp",
   },
   {
     key: "gpu",
     title: "ვიდეობარათი",
-    icon: "/images/gpu.svg",
+    icon: "/images/gpu.webp",
   },
   {
     key: "psu",
     title: "კვების ბლოკი",
-    icon: "/images/psu.svg",
+    icon: "/images/psu.webp",
   },
   {
     key: "cooler",
     title: "პროცესორის ქულერი (ჰაერის)",
-    icon: "/images/cooler.svg",
+    icon: "/images/cooler.webp",
   },
   {
     key: "liquidCooler",
     title: "თხევადი გაგრილება",
-    icon: "/images/cooler.svg",
+    icon: "/images/cooler.webp",
   },
   {
     key: "case",
     title: "ქეისი",
-    icon: "/images/case.svg",
+    icon: "/images/case.webp",
   },
   {
     key: "drive",
     title: "მყარი დისკი",
-    icon: "/images/Harddrive.svg",
+    icon: "/images/Harddrive.webp",
   },
   {
     key: "storage",
     title: "SSD მეხსიერება",
-    icon: "/images/ssd.svg",
+    icon: "/images/ssd.webp",
   },
   {
     key: "storageDrive",
     title: "საცავი",
-    icon: "/images/Harddrive.svg",
+    icon: "/images/Harddrive.webp",
   },
   {
     key: "caseFan",
     title: "ქეისის ქულერი",
-    icon: "/images/fan.svg",
+    icon: "/images/fan.webp",
   },
   {
     key: "os",
@@ -106,7 +106,7 @@ export const configuratorProducts: ConfiguratorProduct[] = [
     id: 1,
     category: "motherboard",
     title: "MSI B650 Gaming Plus WiFi",
-    image: "/images/motherboard.svg",
+    image: "/images/motherboard.webp",
     price: 450,
     stock: 12,
     specs: [
@@ -121,7 +121,7 @@ export const configuratorProducts: ConfiguratorProduct[] = [
     id: 11,
     category: "motherboard",
     title: "MSI PRO B650M-P",
-    image: "/images/motherboard.svg",
+    image: "/images/motherboard.webp",
     price: 390,
     stock: 6,
     specs: [
@@ -136,7 +136,7 @@ export const configuratorProducts: ConfiguratorProduct[] = [
     id: 12,
     category: "motherboard",
     title: "Asus TUF Gaming B650-Plus WiFi",
-    image: "/images/motherboard.svg",
+    image: "/images/motherboard.webp",
     price: 520,
     stock: 6,
     specs: [
@@ -151,7 +151,7 @@ export const configuratorProducts: ConfiguratorProduct[] = [
     id: 13,
     category: "motherboard",
     title: "Asus Prime B550M-A",
-    image: "/images/motherboard.svg",
+    image: "/images/motherboard.webp",
     price: 280,
     stock: 6,
     specs: [
@@ -165,7 +165,7 @@ export const configuratorProducts: ConfiguratorProduct[] = [
     id: 14,
     category: "motherboard",
     title: "Gigabyte B650 Eagle AX",
-    image: "/images/motherboard.svg",
+    image: "/images/motherboard.webp",
     price: 470,
     stock: 0,
     specs: [
@@ -180,7 +180,7 @@ export const configuratorProducts: ConfiguratorProduct[] = [
     id: 15,
     category: "motherboard",
     title: "Gigabyte A520M K V2",
-    image: "/images/motherboard.svg",
+    image: "/images/motherboard.webp",
     price: 190,
     stock: 6,
     specs: [
@@ -194,7 +194,7 @@ export const configuratorProducts: ConfiguratorProduct[] = [
     id: 16,
     category: "motherboard",
     title: "AsRock B650M Pro RS",
-    image: "/images/motherboard.svg",
+    image: "/images/motherboard.webp",
     price: 410,
     stock: 6,
     specs: [
@@ -208,7 +208,7 @@ export const configuratorProducts: ConfiguratorProduct[] = [
     id: 17,
     category: "motherboard",
     title: "AsRock A620M-HDV/M.2",
-    image: "/images/motherboard.svg",
+    image: "/images/motherboard.webp",
     price: 260,
     stock: 6,
     specs: [
@@ -222,7 +222,7 @@ export const configuratorProducts: ConfiguratorProduct[] = [
     id: 2,
     category: "processor",
     title: "AMD Ryzen 5 7600X",
-    image: "/images/processor.svg",
+    image: "/images/processor.webp",
     price: 620,
     stock: 6,
     specs: [
@@ -235,7 +235,7 @@ export const configuratorProducts: ConfiguratorProduct[] = [
     id: 3,
     category: "ram",
     title: "Kingston Fury Beast 32GB DDR5",
-    image: "/images/ram.svg",
+    image: "/images/ram.webp",
     price: 290,
     stock: 6,
     specs: [
@@ -248,7 +248,7 @@ export const configuratorProducts: ConfiguratorProduct[] = [
     id: 4,
     category: "gpu",
     title: "RTX 4060 8GB",
-    image: "/images/gpu.svg",
+    image: "/images/gpu.webp",
     price: 1200,
     stock: 6,
     specs: [
@@ -324,7 +324,7 @@ export const configuratorProducts: ConfiguratorProduct[] = [
     id: 18,
     category: "psu",
     title: "Corsair CV650 650W 80+ Bronze",
-    image: "/images/psu.svg",
+    image: "/images/psu.webp",
     price: 210,
     stock: 8,
     specs: [
@@ -338,7 +338,7 @@ export const configuratorProducts: ConfiguratorProduct[] = [
     id: 19,
     category: "cooler",
     title: "DeepCool AG400 CPU Cooler",
-    image: "/images/cooler.svg",
+    image: "/images/cooler.webp",
     price: 95,
     stock: 10,
     specs: [
@@ -352,7 +352,7 @@ export const configuratorProducts: ConfiguratorProduct[] = [
     id: 20,
     category: "case",
     title: "DeepCool CC560 White Case",
-    image: "/images/case.svg",
+    image: "/images/case.webp",
     price: 180,
     stock: 7,
     specs: [
@@ -366,7 +366,7 @@ export const configuratorProducts: ConfiguratorProduct[] = [
     id: 21,
     category: "storage",
     title: "Kingston NV2 1TB NVMe SSD",
-    image: "/images/ssd.svg",
+    image: "/images/ssd.webp",
     price: 160,
     stock: 14,
     specs: [
@@ -380,7 +380,7 @@ export const configuratorProducts: ConfiguratorProduct[] = [
     id: 22,
     category: "drive",
     title: "Seagate Barracuda 1TB HDD",
-    image: "/images/Harddrive.svg",
+    image: "/images/Harddrive.webp",
     price: 120,
     stock: 9,
     specs: [
@@ -394,7 +394,7 @@ export const configuratorProducts: ConfiguratorProduct[] = [
     id: 23,
     category: "caseFan",
     title: "DeepCool RF120 RGB Fan",
-    image: "/images/fan.svg",
+    image: "/images/fan.webp",
     price: 45,
     stock: 20,
     specs: [

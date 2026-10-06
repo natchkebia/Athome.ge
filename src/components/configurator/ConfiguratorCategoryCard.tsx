@@ -91,7 +91,7 @@ export default function ConfiguratorCategoryCard({
             width={100}
           />
         ) : (
-          <img src={category.icon} alt={title} />
+          <img src={category.icon} alt={title} width={300} height={300} />
         )}
 
         <h3>{title}</h3>

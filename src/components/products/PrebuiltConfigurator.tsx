@@ -113,7 +113,7 @@ export default function PrebuiltConfigurator({ productId, onConfiguredPrice, onQ
         id: product.id,
         category: categoryForSlot(part.slot),
         title: product.name ?? "",
-        image: normalizeMediaUrl(product.thumbnailUrl ?? undefined) || "/images/case.svg",
+        image: normalizeMediaUrl(product.thumbnailUrl ?? undefined) || "/images/case.webp",
         price: product.effectivePrice,
         stock: Math.max(0, product.stockQuantity ?? 0),
         stockStatus: product.stockStatus ?? undefined,
@@ -181,7 +181,7 @@ export default function PrebuiltConfigurator({ productId, onConfiguredPrice, onQ
           id: part.productId,
           category,
           title: part.productName,
-          image: normalizeMediaUrl(part.thumbnailUrl ?? undefined) || "/images/case.svg",
+          image: normalizeMediaUrl(part.thumbnailUrl ?? undefined) || "/images/case.webp",
           price: part.unitPrice,
           stock: Math.max(0, part.available),
           specs: [],
@@ -209,7 +209,7 @@ export default function PrebuiltConfigurator({ productId, onConfiguredPrice, onQ
     {priceDelta !== 0 && <div className={priceDelta < 0 ? styles.prebuiltSaving : styles.prebuiltIncrease}>{priceDelta > 0 ? "+" : ""}{priceDelta.toFixed(2)} ₾</div>}
     <div className={styles.prebuiltParts}>{parts.map((part, index) => <div key={`${part.slot}-${part.productId}-${index}`} className={styles.prebuiltPart}>
       <img
-        src={img(normalizeMediaUrl(part.thumbnailUrl ?? undefined) || "/images/case.svg", 100)}
+        src={img(normalizeMediaUrl(part.thumbnailUrl ?? undefined) || "/images/case.webp", 100)}
         srcSet={imgSrcset(normalizeMediaUrl(part.thumbnailUrl ?? undefined), 100) || undefined}
         loading="lazy"
         decoding="async"

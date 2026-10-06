@@ -50,7 +50,7 @@ export default function ConfiguratorSummary({
           <img
             src={showPeripherals
               ? "/images/configurator-peripherals.png"
-              : "/images/case.svg"}
+              : "/images/case.webp"}
             alt={showPeripherals
               ? (en ? "Monitor and peripherals" : "მონიტორი და პერიფერია")
               : (en ? "PC case" : "კომპიუტერის კორპუსი")}

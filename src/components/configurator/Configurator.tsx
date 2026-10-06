@@ -236,18 +236,18 @@ async function getPeripheralProducts(
 }
 
 const BACKEND_SLOT_META: Record<string, Pick<ConfiguratorCategory, "key" | "title" | "icon">> = {
-  cpu: { key: "processor", title: "პროცესორი", icon: "/images/processor.svg" },
-  motherboard: { key: "motherboard", title: "დედა დაფა", icon: "/images/motherboard.svg" },
-  ram: { key: "ram", title: "ოპერატიული მეხსიერება", icon: "/images/ram.svg" },
-  gpu: { key: "gpu", title: "ვიდეობარათი", icon: "/images/gpu.svg" },
-  psu: { key: "psu", title: "კვების ბლოკი", icon: "/images/psu.svg" },
-  case: { key: "case", title: "ქეისი", icon: "/images/case.svg" },
-  cpucooler: { key: "cooler", title: "პროცესორის ქულერი (ჰაერის)", icon: "/images/cooler.svg" },
-  liquidcooler: { key: "liquidCooler", title: "თხევადი გაგრილება", icon: "/images/cooler.svg" },
-  storagessd: { key: "storage", title: "SSD მეხსიერება", icon: "/images/ssd.svg" },
-  storagehdd: { key: "drive", title: "მყარი დისკი", icon: "/images/Harddrive.svg" },
-  storagedrive: { key: "storageDrive", title: "საცავი", icon: "/images/Harddrive.svg" },
-  casefan: { key: "caseFan", title: "ქეისის ქულერი", icon: "/images/fan.svg" },
+  cpu: { key: "processor", title: "პროცესორი", icon: "/images/processor.webp" },
+  motherboard: { key: "motherboard", title: "დედა დაფა", icon: "/images/motherboard.webp" },
+  ram: { key: "ram", title: "ოპერატიული მეხსიერება", icon: "/images/ram.webp" },
+  gpu: { key: "gpu", title: "ვიდეობარათი", icon: "/images/gpu.webp" },
+  psu: { key: "psu", title: "კვების ბლოკი", icon: "/images/psu.webp" },
+  case: { key: "case", title: "ქეისი", icon: "/images/case.webp" },
+  cpucooler: { key: "cooler", title: "პროცესორის ქულერი (ჰაერის)", icon: "/images/cooler.webp" },
+  liquidcooler: { key: "liquidCooler", title: "თხევადი გაგრილება", icon: "/images/cooler.webp" },
+  storagessd: { key: "storage", title: "SSD მეხსიერება", icon: "/images/ssd.webp" },
+  storagehdd: { key: "drive", title: "მყარი დისკი", icon: "/images/Harddrive.webp" },
+  storagedrive: { key: "storageDrive", title: "საცავი", icon: "/images/Harddrive.webp" },
+  casefan: { key: "caseFan", title: "ქეისის ქულერი", icon: "/images/fan.webp" },
 };
 
 const EN_CATEGORY_TITLES: Partial<Record<ConfiguratorCategoryKey, string>> = {
@@ -381,7 +381,7 @@ export default function Configurator() {
       const fallback: Pick<ConfiguratorCategory, "key" | "title" | "icon"> = {
         key: `backend:${definition.slot}`,
         title: String(definition.slot),
-        icon: "/images/case.svg",
+        icon: "/images/case.webp",
       };
       return { ...(meta ?? fallback), isRecommended: definition.isRecommended, productCount: definition.productCount, acceptsMultiple: definition.acceptsMultiple };
     });
