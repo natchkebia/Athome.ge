@@ -246,7 +246,7 @@ export default function AddressSelector({ onSelect, onCityChange, customerName, 
         <div className={`${styles.inputRow} ${styles.cityCombobox}`}>
           <input
             value={cityQuery}
-            placeholder={en ? "Enter at least 2 characters" : "ჩაწერეთ მინიმუმ 2 სიმბოლო"}
+            placeholder={en ? "Enter at least 2 characters" : "ჩაწერეთ ქალაქი"}
             aria-label={en ? "Search city or settlement" : "ქალაქის ან დასახლების ძებნა"}
             role="combobox"
             aria-controls="settlement-options"
