@@ -30,6 +30,11 @@ import {
 } from "@/lib/storefront/products";
 import { useCommerce } from "@/contexts/CommerceContext";
 import { usePaginationPage } from "@/lib/navigation/usePaginationPage";
+import {
+  clearCartReplacement,
+  readCartReplacement,
+  type CartReplacement,
+} from "@/lib/commerce/cartReplacement";
 
 // ყველა პროდუქტი ჩაიტვირთოს (endpoint limit-ს არ ჭრის); 1000 ფარავს ყველაზე დიდ კატეგორიას.
 const PRODUCT_LIMIT = 1000;
@@ -133,6 +138,7 @@ function ProductsPageInner() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const [cartReplacement, setCartReplacement] = useState<CartReplacement | null>(null);
   const initialFilterQueryRef = useRef(searchParams.get(FILTER_QUERY_PARAM));
   const [filters, setFilters] = useState({
     price: [0, 8500] as [number, number],
@@ -145,6 +151,20 @@ function ProductsPageInner() {
     screen: [] as string[],
     sort: "default",
   });
+
+  useEffect(() => {
+    const replacementId = Number(searchParams.get("replaceCartProductId"));
+    const stored = readCartReplacement();
+    setCartReplacement(stored && stored.productId === replacementId ? stored : null);
+  }, [searchParams]);
+
+  const cancelCartReplacement = () => {
+    clearCartReplacement();
+    setCartReplacement(null);
+    const next = new URLSearchParams(searchParams.toString());
+    next.delete("replaceCartProductId");
+    router.replace(next.size > 0 ? `${pathname}?${next.toString()}` : pathname);
+  };
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
   const [products, setProducts] = useState<StorefrontProductCard[]>([]);
@@ -660,6 +680,16 @@ function ProductsPageInner() {
   return (
     <>
       <Breadcrumb items={breadcrumbs} />
+      {cartReplacement && (
+        <div className={`${styles.replacementNotice} site-wrapper`} role="status">
+          <span aria-hidden="true">↻</span>
+          <div>
+            <strong>{`„${cartReplacement.productName}“ — ამოცვლის რეჟიმი`}</strong>
+            <p>აირჩიეთ ახალი პროდუქტი და დააჭირეთ „დამატებას“ — ძველი პროდუქტი კალათაში ავტომატურად ჩანაცვლდება.</p>
+          </div>
+          <button type="button" onClick={cancelCartReplacement}>გაუქმება</button>
+        </div>
+      )}
       <div className={`${styles.container} site-wrapper`}>
         <div className={`${styles.sidebar} ${styles.desktopSidebar}`}>
           {filterSchema && (

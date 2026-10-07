@@ -8,6 +8,8 @@ import { useCommerce } from "@/contexts/CommerceContext";
 import { normalizeMediaUrl } from "@/lib/storefront/products";
 import { useStorefrontLocale } from "@/lib/i18n/useStorefrontLocale";
 import { getPrebuiltConfiguration, quotePrebuiltConfiguration } from "@/lib/api/prebuilt";
+import { getStorefrontProduct, getStorefrontProducts } from "@/lib/api/storefront";
+import { clearCartReplacement, writeCartReplacement } from "@/lib/commerce/cartReplacement";
 import {
   clearStockShortfalls,
   readStockShortfalls,
@@ -30,6 +32,7 @@ export type CartItem = {
   availableQuantity?: number;
   isSystem?: boolean;
   isPrebuilt?: boolean;
+  slug?: string;
   systemProducts?: {
     id: number;
     title: string;
@@ -46,6 +49,8 @@ export default function CartTab({ showSummary = true }: CartTabProps) {
   const [stockIssues, setStockIssues] = useState<StockShortfallState | null>(null);
   const [resolvingPartId, setResolvingPartId] = useState<number | null>(null);
   const [stockIssueError, setStockIssueError] = useState("");
+  const [replacementError, setReplacementError] = useState("");
+  const [openingReplacementId, setOpeningReplacementId] = useState<number | null>(null);
   const { cart, updateCartQuantity, removeFromCart, clearCart } = useCommerce();
 
   useEffect(() => setStockIssues(readStockShortfalls()), []);
@@ -61,6 +66,7 @@ export default function CartTab({ showSummary = true }: CartTabProps) {
       availableQuantity: item.availableQuantity,
       isSystem: item.isConfigured,
       isPrebuilt: Boolean(item.isConfigured || item.configuredParts?.length || /^athomepc\b/i.test(item.productName ?? "")),
+      slug: item.slug,
       systemProducts: item.configuredParts?.map((part) => ({
         id: part.productId,
         title: part.name,
@@ -112,6 +118,30 @@ export default function CartTab({ showSummary = true }: CartTabProps) {
       setStockIssueError(error instanceof Error ? error.message : (en ? "The replacement list could not be opened." : "ჩანაცვლების სია ვერ გაიხსნა."));
     } finally {
       setResolvingPartId(null);
+    }
+  };
+
+  const startCartItemReplacement = async (item: CartItem) => {
+    if (item.isPrebuilt) {
+      router.push(`/prebuilt/${item.id}?editingCart=1`);
+      return;
+    }
+
+    setReplacementError("");
+    setOpeningReplacementId(item.id);
+    try {
+      writeCartReplacement({ productId: item.id, productName: item.title });
+      const product = item.slug
+        ? await getStorefrontProduct(item.slug)
+        : (await getStorefrontProducts({ search: item.title, pageSize: 100 })).items.find((candidate) => candidate.id === item.id);
+      if (!product) throw new Error(en ? "The product category could not be identified." : "პროდუქტის კატეგორია ვერ განისაზღვრა.");
+      const categorySlug = product.subCategory?.slug || product.category.slug;
+      router.push(`/products/${encodeURIComponent(categorySlug)}?replaceCartProductId=${item.id}`);
+    } catch (error) {
+      clearCartReplacement();
+      setReplacementError(error instanceof Error ? error.message : (en ? "The replacement list could not be opened." : "ამოცვლის სია ვერ გაიხსნა."));
+    } finally {
+      setOpeningReplacementId(null);
     }
   };
 
@@ -226,17 +256,17 @@ export default function CartTab({ showSummary = true }: CartTabProps) {
                   </div>
 
                   <div className={styles.itemActions}>
-                    {item.isPrebuilt && (
-                      <button
-                        type="button"
-                        className={styles.replaceItemBtn}
-                        onClick={() => router.push(`/prebuilt/${item.id}?editingCart=1`)}
-                        aria-label={en ? `Replace components in ${item.title}` : `${item.title} — კომპონენტების ამოცვლა`}
-                        title={en ? "Replace components" : "კომპონენტების ამოცვლა"}
-                      >
-                        <PencilSquare aria-hidden="true" />
-                      </button>
-                    )}
+                    <button
+                      type="button"
+                      className={styles.replaceItemBtn}
+                      disabled={openingReplacementId === item.id}
+                      onClick={() => void startCartItemReplacement(item)}
+                      aria-label={en ? `Replace ${item.title}` : `${item.title} — ამოცვლა`}
+                      title={en ? "Replace" : "ამოცვლა"}
+                    >
+                      <PencilSquare aria-hidden="true" />
+                      <span>{openingReplacementId === item.id ? "…" : en ? "Replace" : "ამოცვლა"}</span>
+                    </button>
                     <button
                       type="button"
                       className={styles.removeItemBtn}
@@ -281,6 +311,7 @@ export default function CartTab({ showSummary = true }: CartTabProps) {
           </div>
 
           {stockIssueError && <p className={styles.stockIssueError} role="alert">{stockIssueError}</p>}
+          {replacementError && <p className={styles.stockIssueError} role="alert">{replacementError}</p>}
 
           {showSummary && (
             <div className={styles.summary}>

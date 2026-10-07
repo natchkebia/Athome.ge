@@ -40,6 +40,10 @@ import {
   updateGuestCartItem,
 } from "@/lib/commerce/guestStore";
 import { getStorefrontProduct } from "@/lib/api/storefront";
+import {
+  clearCartReplacement,
+  readCartReplacement,
+} from "@/lib/commerce/cartReplacement";
 
 type CommerceContextValue = {
   cart: ProfileCart;
@@ -275,22 +279,6 @@ function optimisticWishlistItem(productId: number) {
   };
 }
 
-function cartItemFromWishlistItem(item: ProfileWishlist["items"][number]) {
-  return {
-    id: item.productId,
-    productId: item.productId,
-    productName: item.productName,
-    productSku: item.productSku,
-    imageUrl: item.imageUrl,
-    slug: item.slug,
-    sellingPrice: item.sellingPrice,
-    oldPrice: item.oldPrice,
-    quantity: 1,
-    lineTotal: item.sellingPrice,
-    isInStock: item.isInStock,
-  };
-}
-
 export function CommerceProvider({ children }: { children: React.ReactNode }) {
   const [cart, setCart] = useState<ProfileCart>(emptyCart);
   const cartRef = useRef<ProfileCart>(emptyCart);
@@ -411,6 +399,39 @@ export function CommerceProvider({ children }: { children: React.ReactNode }) {
         currentItem?.isInStock === false ||
         (availableQuantity != null && requestedQuantity > availableQuantity)
       ) {
+        return;
+      }
+
+      const replacement = readCartReplacement();
+      if (replacement) {
+        if (replacement.productId === productId) {
+          clearCartReplacement();
+          return;
+        }
+
+        if (!hasAccessToken()) {
+          const beforeCart = getGuestCart();
+          const beforeQuantity = beforeCart.items.find((item) => item.productId === productId)?.quantity ?? 0;
+          const withReplacement = addGuestCartItem(productId, quantity, swaps);
+          const afterQuantity = withReplacement.items.find((item) => item.productId === productId)?.quantity ?? 0;
+          if (afterQuantity <= beforeQuantity) return;
+          const nextCart = removeGuestCartItem(replacement.productId);
+          cartRef.current = nextCart;
+          setCart(nextCart);
+          clearCartReplacement();
+          window.location.assign("/basket");
+          return;
+        }
+
+        try {
+          await addProfileCartItem(productId, quantity, swaps);
+          await removeProfileCartItem(replacement.productId);
+          clearCartReplacement();
+          await refreshCart();
+          window.location.assign("/basket");
+        } catch {
+          await refreshCart();
+        }
         return;
       }
 
@@ -655,62 +676,44 @@ export function CommerceProvider({ children }: { children: React.ReactNode }) {
   }, [refreshWishlist, wishlist.items]);
 
   const addWishlistToCart = useCallback(async () => {
-    // სტუმარი — სურვილების ნივთები localStorage კალათაში.
+    // სტუმარი — ხელმისაწვდომი ნივთები კალათაში გადადის და wishlist-იდან ქრება.
     if (!hasAccessToken()) {
       let nextCart = getGuestCart();
+      const movedProductIds: number[] = [];
       wishlist.items.forEach((item) => {
+        if (!item.isInStock) return;
+        const beforeQuantity = nextCart.items.find((cartItem) => cartItem.productId === item.productId)?.quantity ?? 0;
         nextCart = addGuestCartItem(item.productId, 1);
+        const afterQuantity = nextCart.items.find((cartItem) => cartItem.productId === item.productId)?.quantity ?? 0;
+        if (afterQuantity > beforeQuantity) movedProductIds.push(item.productId);
       });
       setCart(nextCart);
+      let nextWishlist = getGuestWishlist();
+      movedProductIds.forEach((productId) => {
+        nextWishlist = toggleGuestWishlistItem(productId);
+      });
+      setWishlist(nextWishlist);
       return;
     }
 
-    const productIds = wishlist.items.map((item) => item.productId);
-
-    setCart((currentCart) => {
-      const cartItems = [...currentCart.items];
-      let addedQuantity = 0;
-
-      wishlist.items.forEach((wishlistItem) => {
-        const existingIndex = cartItems.findIndex(
-          (cartItem) => cartItem.productId === wishlistItem.productId
-        );
-
-        addedQuantity += 1;
-
-        if (existingIndex >= 0) {
-          cartItems[existingIndex] = {
-            ...cartItems[existingIndex],
-            quantity: cartItems[existingIndex].quantity + 1,
-            lineTotal:
-              cartItems[existingIndex].sellingPrice *
-              (cartItems[existingIndex].quantity + 1),
-          };
-        } else {
-          cartItems.unshift(cartItemFromWishlistItem(wishlistItem));
-        }
-      });
-
-      return {
-        ...currentCart,
-        items: cartItems,
-        totalItems: currentCart.totalItems + addedQuantity,
-        totalPrice: cartItems.reduce((sum, item) => sum + item.lineTotal, 0),
-      };
-    });
-
-    let updatedCart: ProfileCart | null = null;
-
+    const movedProductIds: number[] = [];
     try {
-      for (const productId of productIds) {
-        updatedCart = await addProfileCartItem(productId, 1);
+      for (const item of wishlist.items) {
+        if (!item.isInStock) continue;
+        try {
+          await addProfileCartItem(item.productId, 1);
+          movedProductIds.push(item.productId);
+        } catch {
+          // Failed rows stay in the wishlist so the user does not lose them.
+        }
       }
-
-      setCart(updatedCart ?? cart);
+      await Promise.allSettled(
+        movedProductIds.map((productId) => removeProfileWishlistItem(productId))
+      );
     } finally {
-      await refreshCart();
+      await Promise.all([refreshCart(), refreshWishlist()]);
     }
-  }, [cart, refreshCart, wishlist.items]);
+  }, [refreshCart, refreshWishlist, wishlist.items]);
 
   const cartProductIds = useMemo(
     () => new Set(cart.items.map((item) => item.productId)),
