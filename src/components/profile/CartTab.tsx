@@ -3,7 +3,7 @@
 import styles from "./CartTab.module.scss";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { PencilSquare } from "react-bootstrap-icons";
+import { PencilSquare, Trash3 } from "react-bootstrap-icons";
 import { useCommerce } from "@/contexts/CommerceContext";
 import { normalizeMediaUrl } from "@/lib/storefront/products";
 import { useStorefrontLocale } from "@/lib/i18n/useStorefrontLocale";
@@ -276,7 +276,7 @@ export default function CartTab({ showSummary = true }: CartTabProps) {
                       aria-label={en ? `Remove ${item.title}` : `${item.title} — წაშლა`}
                       title={en ? "Remove" : "წაშლა"}
                     >
-                      <img src="/icons/trashCan.svg" alt="" />
+                      <Trash3 aria-hidden="true" />
                     </button>
                   </div>
                 </div>

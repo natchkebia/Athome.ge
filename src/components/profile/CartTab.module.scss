@@ -228,24 +228,29 @@
   width: 36px;
   height: 36px;
   padding: 0;
-  border: 1px solid #dbe8ea;
-  border-radius: 9px;
-  background: #fff;
+  border: 0;
+  border-radius: 0;
+  color: #3b3f42;
+  background: transparent;
   cursor: pointer;
-  transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+  transition: color 0.15s ease;
+
+  &:hover,
+  &:active,
+  &:focus-visible {
+    color: #0aaab5;
+  }
+
+  &:focus-visible {
+    outline: 2px solid rgba(10, 170, 181, 0.35);
+    outline-offset: 2px;
+  }
 }
 
 .replaceItemBtn {
-  color: #0aaab5;
-
   svg {
     width: 18px;
     height: 18px;
-  }
-
-  &:hover {
-    border-color: #0aaab5;
-    background: #effbfc;
   }
 
   &:disabled {
@@ -255,12 +260,7 @@
 }
 
 .removeItemBtn {
-  &:hover {
-    border-color: #e98076;
-    background: #fff5f4;
-  }
-
-  img {
+  svg {
     width: 20px;
     height: 20px;
   }
