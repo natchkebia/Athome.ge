@@ -2,10 +2,18 @@
 
 import styles from "./CartTab.module.scss";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { PencilSquare } from "react-bootstrap-icons";
 import { useCommerce } from "@/contexts/CommerceContext";
 import { normalizeMediaUrl } from "@/lib/storefront/products";
 import { useStorefrontLocale } from "@/lib/i18n/useStorefrontLocale";
+import { getPrebuiltConfiguration, quotePrebuiltConfiguration } from "@/lib/api/prebuilt";
+import {
+  clearStockShortfalls,
+  readStockShortfalls,
+  type StockShortfallState,
+  writeStockShortfalls,
+} from "@/lib/commerce/stockShortfall";
 
 interface CartTabProps {
   showSummary?: boolean;
@@ -21,6 +29,7 @@ export type CartItem = {
   isInStock: boolean;
   availableQuantity?: number;
   isSystem?: boolean;
+  isPrebuilt?: boolean;
   systemProducts?: {
     id: number;
     title: string;
@@ -34,7 +43,12 @@ export default function CartTab({ showSummary = true }: CartTabProps) {
   const en = useStorefrontLocale() === "en";
   const router = useRouter();
   const [isContinuing, setIsContinuing] = useState(false);
+  const [stockIssues, setStockIssues] = useState<StockShortfallState | null>(null);
+  const [resolvingPartId, setResolvingPartId] = useState<number | null>(null);
+  const [stockIssueError, setStockIssueError] = useState("");
   const { cart, updateCartQuantity, removeFromCart, clearCart } = useCommerce();
+
+  useEffect(() => setStockIssues(readStockShortfalls()), []);
   const cartItems: CartItem[] = cart.items
     .map((item) => ({
       id: item.productId,
@@ -46,6 +60,7 @@ export default function CartTab({ showSummary = true }: CartTabProps) {
       isInStock: item.isInStock !== false,
       availableQuantity: item.availableQuantity,
       isSystem: item.isConfigured,
+      isPrebuilt: Boolean(item.isConfigured || item.configuredParts?.length || /^athomepc\b/i.test(item.productName ?? "")),
       systemProducts: item.configuredParts?.map((part) => ({
         id: part.productId,
         title: part.name,
@@ -63,8 +78,41 @@ export default function CartTab({ showSummary = true }: CartTabProps) {
     updateCartQuantity(id, Math.max((item?.quantity ?? 1) - 1, 1));
   };
 
-  const removeItem = (id: number) => {
-    removeFromCart(id);
+  const resolveStockIssue = (productId: number) => {
+    if (!stockIssues) return;
+    const remaining = stockIssues.shortfalls.filter((issue) => issue.productId !== productId);
+    if (remaining.length === 0) {
+      clearStockShortfalls();
+      setStockIssues(null);
+      return;
+    }
+    const next = { ...stockIssues, shortfalls: remaining };
+    writeStockShortfalls(next);
+    setStockIssues(next);
+  };
+
+  const fixOrdinaryStock = async (productId: number, available: number) => {
+    if (available > 0) await updateCartQuantity(productId, available);
+    else await removeFromCart(productId);
+    resolveStockIssue(productId);
+  };
+
+  const startPartReplacement = async (productId: number, partProductId: number) => {
+    setStockIssueError("");
+    setResolvingPartId(partProductId);
+    try {
+      const cartItem = cart.items.find((item) => item.productId === productId);
+      const composition = cartItem?.swaps?.length
+        ? await quotePrebuiltConfiguration(productId, cartItem.swaps)
+        : await getPrebuiltConfiguration(productId);
+      const part = composition.parts.find((candidate) => candidate.productId === partProductId);
+      if (!part) throw new Error(en ? "The component slot could not be identified." : "კომპონენტის სლოტი ვერ განისაზღვრა.");
+      router.push(`/prebuilt/${productId}?editingCart=1&slot=${encodeURIComponent(part.slot)}`);
+    } catch (error) {
+      setStockIssueError(error instanceof Error ? error.message : (en ? "The replacement list could not be opened." : "ჩანაცვლების სია ვერ გაიხსნა."));
+    } finally {
+      setResolvingPartId(null);
+    }
   };
 
   const total = cartItems.reduce(
@@ -99,9 +147,19 @@ export default function CartTab({ showSummary = true }: CartTabProps) {
             </button>
           </div>
 
+          {stockIssues && (
+            <div className={styles.stockIssueSummary} role="alert">
+              <strong>{en ? "The cart needs an update" : "კალათაში ცვლილებაა საჭირო"}</strong>
+              <span>{stockIssues.detail}</span>
+            </div>
+          )}
+
           <div className={styles.cartList}>
-            {cartItems.map((item) => (
-              <div className={styles.cartCard} key={item.id}>
+            {cartItems.map((item) => {
+              const stockIssue = stockIssues?.shortfalls.find((issue) => issue.productId === item.id);
+              return (
+              <div className={styles.cartItemGroup} key={item.id}>
+              <div className={`${styles.cartCard} ${stockIssue ? styles.cartCardStockIssue : ""}`}>
                 <div className={styles.left}>
                   <img
                     src={item.image}
@@ -167,15 +225,62 @@ export default function CartTab({ showSummary = true }: CartTabProps) {
                     )}
                   </div>
 
-                  <img
-                    src="/icons/trashCan.svg"
-                    alt="remove"
-                    onClick={() => removeItem(item.id)}
-                  />
+                  <div className={styles.itemActions}>
+                    {item.isPrebuilt && (
+                      <button
+                        type="button"
+                        className={styles.replaceItemBtn}
+                        onClick={() => router.push(`/prebuilt/${item.id}?editingCart=1`)}
+                        aria-label={en ? `Replace components in ${item.title}` : `${item.title} — კომპონენტების ამოცვლა`}
+                        title={en ? "Replace components" : "კომპონენტების ამოცვლა"}
+                      >
+                        <PencilSquare aria-hidden="true" />
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      className={styles.removeItemBtn}
+                      onClick={() => {
+                        void removeFromCart(item.id);
+                        resolveStockIssue(item.id);
+                      }}
+                      aria-label={en ? `Remove ${item.title}` : `${item.title} — წაშლა`}
+                      title={en ? "Remove" : "წაშლა"}
+                    >
+                      <img src="/icons/trashCan.svg" alt="" />
+                    </button>
+                  </div>
                 </div>
               </div>
-            ))}
+              {stockIssue && (
+                <div className={styles.stockIssuePanel} role="alert">
+                  <strong>{stockIssue.parts.length > 0 ? (en ? "A component is short in stock:" : "ამ ნაწილის მარაგი არ კმარა:") : (en ? "The requested quantity is unavailable" : "მოთხოვნილი რაოდენობა მარაგში არ არის")}</strong>
+                  {stockIssue.parts.length > 0 ? stockIssue.parts.map((part) => (
+                    <div className={styles.stockIssuePart} key={part.productId}>
+                      <div>
+                        <span>{part.name}</span>
+                        {part.sku && <small>SKU: {part.sku}</small>}
+                        <small>{en ? `In stock: ${part.available}, needed: ${part.needed}` : `მარაგშია ${part.available}, საჭიროა ${part.needed}`}</small>
+                      </div>
+                      <button type="button" disabled={resolvingPartId === part.productId} onClick={() => void startPartReplacement(item.id, part.productId)}>
+                        {resolvingPartId === part.productId ? "…" : en ? "Replace" : "შეცვლა"}
+                      </button>
+                    </div>
+                  )) : (
+                    <div className={styles.stockIssuePart}>
+                      <span>{en ? `In stock: ${stockIssue.available}, requested: ${stockIssue.requested}` : `მარაგშია ${stockIssue.available}, მოთხოვნილია ${stockIssue.requested}`}</span>
+                      <button type="button" onClick={() => void fixOrdinaryStock(item.id, stockIssue.available)}>
+                        {stockIssue.available > 0 ? (en ? "Lower quantity" : "რაოდენობის შემცირება") : (en ? "Remove" : "წაშლა")}
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+              </div>
+            );})}
           </div>
+
+          {stockIssueError && <p className={styles.stockIssueError} role="alert">{stockIssueError}</p>}
 
           {showSummary && (
             <div className={styles.summary}>

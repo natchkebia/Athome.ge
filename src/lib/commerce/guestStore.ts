@@ -181,6 +181,31 @@ export function updateGuestCartItem(
   return next;
 }
 
+export function replaceGuestCartConfiguration(
+  productId: number,
+  swaps: { componentProductId: number }[],
+  price: number,
+  configuredParts: { productId: number; name: string; quantity: number }[],
+): ProfileCart {
+  const cart = getGuestCart();
+  const items = cart.items.map((item) =>
+    item.productId === productId
+      ? {
+          ...item,
+          swaps,
+          isConfigured: true,
+          configuredParts,
+          sellingPrice: price,
+          unitPrice: price,
+          lineTotal: price * item.quantity,
+        }
+      : item
+  );
+  const next = recalcCart(items);
+  write(CART_KEY, next);
+  return next;
+}
+
 export function removeGuestCartItem(productId: number): ProfileCart {
   const cart = getGuestCart();
   const next = recalcCart(

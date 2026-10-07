@@ -1,11 +1,19 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import ConfiguratorProductModal, { type ProductSelectionResult } from "@/components/configurator/ConfiguratorProductModal";
 import type { ConfiguratorCategoryKey, ConfiguratorProduct, SelectedConfiguratorProduct } from "@/components/configurator/configuratorTypes";
 import type { DynamicFilterValues } from "@/components/products/DynamicProductFilter";
 import { useCommerce } from "@/contexts/CommerceContext";
+import {
+  getConfiguratorSlotProducts,
+  type ConfiguratorBrandFacet,
+  type ConfiguratorSlot,
+} from "@/lib/api/configurator";
+import type { StorefrontCategoryFilter } from "@/lib/api/storefront";
 import { cacheProductInfo } from "@/lib/commerce/guestStore";
+import { resolveStockShortfallPart } from "@/lib/commerce/stockShortfall";
 import { normalizeMediaUrl } from "@/lib/storefront/products";
 import {
   getPrebuiltConfiguration,
@@ -29,6 +37,16 @@ const SLOT_CATEGORY: Record<string, ConfiguratorCategoryKey> = {
 };
 
 const categoryForSlot = (slot: string) => SLOT_CATEGORY[slot.toLocaleLowerCase()] ?? `backend:${slot}`;
+const backendSlotForPart = (slot: string): ConfiguratorSlot | null => {
+  const normalized = slot.toLocaleLowerCase();
+  const match = ({
+    cpu: "cpu", motherboard: "motherboard", ram: "ram", gpu: "gpu", psu: "psu",
+    case: "case", cpuaircooler: "cpuCooler", cpucooler: "cpuCooler",
+    liquidcooler: "liquidCooler", storagedrive: "storageDrive",
+    storagessd: "storageSsd", storagehdd: "storageHdd", casefan: "caseFan",
+  } as Record<string, ConfiguratorSlot>)[normalized];
+  return match ?? null;
+};
 
 type Props = {
   productId: number;
@@ -38,14 +56,23 @@ type Props = {
 
 export default function PrebuiltConfigurator({ productId, onConfiguredPrice, onQuotedPartsChange }: Props) {
   const en = useStorefrontLocale() === "en";
-  const { cart, addToCart, refreshCart } = useCommerce();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const editingCart = searchParams.get("editingCart") === "1";
+  const requestedSlot = searchParams.get("slot");
+  const autoOpenedSlot = useRef<string | null>(null);
+  const { cart, addToCart, refreshCart, replaceCartConfiguration } = useCommerce();
   const [base, setBase] = useState<PrebuiltConfiguration | null>(null);
   const [quote, setQuote] = useState<PrebuiltQuote | null>(null);
   const [swapsBySlot, setSwapsBySlot] = useState<Record<string, number>>({});
   const [openSlot, setOpenSlot] = useState<string | null>(null);
+  const [allOptions, setAllOptions] = useState<ConfiguratorProduct[]>([]);
   const [options, setOptions] = useState<ConfiguratorProduct[]>([]);
+  const [brands, setBrands] = useState<ConfiguratorBrandFacet[]>([]);
+  const [filters, setFilters] = useState<StorefrontCategoryFilter[]>([]);
   const [hidden, setHidden] = useState(0);
   const [loadingOptions, setLoadingOptions] = useState(false);
+  const [filteringOptions, setFilteringOptions] = useState(false);
   const [busy, setBusy] = useState(false);
   const [downloadingInvoice, setDownloadingInvoice] = useState(false);
   const [message, setMessage] = useState("");
@@ -94,22 +121,25 @@ export default function PrebuiltConfigurator({ productId, onConfiguredPrice, onQ
 
   useEffect(() => () => onQuotedPartsChange?.(null), [onQuotedPartsChange]);
 
-  const parts = quote?.parts ?? base?.parts ?? [];
+  const parts = useMemo(() => quote?.parts ?? base?.parts ?? [], [base?.parts, quote?.parts]);
   const swaps = useMemo<PrebuiltSwap[]>(
     () => Object.values(swapsBySlot).map((componentProductId) => ({ componentProductId })),
     [swapsBySlot],
   );
 
-  const openOptions = async (part: PrebuiltPart) => {
+  const openOptions = useCallback(async (part: PrebuiltPart) => {
     setMessage("");
     setOpenSlot(part.slot);
     setLoadingOptions(true);
+    setAllOptions([]);
     setOptions([]);
+    setBrands([]);
+    setFilters([]);
     setFilterValues(EMPTY_FILTERS);
     try {
       const result = await getPrebuiltSlotOptions(productId, part.slot);
       setHidden(result.hiddenByCompatibility ?? 0);
-      setOptions(result.options.map(({ product, priceDelta, newPrice }) => ({
+      const mapped = result.options.map(({ product, priceDelta, newPrice }) => ({
         id: product.id,
         category: categoryForSlot(part.slot),
         title: product.name ?? "",
@@ -122,12 +152,54 @@ export default function PrebuiltConfigurator({ productId, onConfiguredPrice, onQ
         specs: (product.keySpecs ?? []).map((spec) => ({ label: spec.label ?? "", value: spec.value ?? "" })),
         priceDelta,
         configuredPrice: newPrice,
-      })));
+      }));
+      setAllOptions(mapped);
+      setOptions(mapped);
     } finally { setLoadingOptions(false); }
-  };
+  }, [productId]);
+
+  useEffect(() => {
+    if (!openSlot || allOptions.length === 0) return;
+    const backendSlot = backendSlotForPart(openSlot);
+    if (!backendSlot) return;
+
+    let active = true;
+    setFilteringOptions(true);
+    const [minimum, maximum] = filterValues.price;
+    void getConfiguratorSlotProducts(backendSlot, {
+      brandSlugs: filterValues.brandSlugs,
+      minPrice: minimum > 0 ? minimum : undefined,
+      maxPrice: maximum > 0 ? maximum : undefined,
+      attributes: filterValues.attributes,
+      ranges: filterValues.ranges,
+      inStockOnly: true,
+      pageSize: 1000,
+    }).then((result) => {
+      if (!active) return;
+      const visibleIds = new Set(result.items.map((item) => item.id));
+      setOptions(allOptions.filter((option) => visibleIds.has(option.id)));
+      setBrands(result.brands);
+      setFilters(result.filters);
+    }).catch(() => {
+      if (active) setOptions(allOptions);
+    }).finally(() => {
+      if (active) setFilteringOptions(false);
+    });
+
+    return () => { active = false; };
+  }, [allOptions, filterValues, openSlot]);
+
+  useEffect(() => {
+    if (!requestedSlot || autoOpenedSlot.current === requestedSlot || parts.length === 0) return;
+    const target = parts.find((part) => part.slot.toLocaleLowerCase() === requestedSlot.toLocaleLowerCase());
+    if (!target) return;
+    autoOpenedSlot.current = requestedSlot;
+    void openOptions(target);
+  }, [openOptions, parts, requestedSlot]);
 
   const chooseOption = async (product: ConfiguratorProduct): Promise<ProductSelectionResult> => {
     if (!openSlot) return { allowed: false };
+    const replacedPartProductId = parts.find((part) => part.slot === openSlot)?.productId;
     const next = { ...swapsBySlot, [openSlot]: product.id };
     const nextSwaps = Object.values(next).map((componentProductId) => ({ componentProductId }));
     try {
@@ -145,9 +217,25 @@ export default function PrebuiltConfigurator({ productId, onConfiguredPrice, onQ
       setSwapsBySlot(next);
       setQuote(result);
       setOpenSlot(null);
+      if (editingCart) {
+        setBusy(true);
+        await replaceCartConfiguration(productId, nextSwaps, {
+          price: result.price,
+          parts: result.parts.map((part) => ({
+            productId: part.productId,
+            name: part.productName,
+            quantity: part.quantity,
+          })),
+        });
+        if (replacedPartProductId) resolveStockShortfallPart(productId, replacedPartProductId);
+        setMessage(en ? "The cart configuration was updated." : "კალათაში კონფიგურაცია განახლდა.");
+        router.push("/basket");
+      }
       return { allowed: true };
     } catch (error) {
       return { allowed: false, message: error instanceof Error ? error.message : (en ? "This part cannot be selected." : "ამ ნაწილის არჩევა შეუძლებელია.") };
+    } finally {
+      if (editingCart) setBusy(false);
     }
   };
 
@@ -198,15 +286,21 @@ export default function PrebuiltConfigurator({ productId, onConfiguredPrice, onQ
 
   if (!base || base.parts.length === 0) return null;
   const blocking = quote?.blockingIssues ?? [];
-  const priceDelta = quote?.priceDelta ?? 0;
-  const bounds: [number, number] = options.length ? [Math.floor(Math.min(...options.map((item) => item.price))), Math.ceil(Math.max(...options.map((item) => item.price)))] : [0, 0];
+  const bounds: [number, number] = allOptions.length ? [Math.floor(Math.min(...allOptions.map((item) => item.price))), Math.ceil(Math.max(...allOptions.map((item) => item.price)))] : [0, 0];
 
   return <section className={styles.prebuiltConfigurator}>
+    {editingCart && (
+      <div className={styles.prebuiltEditingNotice} role="status">
+        <span aria-hidden="true">↻</span>
+        <div>
+          <strong>{en ? "Editing the computer in your cart" : "კალათაში არსებული კომპიუტერის ამოცვლა"}</strong>
+          <p>{en ? "Choose a component and its replacement. The new configuration will replace the current one in the cart." : "აირჩიეთ კომპონენტი და მისი შემცვლელი — ახალი კონფიგურაცია კალათაში არსებულს ჩაანაცვლებს."}</p>
+        </div>
+      </div>
+    )}
     <div className={styles.prebuiltHeader}>
       <div><h3>{en ? "Customize this PC" : "მზა კომპიუტერის კონფიგურაცია"}</h3></div>
-      <strong>{(quote?.price ?? base.basePrice).toFixed(2)} ₾</strong>
     </div>
-    {priceDelta !== 0 && <div className={priceDelta < 0 ? styles.prebuiltSaving : styles.prebuiltIncrease}>{priceDelta > 0 ? "+" : ""}{priceDelta.toFixed(2)} ₾</div>}
     <div className={styles.prebuiltParts}>{parts.map((part, index) => <div key={`${part.slot}-${part.productId}-${index}`} className={styles.prebuiltPart}>
       <img
         src={img(normalizeMediaUrl(part.thumbnailUrl ?? undefined) || "/images/case.webp", 100)}
@@ -225,8 +319,8 @@ export default function PrebuiltConfigurator({ productId, onConfiguredPrice, onQ
         <img src="/images/conf2.svg" alt="" />
         {downloadingInvoice ? (en ? "Downloading..." : "იტვირთება...") : (en ? "Download invoice" : "ინვოისის გადმოწერა")}
       </button>
-      {swaps.length > 0 && <button className={styles.prebuiltCartButton} type="button" disabled={busy || blocking.length > 0 || (quote?.buildableUnits ?? 0) <= 0} onClick={() => void addConfigured()}>{busy ? (en ? "Adding..." : "ემატება...") : (en ? "Add configured PC to cart" : "შეცვლილი კომპიუტერის კალათაში დამატება")}</button>}
+      {!editingCart && swaps.length > 0 && <button className={styles.prebuiltCartButton} type="button" disabled={busy || blocking.length > 0 || (quote?.buildableUnits ?? 0) <= 0} onClick={() => void addConfigured()}>{busy ? (en ? "Adding..." : "ემატება...") : (en ? "Add configured PC to cart" : "შეცვლილი კომპიუტერის კალათაში დამატება")}</button>}
     </div>
-    {openSlot && <ConfiguratorProductModal title={en ? `Change ${openSlot}` : `${openSlot} — ნაწილის შეცვლა`} products={options} loading={loadingOptions} selectedProducts={[]} onClose={() => setOpenSlot(null)} onSelect={chooseOption} onUpdateQuantity={() => {}} brands={[]} filters={[]} filterValues={filterValues} priceBounds={bounds} onFilterValuesChange={setFilterValues} hiddenByCompatibility={hidden} totalCount={options.length} />}
+    {openSlot && <ConfiguratorProductModal categoryKey={categoryForSlot(openSlot)} title={en ? `Change ${openSlot}` : `${openSlot} — ნაწილის შეცვლა`} products={options} loading={loadingOptions || filteringOptions || busy} selectedProducts={[]} onClose={() => setOpenSlot(null)} onSelect={chooseOption} onUpdateQuantity={() => {}} brands={brands} filters={filters} filterValues={filterValues} priceBounds={bounds} onFilterValuesChange={setFilterValues} hiddenByCompatibility={hidden} totalCount={options.length} />}
   </section>;
 }

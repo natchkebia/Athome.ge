@@ -51,6 +51,29 @@
   width: 100%;
 }
 
+.stockIssueSummary {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 14px 18px;
+  border: 1px solid #f1b1ab;
+  border-radius: 12px;
+  background: #fff7f6;
+  color: #8e342c;
+  font-size: 13px;
+  line-height: 1.5;
+
+  strong {
+    flex: 0 0 auto;
+  }
+}
+
+.cartItemGroup {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
 .cartCard {
   width: 100%;
   display: grid;
@@ -63,6 +86,12 @@
   border: 1px solid rgba(236, 242, 246, 1);
   box-sizing: border-box;
   min-height: 108px;
+}
+
+.cartCardStockIssue {
+  border-color: #e98076;
+  border-radius: 12px 12px 0 0;
+  background: #fffafa;
 }
 
 .left {
@@ -182,6 +211,104 @@
       opacity: 1;
     }
   }
+}
+
+.itemActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.replaceItemBtn,
+.removeItemBtn {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 1px solid #dbe8ea;
+  border-radius: 9px;
+  background: #fff;
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+}
+
+.replaceItemBtn {
+  color: #0aaab5;
+
+  svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  &:hover {
+    border-color: #0aaab5;
+    background: #effbfc;
+  }
+}
+
+.removeItemBtn {
+  &:hover {
+    border-color: #e98076;
+    background: #fff5f4;
+  }
+
+  img {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+.stockIssuePanel {
+  padding: 14px 18px;
+  border: 1px solid #e98076;
+  border-top: 0;
+  border-radius: 0 0 12px 12px;
+  background: #fff0ee;
+  color: #8e342c;
+  font-size: 13px;
+}
+
+.stockIssuePart {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin-top: 10px;
+
+  > div {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  small {
+    color: #9f5b54;
+  }
+
+  button {
+    flex: 0 0 auto;
+    min-width: 94px;
+    padding: 9px 16px;
+    border: 0;
+    border-radius: 8px;
+    background: #0fb1bc;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+
+    &:disabled {
+      opacity: 0.55;
+      cursor: wait;
+    }
+  }
+}
+
+.stockIssueError {
+  margin: -8px 0 0;
+  color: #b63f35;
+  font-size: 13px;
 }
 
 /* ჯამური თანხა */
@@ -364,6 +491,10 @@
     }
   }
 
+  .stockIssueSummary {
+    flex-direction: column;
+  }
+
   .cartCard {
     position: relative;
     display: block;
@@ -373,6 +504,10 @@
     padding: 14px 16px;
     border-radius: 12px;
     background: #fff;
+  }
+
+  .cartCardStockIssue {
+    border-radius: 12px 12px 0 0;
   }
 
   .left {
@@ -455,10 +590,28 @@
       white-space: nowrap;
     }
 
-    > img {
-      width: 20px;
-      height: 20px;
-      flex: 0 0 20px;
+    .itemActions {
+      gap: 5px;
+    }
+  }
+
+  .replaceItemBtn,
+  .removeItemBtn {
+    width: 30px;
+    height: 30px;
+  }
+
+  .stockIssuePanel {
+    padding: 12px 14px;
+  }
+
+  .stockIssuePart {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 10px;
+
+    button {
+      width: 100%;
     }
   }
 }

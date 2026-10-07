@@ -16,6 +16,10 @@ import { ApiError } from "@/lib/api/client";
 import { useStorefrontLocale } from "@/lib/i18n/useStorefrontLocale";
 import { useCartQuote } from "@/contexts/CartQuoteContext";
 import {
+  type StockShortfall,
+  writeStockShortfalls,
+} from "@/lib/commerce/stockShortfall";
+import {
   submitCheckout,
   initiateFlittPayment,
   type CheckoutPayload,
@@ -331,10 +335,19 @@ export default function CheckoutWizard({ onStepChange, onDeliverySummaryChange }
       // ყველა დეფიციტური პროდუქტით. ვაჩვენებთ და ვაბრუნებთ კალათაზე, სადაც
       // მომხმარებელი რაოდენობას შეასწორებს (შეკვეთა საერთოდ არ იქმნება).
       if (code === "OUT_OF_STOCK") {
+        const problem = error instanceof ApiError && error.details && typeof error.details === "object"
+          ? error.details as { details?: { shortfalls?: StockShortfall[] } }
+          : null;
+        const shortfalls = Array.isArray(problem?.details?.shortfalls)
+          ? problem.details.shortfalls
+          : [];
+        writeStockShortfalls({ detail: message, shortfalls });
         showToast(
-          en
-            ? "Some products are no longer available in the requested quantity. Please review your cart."
-            : "ზოგი პროდუქტი მოთხოვნილი რაოდენობით აღარ არის მარაგში. გთხოვთ, გადაამოწმოთ კალათა.",
+          shortfalls.length > 0
+            ? message
+            : en
+              ? "Some products are no longer available in the requested quantity. Please review your cart."
+              : "ზოგი პროდუქტი მოთხოვნილი რაოდენობით აღარ არის მარაგში. გთხოვთ, გადაამოწმოთ კალათა.",
           "error",
         );
         router.push("/basket");

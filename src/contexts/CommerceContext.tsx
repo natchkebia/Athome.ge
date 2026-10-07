@@ -34,6 +34,7 @@ import {
   getCachedInfo,
   getGuestCart,
   getGuestWishlist,
+  replaceGuestCartConfiguration,
   removeGuestCartItem,
   toggleGuestWishlistItem,
   updateGuestCartItem,
@@ -51,6 +52,14 @@ type CommerceContextValue = {
   refreshWishlist: () => Promise<void>;
   addToCart: (productId: number, quantity?: number, swaps?: { componentProductId: number }[]) => Promise<void>;
   updateCartQuantity: (productId: number, quantity: number) => Promise<void>;
+  replaceCartConfiguration: (
+    productId: number,
+    swaps: { componentProductId: number }[],
+    configuration: {
+      price: number;
+      parts: { productId: number; name: string; quantity: number }[];
+    },
+  ) => Promise<void>;
   removeFromCart: (productId: number) => Promise<void>;
   clearCart: () => Promise<void>;
   toggleWishlist: (productId: number) => Promise<void>;
@@ -531,6 +540,54 @@ export function CommerceProvider({ children }: { children: React.ReactNode }) {
     }
   }, [refreshCart]);
 
+  const replaceCartConfiguration = useCallback(async (
+    productId: number,
+    swaps: { componentProductId: number }[],
+    configuration: {
+      price: number;
+      parts: { productId: number; name: string; quantity: number }[];
+    },
+  ) => {
+    const existing = cartRef.current.items.find((item) => item.productId === productId);
+    if (!existing) return;
+
+    cacheProductInfo({
+      productId,
+      productName: existing.productName,
+      imageUrl: existing.imageUrl,
+      slug: existing.slug,
+      sellingPrice: configuration.price,
+      oldPrice: existing.oldPrice,
+      isInStock: true,
+    });
+
+    if (!hasAccessToken()) {
+      const nextCart = replaceGuestCartConfiguration(
+        productId,
+        swaps,
+        configuration.price,
+        configuration.parts,
+      );
+      cartRef.current = nextCart;
+      setCart(nextCart);
+      return;
+    }
+
+    try {
+      const updatedCart = await addProfileCartItem(productId, existing.quantity, swaps);
+      if (isProfileCart(updatedCart)) {
+        const hydratedCart = await hydrateConfiguratorCart(updatedCart);
+        cartRef.current = hydratedCart;
+        setCart(hydratedCart);
+      } else {
+        await refreshCart();
+      }
+    } catch {
+      await refreshCart();
+      throw new Error("კონფიგურაციის განახლება ვერ მოხერხდა.");
+    }
+  }, [refreshCart]);
+
   const clearCart = useCallback(async () => {
     if (!hasAccessToken()) {
       setCart(clearGuestCart());
@@ -676,6 +733,7 @@ export function CommerceProvider({ children }: { children: React.ReactNode }) {
       refreshWishlist,
       addToCart,
       updateCartQuantity,
+      replaceCartConfiguration,
       removeFromCart,
       clearCart,
       toggleWishlist,
@@ -693,6 +751,7 @@ export function CommerceProvider({ children }: { children: React.ReactNode }) {
       refreshCart,
       refreshCommerce,
       refreshWishlist,
+      replaceCartConfiguration,
       removeFromCart,
       toggleWishlist,
       updateCartQuantity,
