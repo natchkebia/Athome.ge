@@ -265,7 +265,6 @@ export default function CartTab({ showSummary = true }: CartTabProps) {
                       title={en ? "Replace" : "ამოცვლა"}
                     >
                       <PencilSquare aria-hidden="true" />
-                      <span>{openingReplacementId === item.id ? "…" : en ? "Replace" : "ამოცვლა"}</span>
                     </button>
                     <button
                       type="button"

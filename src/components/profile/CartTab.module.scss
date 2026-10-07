@@ -236,13 +236,7 @@
 }
 
 .replaceItemBtn {
-  width: auto;
-  min-width: 108px;
-  gap: 7px;
-  padding: 0 13px;
   color: #0aaab5;
-  font-size: 13px;
-  font-weight: 650;
 
   svg {
     width: 18px;
@@ -612,15 +606,6 @@
   .removeItemBtn {
     width: 30px;
     height: 30px;
-  }
-
-  .replaceItemBtn {
-    min-width: 30px;
-    padding: 0;
-
-    span {
-      display: none;
-    }
   }
 
   .stockIssuePanel {
