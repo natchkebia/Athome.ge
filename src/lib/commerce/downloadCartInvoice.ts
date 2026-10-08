@@ -208,7 +208,7 @@ export async function downloadCartInvoice(items: ProfileCartItem[], locale: "ka"
     y -= 35;
   }
   y -= 26;
-  const summaryX = 285;
+  const summaryX = MARGIN;
   const summaryRight = PAGE_WIDTH - MARGIN - 12;
   const summaryRow = (label: string, value: string, highlight = false) => {
     page.drawText(label, { x: summaryX + 12, y, font, size: highlight ? 11 : 9, color: highlight ? BRAND : MUTED });
