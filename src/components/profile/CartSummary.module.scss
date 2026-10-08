@@ -41,15 +41,21 @@
     margin-top: 20px;
   }
   .row {
-    display: flex;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     align-items: center;
-    justify-content: space-between;
-    height: 30px;
+    column-gap: 12px;
+    min-height: 30px;
 
     p,
     span {
       margin: 0;
       line-height: 1.25;
+    }
+
+    span {
+      justify-self: end;
+      text-align: right;
     }
 
     .p {
@@ -90,7 +96,7 @@
   }
 
   .row {
-    height: 24px;
+    min-height: 24px;
   }
 
   .totalRow {
@@ -320,11 +326,6 @@
       }
     }
 
-    .deliveryByAddress {
-      max-width: 88px;
-      white-space: normal;
-    }
-
     .totalRow {
       margin-top: 16px;
     }
@@ -354,7 +355,8 @@
     }
 
     .row {
-      height: 32px;
+      min-height: 32px;
+      padding: 3px 0;
 
       p,
       span {
