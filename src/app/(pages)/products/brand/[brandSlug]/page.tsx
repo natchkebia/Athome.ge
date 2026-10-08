@@ -11,7 +11,7 @@ import EmptyState from "@/components/products/EmptyState";
 import Breadcrumb from "@/components/ breadcrumb/Breadcrumb";
 import AtHomeLoader from "@/components/shared/AtHomeLoader";
 import { getAllStorefrontProducts, getStorefrontBrandFilters, StorefrontBrandFilterSet } from "@/lib/api/storefront";
-import { mapStorefrontProductToCard, StorefrontProductCard } from "@/lib/storefront/products";
+import { isDiscountedProductCard, mapStorefrontProductToCard, StorefrontProductCard } from "@/lib/storefront/products";
 import { useCommerce } from "@/contexts/CommerceContext";
 import { useStorefrontLocale } from "@/lib/i18n/useStorefrontLocale";
 import { usePaginationPage } from "@/lib/navigation/usePaginationPage";
@@ -41,15 +41,15 @@ export default function BrandProductsPage() {
       .catch(() => { if (active) setProducts([]); })
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
-  }, [brandSlug, selection]);
+  }, [brandSlug, selection.categorySlug, selection.subCategorySlug]);
   const sortedProducts = useMemo(() => {
-    const result = [...products];
+    const result = selection.discountedOnly ? products.filter(isDiscountedProductCard) : [...products];
     if (sort === "price-asc") result.sort((a, b) => (a.newPrice ?? 0) - (b.newPrice ?? 0));
     if (sort === "price-desc") result.sort((a, b) => (b.newPrice ?? 0) - (a.newPrice ?? 0));
     if (sort === "a-z") result.sort((a, b) => a.title.localeCompare(b.title));
     if (sort === "z-a") result.sort((a, b) => b.title.localeCompare(a.title));
     return result;
-  }, [products, sort]);
+  }, [products, sort, selection.discountedOnly]);
   const brandName = schema?.brandName ?? brandSlug;
   const breadcrumbs = [{ label: en ? "Home" : "მთავარი გვერდი", href: "/" }, { label: en ? "Brands" : "ბრენდები", href: "/brands" }, { label: brandName }];
   if (!schema && loading) return <AtHomeLoader variant="page" />;

@@ -26,6 +26,7 @@ import {
 } from "@/lib/api/storefront";
 import {
   mapStorefrontProductToCard,
+  isDiscountedProductCard,
   StorefrontProductCard,
 } from "@/lib/storefront/products";
 import { useCommerce } from "@/contexts/CommerceContext";
@@ -44,6 +45,7 @@ type CategoryLevel = "categories" | "subcategories" | "minicategories";
 type PersistedFilters = {
   price: [number, number];
   brandSlugs: string[];
+  discountedOnly: boolean;
   attributes: Record<string, string[]>;
   ranges: Record<string, number[]>;
   sort: string;
@@ -97,6 +99,7 @@ function parsePersistedFilters(
             (value): value is string => typeof value === "string"
           )
         : [],
+      discountedOnly: parsed.discountedOnly === true,
       attributes,
       ranges,
       sort:
@@ -117,6 +120,7 @@ function hasDynamicFilters(
     values.price[0] !== priceBounds[0] ||
     values.price[1] !== priceBounds[1] ||
     values.brandSlugs.length > 0 ||
+    values.discountedOnly === true ||
     Object.values(values.attributes).some((items) => items.length > 0) ||
     Object.values(values.ranges).some((items) => items.length === 2)
   );
@@ -175,6 +179,7 @@ function ProductsPageInner() {
     price: [0, 8500],
     brandSlugs: [],
     inStockOnly: true,
+    discountedOnly: false,
     attributes: {},
     ranges: {},
   });
@@ -339,6 +344,7 @@ function ProductsPageInner() {
               price: restored.price,
               brandSlugs: restored.brandSlugs,
               inStockOnly: true,
+              discountedOnly: restored.discountedOnly,
               attributes: restored.attributes,
               ranges: restored.ranges,
             }
@@ -346,6 +352,7 @@ function ProductsPageInner() {
               price: nextBounds,
               brandSlugs: [],
               inStockOnly: true,
+              discountedOnly: false,
               attributes: {},
               ranges: {},
             };
@@ -374,22 +381,29 @@ function ProductsPageInner() {
   const filterSubCategoryId = filterSchema?.subCategoryId;
   const filterMiniCategoryId = filterSchema?.miniCategoryId;
   const hasFilterSchema = filterSchema !== null;
+  const serverDynamicFilters = useMemo(() => ({
+    price: dynamicFilters.price,
+    brandSlugs: dynamicFilters.brandSlugs,
+    inStockOnly: dynamicFilters.inStockOnly,
+    attributes: dynamicFilters.attributes,
+    ranges: dynamicFilters.ranges,
+  }), [dynamicFilters.price, dynamicFilters.brandSlugs, dynamicFilters.inStockOnly, dynamicFilters.attributes, dynamicFilters.ranges]);
 
   useEffect(() => {
     if (!dynamicFiltersActive || !hasFilterSchema) return;
     let active = true;
 
-    const attr = Object.entries(dynamicFilters.attributes)
+    const attr = Object.entries(serverDynamicFilters.attributes)
       .filter(([, values]) => values.length > 0)
       .map(([fieldKey, values]) => `${fieldKey}:${values.join("|")}`);
-    const range = Object.entries(dynamicFilters.ranges)
+    const range = Object.entries(serverDynamicFilters.ranges)
       .filter(([, bounds]) => bounds.length === 2)
       .map(([fieldKey, bounds]) => `${fieldKey}:${bounds[0]}:${bounds[1]}`);
 
     const baseQuery = {
       pageSize: PRODUCT_LIMIT,
-      brandSlugs: dynamicFilters.brandSlugs,
-      inStockOnly: dynamicFilters.inStockOnly,
+      brandSlugs: serverDynamicFilters.brandSlugs,
+      inStockOnly: serverDynamicFilters.inStockOnly,
       categorySlug:
         !filterSubCategoryId && !filterMiniCategoryId
           ? category
@@ -400,12 +414,12 @@ function ProductsPageInner() {
           : undefined,
       miniCategorySlug: filterMiniCategoryId ? category : undefined,
       minPrice:
-        dynamicFilters.price[0] !== priceBounds[0]
-          ? dynamicFilters.price[0]
+        serverDynamicFilters.price[0] !== priceBounds[0]
+          ? serverDynamicFilters.price[0]
           : undefined,
       maxPrice:
-        dynamicFilters.price[1] !== priceBounds[1]
-          ? dynamicFilters.price[1]
+        serverDynamicFilters.price[1] !== priceBounds[1]
+          ? serverDynamicFilters.price[1]
           : undefined,
     };
 
@@ -423,8 +437,8 @@ function ProductsPageInner() {
           {
             attr,
             range,
-            brandSlugs: dynamicFilters.brandSlugs,
-            inStockOnly: dynamicFilters.inStockOnly,
+            brandSlugs: serverDynamicFilters.brandSlugs,
+            inStockOnly: serverDynamicFilters.inStockOnly,
             minPrice: baseQuery.minPrice,
             maxPrice: baseQuery.maxPrice,
           }
@@ -434,7 +448,7 @@ function ProductsPageInner() {
         // კვეთს. ამიტომ თითო field-ის შედეგებს ცალ-ცალკე ვიღებთ:
         // ერთი field-ის option-ები OR-ია, სხვადასხვა field-ები კი AND.
         const groups = await Promise.all([
-          ...Object.entries(dynamicFilters.attributes)
+          ...Object.entries(serverDynamicFilters.attributes)
             .filter(([, values]) => values.length > 0)
             .map(async ([fieldKey, values]) => {
               return getAllStorefrontProducts({
@@ -442,7 +456,7 @@ function ProductsPageInner() {
                 attr: [`${fieldKey}:${values.join("|")}`],
               });
             }),
-          ...Object.entries(dynamicFilters.ranges)
+          ...Object.entries(serverDynamicFilters.ranges)
             .filter(([, bounds]) => bounds.length === 2)
             .map(async ([fieldKey, bounds]) => {
               return getAllStorefrontProducts({
@@ -481,7 +495,7 @@ function ProductsPageInner() {
   }, [
     category,
     categoryLevel,
-    dynamicFilters,
+    serverDynamicFilters,
     dynamicFiltersActive,
     hasFilterSchema,
     filterSubCategoryId,
@@ -532,7 +546,9 @@ function ProductsPageInner() {
   }, [categoryDetails]);
 
   const filteredProducts = useMemo(() => {
-    const result = [...products];
+    const result = dynamicFilters.discountedOnly
+      ? products.filter(isDiscountedProductCard)
+      : [...products];
 
     if (filters.sort === "price-asc")
       result.sort((a, b) => (a.newPrice ?? 0) - (b.newPrice ?? 0));
@@ -544,7 +560,7 @@ function ProductsPageInner() {
       result.sort((a, b) => b.title.localeCompare(a.title));
 
     return result;
-  }, [products, filters.sort]);
+  }, [products, filters.sort, dynamicFilters.discountedOnly]);
 
   const persistFilters = (
     values: DynamicFilterValues,
@@ -560,6 +576,7 @@ function ProductsPageInner() {
         JSON.stringify({
           price: values.price,
           brandSlugs: values.brandSlugs,
+          discountedOnly: values.discountedOnly === true,
           attributes: values.attributes,
           ranges: values.ranges,
           sort,
@@ -577,6 +594,7 @@ function ProductsPageInner() {
   const applyDynamicFilters = (values: DynamicFilterValues) => {
     setDynamicFilters(values);
     setDynamicFiltersActive(true);
+    setCurrentPage(1);
     persistFilters(values);
   };
 
@@ -697,6 +715,7 @@ function ProductsPageInner() {
               schema={filterSchema}
               values={dynamicFilters}
               priceBounds={priceBounds}
+              showDiscountedOnly
               onChange={(values) => {
                 applyDynamicFilters(values);
               }}
@@ -750,6 +769,7 @@ function ProductsPageInner() {
                 schema={filterSchema}
                 values={dynamicFilters}
                 priceBounds={priceBounds}
+                showDiscountedOnly
                 compact
                 onChange={(values) => {
                   applyDynamicFilters(values);

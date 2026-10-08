@@ -5,6 +5,12 @@ export type StorefrontProductCard = Omit<ProductCardProps, "id"> & {
   id: number;
 };
 
+export function isDiscountedProductCard(product: StorefrontProductCard) {
+  return typeof product.oldPrice === "number" &&
+    typeof product.newPrice === "number" &&
+    product.oldPrice > product.newPrice;
+}
+
 export function normalizeMediaUrl(
   url?: string,
   // ფოტოს გარეშე პროდუქტზე — საიტის ლოგო (ნაგულისხმევი placeholder)

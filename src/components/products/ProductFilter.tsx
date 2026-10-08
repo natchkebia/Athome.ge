@@ -15,6 +15,7 @@ interface ProductFilterProps {
     gpu: string[];
     color: string[];
     screen: string[];
+    discountedOnly: boolean;
   };
   onChange: (values: Partial<ProductFilterProps["filters"]>) => void;
 }
@@ -103,6 +104,7 @@ export default function ProductFilter({
       gpu: [],
       color: [],
       screen: [],
+      discountedOnly: false,
     });
   };
 
@@ -185,6 +187,14 @@ export default function ProductFilter({
       </div>
 
       <div className={styles.filterBox}>
+        <label className={`${styles.brandItem} ${styles.discountOnly}`}>
+          <input
+            type="checkbox"
+            checked={filters.discountedOnly}
+            onChange={(event) => onChange({ discountedOnly: event.target.checked })}
+          />
+          <span>{en ? "Discounted only" : "მხოლოდ ფასდაკლებულები"}</span>
+        </label>
         <div className={styles.section}>
           <label className={styles.label}>{en ? "Price" : "ფასი"}</label>
 

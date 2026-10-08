@@ -19,7 +19,7 @@ import {
   type StorefrontCategoryFilterSet,
   type StorefrontSearchResponse,
 } from "@/lib/api/storefront";
-import { mapStorefrontSearchProductToCard } from "@/lib/storefront/products";
+import { isDiscountedProductCard, mapStorefrontSearchProductToCard } from "@/lib/storefront/products";
 import layout from "@/app/(pages)/products/[category]/products.module.scss";
 import styles from "./SearchResultsPage.module.scss";
 import { useCommerce } from "@/contexts/CommerceContext";
@@ -49,6 +49,7 @@ export default function SearchResultsPage({
     price: [0, 1],
     brandSlugs: initialBrandSlug ? [initialBrandSlug] : [],
     inStockOnly: true,
+    discountedOnly: false,
     attributes: {},
     ranges: {},
   });
@@ -64,6 +65,15 @@ export default function SearchResultsPage({
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
   const { wishlistProductIds, toggleWishlist, addToCart } = useCommerce();
+
+  // The discount toggle filters the already loaded products; it does not need a new search request.
+  const serverFilterValues = useMemo(() => ({
+    price: filterValues.price,
+    brandSlugs: filterValues.brandSlugs,
+    inStockOnly: filterValues.inStockOnly,
+    attributes: filterValues.attributes,
+    ranges: filterValues.ranges,
+  }), [filterValues.price, filterValues.brandSlugs, filterValues.inStockOnly, filterValues.attributes, filterValues.ranges]);
 
   useEffect(() => {
     try {
@@ -83,30 +93,30 @@ export default function SearchResultsPage({
     let active = true;
     const requestKey = `${query}|${initialCategorySlug ?? ""}|${initialBrandSlug ?? ""}`;
     const firstForQuery = initializedFor.current !== requestKey;
-    const attr = Object.entries(filterValues.attributes)
+    const attr = Object.entries(serverFilterValues.attributes)
       .filter(([, values]) => values.length > 0)
       .map(([key, values]) => `${key}:${values.join("|")}`);
-    const range = Object.entries(filterValues.ranges)
+    const range = Object.entries(serverFilterValues.ranges)
       .filter(([, bounds]) => bounds.length === 2)
       .map(([key, bounds]) => `${key}:${bounds[0]}:${bounds[1]}`);
     const priceIsFiltered =
       !firstForQuery &&
-      (filterValues.price[0] !== priceBounds[0] || filterValues.price[1] !== priceBounds[1]);
+      (serverFilterValues.price[0] !== priceBounds[0] || serverFilterValues.price[1] !== priceBounds[1]);
     const request = (page: number) =>
       searchStorefrontProducts({
         query,
         categorySlug: initialCategorySlug,
-        brandSlugs: filterValues.brandSlugs,
-        inStockOnly: filterValues.inStockOnly,
+        brandSlugs: serverFilterValues.brandSlugs,
+        inStockOnly: serverFilterValues.inStockOnly,
         attr,
         range,
-        minPrice: priceIsFiltered ? filterValues.price[0] : undefined,
-        maxPrice: priceIsFiltered ? filterValues.price[1] : undefined,
+        minPrice: priceIsFiltered ? serverFilterValues.price[0] : undefined,
+        maxPrice: priceIsFiltered ? serverFilterValues.price[1] : undefined,
         page,
         pageSize: PAGE_SIZE,
       });
 
-    if (!query && !initialCategorySlug && filterValues.brandSlugs.length === 0) {
+    if (!query && !initialCategorySlug && serverFilterValues.brandSlugs.length === 0) {
       setData(null);
       setLoading(false);
       return;
@@ -138,7 +148,7 @@ export default function SearchResultsPage({
       .catch(() => active && setData(null))
       .finally(() => active && setLoading(false));
     return () => { active = false; };
-  }, [filterValues, initialBrandSlug, initialCategorySlug, priceBounds, query]);
+  }, [serverFilterValues, initialBrandSlug, initialCategorySlug, priceBounds, query]);
 
   const schema = useMemo<StorefrontCategoryFilterSet | null>(() => {
     if (!data?.facets) return null;
@@ -157,13 +167,16 @@ export default function SearchResultsPage({
   }, [data]);
 
   const products = useMemo(() => {
-    const result = data?.products.map(mapStorefrontSearchProductToCard) ?? [];
+    const allProducts = data?.products.map(mapStorefrontSearchProductToCard) ?? [];
+    const result = filterValues.discountedOnly
+      ? allProducts.filter(isDiscountedProductCard)
+      : allProducts;
     if (sortFilters.sort === "price-asc") result.sort((a, b) => (a.newPrice ?? 0) - (b.newPrice ?? 0));
     if (sortFilters.sort === "price-desc") result.sort((a, b) => (b.newPrice ?? 0) - (a.newPrice ?? 0));
     if (sortFilters.sort === "a-z") result.sort((a, b) => a.title.localeCompare(b.title));
     if (sortFilters.sort === "z-a") result.sort((a, b) => b.title.localeCompare(a.title));
     return result;
-  }, [data, sortFilters.sort]);
+  }, [data, sortFilters.sort, filterValues.discountedOnly]);
   const pageStart = (currentPage - 1) * PRODUCTS_PER_PAGE;
   const visibleProducts = products.slice(pageStart, pageStart + PRODUCTS_PER_PAGE);
   const mobilePageSize = 4;
@@ -213,8 +226,21 @@ export default function SearchResultsPage({
 
         <div className={styles.mobileFoundHeader}>
           <strong>ნაპოვნი პროდუქტი</strong>
-          <span>{data.totalCount} პროდუქტი</span>
+          <span>{products.length} პროდუქტი</span>
         </div>
+
+        <label className={styles.mobileDiscountFilter}>
+          <input
+            type="checkbox"
+            checked={Boolean(filterValues.discountedOnly)}
+            onChange={(event) => {
+              setFilterValues((current) => ({ ...current, discountedOnly: event.target.checked }));
+              setCurrentPage(1);
+              setMobilePage(1);
+            }}
+          />
+          მხოლოდ ფასდაკლებულები
+        </label>
 
         {loading ? (
           <AtHomeLoader variant="section" />
@@ -246,6 +272,7 @@ export default function SearchResultsPage({
               schema={schema}
               values={filterValues}
               priceBounds={priceBounds}
+              showDiscountedOnly
               onChange={(values) => {
                 setFilterValues(values);
                 setCurrentPage(1);
@@ -257,7 +284,7 @@ export default function SearchResultsPage({
         <div className={layout.content}>
           <header className={styles.header}>
             <div><span className={styles.eyebrow}>ძებნის შედეგები</span><h1>{query || "ყველა პროდუქტი"}</h1></div>
-            <p>{data.totalCount} პროდუქტი მოიძებნა</p>
+            <p>{products.length} პროდუქტი მოიძებნა</p>
           </header>
           {data.suggestions.length > 0 && (
             <div className={styles.suggestions}>
@@ -288,6 +315,7 @@ export default function SearchResultsPage({
                 schema={schema}
                 values={filterValues}
                 priceBounds={priceBounds}
+                showDiscountedOnly
                 compact
                 onChange={(values) => {
                   setFilterValues(values);

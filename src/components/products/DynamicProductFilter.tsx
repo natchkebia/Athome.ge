@@ -10,6 +10,7 @@ export type DynamicFilterValues = {
   price: [number, number];
   brandSlugs: string[];
   inStockOnly: boolean;
+  discountedOnly?: boolean;
   attributes: Record<string, string[]>;
   ranges: Record<string, number[]>;
 };
@@ -20,6 +21,7 @@ type Props = {
   priceBounds: [number, number];
   onChange: (values: DynamicFilterValues) => void;
   compact?: boolean;
+  showDiscountedOnly?: boolean;
   alwaysOpenFieldKeys?: string[];
   displayNameOverrides?: Record<string, string>;
 };
@@ -30,6 +32,7 @@ export default function DynamicProductFilter({
   priceBounds,
   onChange,
   compact = false,
+  showDiscountedOnly = false,
   alwaysOpenFieldKeys = [],
   displayNameOverrides = {},
 }: Props) {
@@ -97,7 +100,7 @@ export default function DynamicProductFilter({
   };
 
   const reset = () =>
-    onChange({ price: priceBounds, brandSlugs: [], inStockOnly: true, attributes: {}, ranges: {} });
+    onChange({ price: priceBounds, brandSlugs: [], inStockOnly: true, discountedOnly: false, attributes: {}, ranges: {} });
 
   const sortedFilters = [...schema.filters].sort(
     (left, right) => left.sortOrder - right.sortOrder,
@@ -125,6 +128,16 @@ export default function DynamicProductFilter({
           />
           <span>{en ? "In stock only" : "მხოლოდ მარაგში არსებული"}</span>
         </label>
+        {showDiscountedOnly && (
+          <label className={`${styles.brandItem} ${styles.discountOnly}`}>
+            <input
+              type="checkbox"
+              checked={Boolean(values.discountedOnly)}
+              onChange={(event) => onChange({ ...values, discountedOnly: event.target.checked })}
+            />
+            <span>{en ? "Discounted only" : "მხოლოდ ფასდაკლებულები"}</span>
+          </label>
+        )}
         <div className={styles.section}>
           <label className={styles.label}>ფასი</label>
           <div className={styles.rangeWrapper}>

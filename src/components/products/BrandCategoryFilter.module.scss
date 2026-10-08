@@ -7,4 +7,5 @@
 .toggle { width: 48px; border: 0; background: #fff; cursor: pointer; color: #68757c; }
 .subRow { min-height: 44px; padding-left: 32px; font-size: 13px; background: #fbfcfd; }
 .active { color: #10aab5; font-weight: 600; background: #f0fbfc; }
+.discountOnly { min-height: 52px; padding: 0 16px; display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 14px; border-bottom: 1px solid #ecf2f6; input { width: 20px; height: 20px; margin: 0; accent-color: #10b5c0; } }
 @media (max-width: 992px) { .wrapper { width: 100%; height: auto; max-height: none; margin-top: 0; overflow: visible; } }

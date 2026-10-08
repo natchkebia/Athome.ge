@@ -20,6 +20,7 @@ import {
 } from "@/lib/api/configurator";
 import {
   normalizeMediaUrl,
+  isDiscountedProductCard,
   StorefrontProductCard,
 } from "@/lib/storefront/products";
 import { useCommerce } from "@/contexts/CommerceContext";
@@ -67,6 +68,7 @@ function GamingResultsInner() {
     gpu: [] as string[],
     color: [] as string[],
     screen: [] as string[],
+    discountedOnly: false,
     sort: "default",
   });
 
@@ -101,11 +103,14 @@ function GamingResultsInner() {
     if (!filtersActive) return products;
     let result = [...products];
 
-    result = result.filter(
-      (p) =>
-        (p.newPrice ?? 0) >= filters.price[0] &&
-        (p.newPrice ?? 0) <= filters.price[1]
-    );
+    if (filters.price[0] !== 0 || filters.price[1] !== 8500) {
+      result = result.filter(
+        (p) =>
+          (p.newPrice ?? 0) >= filters.price[0] &&
+          (p.newPrice ?? 0) <= filters.price[1]
+      );
+    }
+    if (filters.discountedOnly) result = result.filter(isDiscountedProductCard);
 
     const filterKeys: (keyof typeof filters)[] = [
       "brands",
