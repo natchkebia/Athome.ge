@@ -3,6 +3,7 @@
 import styles from "./CartSummary.module.scss";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { Download } from "react-bootstrap-icons";
 import MinimalProductItem, { ProductItem } from "./MinimalProductItem";
 import { useCommerce } from "@/contexts/CommerceContext";
 import { normalizeMediaUrl } from "@/lib/storefront/products";
@@ -23,6 +24,8 @@ export default function CartSummary({
   const en = useStorefrontLocale() === "en";
   const router = useRouter();
   const [isContinuing, setIsContinuing] = useState(false);
+  const [isDownloadingInvoice, setIsDownloadingInvoice] = useState(false);
+  const [invoiceError, setInvoiceError] = useState("");
   const { cart } = useCommerce();
   const {
     quote,
@@ -76,6 +79,19 @@ export default function CartSummary({
   const handleContinue = () => {
     setIsContinuing(true);
     router.push("/delivery");
+  };
+
+  const handleDownloadInvoice = async () => {
+    setInvoiceError("");
+    setIsDownloadingInvoice(true);
+    try {
+      const { downloadCartInvoice } = await import("@/lib/commerce/downloadCartInvoice");
+      await downloadCartInvoice(cart.items, en ? "en" : "ka", quote);
+    } catch (error) {
+      setInvoiceError(error instanceof Error ? error.message : (en ? "The invoice could not be downloaded." : "ინვოისის ჩამოტვირთვა ვერ მოხერხდა."));
+    } finally {
+      setIsDownloadingInvoice(false);
+    }
   };
 
   return (
@@ -181,14 +197,26 @@ export default function CartSummary({
           </form>
         </div>
         {!showItems && (
-          <button
-            className={`${styles.button} ${isContinuing ? styles.loading : ""}`}
-            onClick={handleContinue}
-            disabled={isContinuing}
-          >
-            {isContinuing && <span className={styles.spinner} />}
-            <span>{en ? "Proceed to checkout" : "ყიდვის გაგრძელება"}</span>
-          </button>
+          <div className={styles.actions}>
+            <button
+              type="button"
+              className={styles.invoiceButton}
+              onClick={() => void handleDownloadInvoice()}
+              disabled={isDownloadingInvoice || quoteLoading || cart.items.length === 0}
+            >
+              <Download aria-hidden="true" />
+              <span>{isDownloadingInvoice ? (en ? "Preparing…" : "მზადდება…") : (en ? "Download invoice" : "ინვოისის ჩამოტვირთვა")}</span>
+            </button>
+            {invoiceError && <p className={styles.invoiceError} role="alert">{invoiceError}</p>}
+            <button
+              className={`${styles.button} ${isContinuing ? styles.loading : ""}`}
+              onClick={handleContinue}
+              disabled={isContinuing}
+            >
+              {isContinuing && <span className={styles.spinner} />}
+              <span>{en ? "Proceed to checkout" : "ყიდვის გაგრძელება"}</span>
+            </button>
+          </div>
         )}
       </div>
     </div>

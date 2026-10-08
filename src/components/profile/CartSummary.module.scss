@@ -108,8 +108,42 @@
   .button {
     width: 100%;
     flex: 0 0 48px;
-    margin: 20px 0 0;
+    margin: 10px 0 0;
   }
+}
+
+.actions {
+  margin-top: 20px;
+}
+
+.invoiceButton {
+  width: 100%;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  padding: 9px 14px;
+  border: 1px solid #10b5c0;
+  border-radius: 8px;
+  background: #fff;
+  color: #0fa1ab;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 650;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+
+  svg { width: 17px; height: 17px; flex: 0 0 17px; }
+  &:hover:not(:disabled) { background: #e9f8f9; }
+  &:disabled { opacity: 0.55; cursor: wait; }
+}
+
+.invoiceError {
+  margin: 8px 0 0;
+  color: #b63f35;
+  font-size: 12px;
+  line-height: 1.35;
 }
 
 .discount,
@@ -348,9 +382,20 @@
       width: calc(100% - 64px);
       height: 48px;
       flex-basis: 48px;
-      margin: 32px 32px 32px;
+      margin: 10px 32px 32px;
       border-radius: 8px;
       font-size: 15px;
+    }
+
+    .actions {
+      margin-top: 26px;
+    }
+
+    .invoiceButton,
+    .invoiceError {
+      width: calc(100% - 64px);
+      margin-left: 32px;
+      margin-right: 32px;
     }
   }
 }
