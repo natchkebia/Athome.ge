@@ -6,11 +6,12 @@ import type { CartQuote } from "@/lib/api/cartQuote";
 const PAGE_WIDTH = 595.28;
 const PAGE_HEIGHT = 841.89;
 const MARGIN = 42;
-const BRAND = rgb(16 / 255, 181 / 255, 192 / 255);
+// Keep invoice accents aligned with the branded configurator PDF.
+const BRAND = rgb(249 / 255, 4 / 255, 70 / 255);
 const INK = rgb(59 / 255, 63 / 255, 66 / 255);
 const MUTED = rgb(105 / 255, 108 / 255, 110 / 255);
-const SOFT = rgb(238 / 255, 245 / 255, 248 / 255);
-const LINE = rgb(236 / 255, 242 / 255, 246 / 255);
+const SOFT = rgb(251 / 255, 243 / 255, 245 / 255);
+const LINE = rgb(233 / 255, 235 / 255, 248 / 255);
 const WHITE = rgb(1, 1, 1);
 
 function money(value: number, locale: "ka" | "en") {
