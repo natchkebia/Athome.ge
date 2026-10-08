@@ -250,13 +250,7 @@ export default function ProductDetail({
       ? referencePrice
       : undefined;
   const discountPercent = oldPrice
-    ? product.discountPercent && product.discountPercent > 0
-      ? product.discountPercent
-      : dealPricing?.discountPercent && dealPricing.discountPercent > 0
-        ? dealPricing.discountPercent
-      : Math.round(
-          ((oldPrice - currentPrice) / oldPrice) * 100
-        )
+    ? Math.ceil(((oldPrice - currentPrice) / oldPrice) * 100)
     : 0;
 
   useEffect(() => {

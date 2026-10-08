@@ -57,7 +57,7 @@ export function mapStorefrontProductToCard(
 
   // პროცენტი მხოლოდ compareAtPrice-დან — promotion-ის დასრულებისას ბეჯი თავისით ქრება.
   const discount = hasDiscount
-    ? Math.round(
+    ? Math.ceil(
         ((referencePrice - product.effectivePrice) / referencePrice) * 100
       )
     : 0;
@@ -93,7 +93,7 @@ export function mapStorefrontSearchProductToCard(
     newPrice: product.effectivePrice,
     discount:
       product.compareAtPrice && product.compareAtPrice > product.effectivePrice
-        ? Math.round(
+        ? Math.ceil(
             ((product.compareAtPrice - product.effectivePrice) / product.compareAtPrice) *
               100
           )

@@ -80,6 +80,12 @@ export default function DiscountCard({
   const savedAmount = oldPrice !== undefined && newPrice !== undefined
     ? Math.max(0, oldPrice - newPrice)
     : 0;
+  const actualDiscountPercent = oldPrice && savedAmount > 0
+    ? (savedAmount / oldPrice) * 100
+    : 0;
+  const discountText = actualDiscountPercent > 0
+    ? `${Math.ceil(actualDiscountPercent)}%`
+    : discount > 0 ? `${Math.abs(discount)}%` : "";
   const { toggleCompare, compareIds, maxItems } = useCompare();
   const { showToast } = useToast();
   const isCompared = compareIds.has(Number(id));
@@ -211,14 +217,14 @@ export default function DiscountCard({
     return (
       <div className={`${styles.cardList} ${!isAvailable ? styles.outOfStockCard : ""}`}>
         <div className={styles.listImage} ref={imageRef}>
-          {(promotionLabel || discount > 0) && (
+          {(promotionLabel || discountText) && (
             <div className={`${styles.discountBadge} ${styles.listDiscountBadge}`}>
               <svg viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M20.6 13.6 13.7 20.5a2 2 0 0 1-2.8 0L3.5 13.1a2 2 0 0 1-.6-1.4V5a2 2 0 0 1 2-2h6.7a2 2 0 0 1 1.4.6l7.5 7.2a2 2 0 0 1 .1 2.8ZM7.4 7.5a1.4 1.4 0 1 0 0-2.8 1.4 1.4 0 0 0 0 2.8Z" />
               </svg>
               <span>
                 <small>SALE</small>
-                <strong>{discount > 0 ? `-${Math.abs(discount)}%` : promotionLabel}</strong>
+                <strong>{discountText ? `-${discountText}` : promotionLabel}</strong>
               </span>
             </div>
           )}
@@ -293,10 +299,10 @@ export default function DiscountCard({
   return (
     <div className={`${styles.card} ${fixedSize ? styles.fixedCard : ""} ${!isAvailable ? styles.outOfStockCard : ""}`}>
       <div className={styles.cardWrapper}>
-        {(promotionLabel || discount > 0 || isNew) && (
+        {(promotionLabel || discountText || isNew) && (
           <div className={styles.badges}>
-            {(promotionLabel || discount > 0) && (
-              <div className={styles.discountBadge}>{promotionLabel || `${Math.abs(discount)}%`}</div>
+            {(promotionLabel || discountText) && (
+              <div className={styles.discountBadge}>{promotionLabel || discountText}</div>
             )}
             {isNew && <div className={styles.newBadge}>NEW</div>}
           </div>
