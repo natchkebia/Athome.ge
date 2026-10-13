@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
+import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   forgotPassword,
@@ -293,7 +294,15 @@ export default function AuthForm() {
       {isSubmitting && <AtHomeLoader variant="overlay" label="იტვირთება" />}
 
       <div className={styles.authWrapper}>
-        <div className={styles.leftSide}></div>
+        <div className={styles.leftSide}>
+          <Image
+            src="/images/auth-banner.png"
+            alt={en ? "At Home technology banner" : "At Home ტექნოლოგიური ბანერი"}
+            fill
+            priority
+            sizes="436px"
+          />
+        </div>
 
         <div className={styles.rightSide}>
           {activeTab === "reset" ? (
