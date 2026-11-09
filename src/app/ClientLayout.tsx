@@ -156,7 +156,7 @@ export default function ClientLayout({
       isRefreshing = true;
 
       try {
-        await refreshToken(tokens.refreshToken);
+        await refreshToken();
       } catch (error) {
         if (error instanceof ApiError && error.status === 429) refreshRateLimited = true;
         // Auth-guarded requests still handle a failed refresh explicitly.

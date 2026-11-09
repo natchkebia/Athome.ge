@@ -287,7 +287,7 @@ export default function Step4Payment({
           {en ? "The bank-transfer invoice will be sent to the email address you provided." : "გადარიცხვის ინვოისი გამოიგზავნება თქვენ მიერ მითითებულ ელ.ფოსტაზე"}
         </p>
       )}
-      {error && <p className={styles.invoice} style={{ color: "rgba(235, 78, 57, 1)" }}>{error}</p>}
+      {error && <p className={styles.errorNotice} role="alert">{error}</p>}
       <button
         className={styles.nextBtn}
         onClick={() => onNext?.({ method, bank, email, installmentMonths })}

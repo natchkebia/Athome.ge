@@ -18,6 +18,16 @@ function publicOrigin(request: NextRequest): string {
 export async function middleware(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
 
+  // nginx's internal connection is HTTP even for HTTPS visitors. Use Cloudflare's visitor scheme.
+  try {
+    const visitor = JSON.parse(request.headers.get("cf-visitor") ?? "{}");
+    if (visitor.scheme === "http") {
+      return NextResponse.redirect(new URL(pathname + search, publicOrigin(request).replace(/^http:/, "https:")), 308);
+    }
+  } catch {
+    // Malformed visitor metadata must not break ordinary navigation.
+  }
+
   // Flitt returns the shopper with an HTML form POST. App Router pages only
   // render GET requests, so turn that browser POST into a safe PRG redirect
   // before routing. The submitted payment status is deliberately ignored:

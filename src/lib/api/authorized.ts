@@ -28,7 +28,7 @@ export async function authorizedRequest<T>(
     }
 
     try {
-      await refreshToken(tokens.refreshToken);
+      await refreshToken();
     } catch (refreshError) {
       if (refreshError instanceof ApiError && refreshError.status === 429) throw refreshError;
       throw error;

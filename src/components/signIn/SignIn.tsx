@@ -200,7 +200,7 @@ export default function SignIn() {
         password: String(formData.get("password") ?? ""),
       });
 
-      if (!response.accessToken || !response.refreshToken) {
+      if (!response.accessToken) {
         throw new Error(en ? "Sign-in failed" : "ავტორიზაცია ვერ შესრულდა");
       }
 
@@ -260,7 +260,7 @@ export default function SignIn() {
         acceptedTerms: true,
       });
 
-      if (!response.accessToken || !response.refreshToken) {
+      if (!response.accessToken) {
         throw new Error(en ? "Sign-in failed" : "ავტორიზაცია ვერ შესრულდა");
       }
 

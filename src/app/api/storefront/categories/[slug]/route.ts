@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "");
+import { UPSTREAM_API_URL as API_BASE_URL, upstreamHeaders } from "@/lib/api/upstream";
 
 type RouteContext = {
   params: Promise<{
@@ -25,7 +25,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
   const response = await fetch(
     url,
     {
-      headers: {
+      headers: { ...upstreamHeaders(request),
         Accept: "application/json",
       },
       cache: "no-store",

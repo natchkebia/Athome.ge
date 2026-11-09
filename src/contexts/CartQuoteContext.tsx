@@ -176,10 +176,11 @@ export function CartQuoteProvider({ children }: { children: React.ReactNode }) {
   );
 
   const clearCoupon = useCallback(() => {
+    if (cart.items.length > 0) setLoading(true);
     setCouponCode("");
     setCouponError(null);
     storeCoupon("");
-  }, []);
+  }, [cart.items.length]);
 
   const value = useMemo(
     () => ({

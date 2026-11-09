@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "");
+import { UPSTREAM_API_URL as API_BASE_URL, upstreamHeaders } from "@/lib/api/upstream";
 
 export async function GET(request: NextRequest) {
   if (!API_BASE_URL) {
@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
   request.nextUrl.searchParams.forEach((value, key) => url.searchParams.set(key, value));
 
   const response = await fetch(url, {
-    headers: {
+    headers: { ...upstreamHeaders(request),
       Accept: "application/json",
     },
     cache: "no-store",

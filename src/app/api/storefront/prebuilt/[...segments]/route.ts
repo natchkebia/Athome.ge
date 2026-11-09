@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "");
+import { UPSTREAM_API_URL as API_BASE_URL, upstreamHeaders } from "@/lib/api/upstream";
 
 type RouteContext = { params: Promise<{ segments: string[] }> };
 
@@ -16,7 +16,7 @@ async function proxy(request: NextRequest, context: RouteContext) {
   request.nextUrl.searchParams.forEach((value, key) => url.searchParams.append(key, value));
   const response = await fetch(url, {
     method: request.method,
-    headers: {
+    headers: { ...upstreamHeaders(request),
       Accept: "application/json",
       "Content-Type": request.headers.get("content-type") ?? "application/json",
     },

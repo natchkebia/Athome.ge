@@ -73,7 +73,9 @@ export default function CheckoutWizard({ onStepChange, onDeliverySummaryChange }
   const { cart, clearCart } = useCommerce();
   const {
     quote,
+    loading: quoteLoading,
     couponCode,
+    clearCoupon,
     setCustomerEmail,
     setDeliverySelection,
     setCouponError,
@@ -311,6 +313,20 @@ export default function CheckoutWizard({ onStepChange, onDeliverySummaryChange }
         return;
       }
 
+      if (code === "COUPON_EXHAUSTED") {
+        // Changing the context code triggers one fresh quote without the exhausted coupon.
+        if (couponCode) clearCoupon();
+        else await refreshQuote();
+        setCouponError(message);
+        setSubmitError(message);
+        return;
+      }
+      if (code === "PROMOTION_EXHAUSTED") {
+        setSubmitError(message);
+        await refreshQuote();
+        return;
+      }
+
       if (code === "COUPON_NOT_APPLICABLE") {
         setCouponError(message);
         await refreshQuote();
@@ -408,7 +424,7 @@ export default function CheckoutWizard({ onStepChange, onDeliverySummaryChange }
           <Step4Payment
             onNext={handlePlaceOrder}
             onPrev={() => goToStep(orderType === "store" ? 2 : 3)}
-            submitting={submitting}
+            submitting={submitting || quoteLoading}
             error={submitError}
             orderTotal={quote?.total ?? cart.totalPrice}
           />

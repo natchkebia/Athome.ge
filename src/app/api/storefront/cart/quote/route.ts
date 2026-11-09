@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "");
+import { UPSTREAM_API_URL as API_BASE_URL, upstreamHeaders } from "@/lib/api/upstream";
 
 export async function POST(request: NextRequest) {
   if (!API_BASE_URL) {
@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
 
   const response = await fetch(url, {
     method: "POST",
-    headers: {
+    headers: { ...upstreamHeaders(request),
       Accept: "application/json",
       "Content-Type": request.headers.get("content-type") ?? "application/json",
       "X-Lang": request.headers.get("x-lang") ?? "ka",

@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "");
+import { UPSTREAM_API_URL as API_BASE_URL, upstreamHeaders } from "@/lib/api/upstream";
 type RouteContext = { params: Promise<{ slug: string }> };
 
 export async function GET(request: NextRequest, context: RouteContext) {
@@ -8,7 +8,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
   const { slug } = await context.params;
   const url = new URL(`/api/storefront/brands/${encodeURIComponent(slug)}/filters`, API_BASE_URL);
   request.nextUrl.searchParams.forEach((value, key) => url.searchParams.append(key, value));
-  const response = await fetch(url, { headers: { Accept: "application/json" }, cache: "no-store" });
+  const response = await fetch(url, { headers: { ...upstreamHeaders(request), Accept: "application/json" }, cache: "no-store" });
   return new Response(await response.arrayBuffer(), {
     status: response.status,
     headers: { "Content-Type": response.headers.get("content-type") ?? "application/json",

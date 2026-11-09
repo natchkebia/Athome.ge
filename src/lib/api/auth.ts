@@ -3,6 +3,7 @@ import {
   clearAuthTokens,
   getStoredAuthTokens,
   storeAuthTokens,
+  takeLegacyRefreshToken,
 } from "../auth/tokens";
 import { storeProfileGender, storeProfileAvatar } from "../auth/profilePreferences";
 
@@ -20,7 +21,6 @@ export type AuthUser = {
 
 export type AuthTokensResponse = {
   accessToken?: string;
-  refreshToken?: string;
   accessTokenExpiresAt?: string;
   expiresAt?: string;
   user?: AuthUser;
@@ -86,10 +86,9 @@ function jsonBody(payload: unknown) {
 }
 
 function persistAuthResponse(response: AuthTokensResponse) {
-  if (response.accessToken && response.refreshToken) {
+  if (response.accessToken) {
     storeAuthTokens({
       accessToken: response.accessToken,
-      refreshToken: response.refreshToken,
       accessTokenExpiresAt: response.accessTokenExpiresAt ?? response.expiresAt,
     });
   }
@@ -125,7 +124,7 @@ async function authorizedRequest<T>(
     }
 
     try {
-      await refreshToken(tokens.refreshToken);
+      await refreshToken();
     } catch (refreshError) {
       if (refreshError instanceof ApiError && refreshError.status === 429) throw refreshError;
       clearAuthTokens();
@@ -193,17 +192,20 @@ export function registerLegal(payload: LegalRegisterPayload) {
   });
 }
 
-export async function refreshToken(refreshToken: string) {
-  const response = await apiRequest<AuthTokensResponse>(
-    "/api/auth/refresh-token",
-    {
-      method: "POST",
-      body: jsonBody({ refreshToken }),
-      useProxy: true,
-    }
-  );
+let refreshInFlight: Promise<AuthTokensResponse> | null = null;
 
-  return persistAuthResponse(response);
+export function refreshToken() {
+  // Rotation is single-use: concurrent API guards and the background refresh share one request.
+  if (refreshInFlight) return refreshInFlight;
+  const legacy = takeLegacyRefreshToken();
+  refreshInFlight = apiRequest<AuthTokensResponse>("/api/auth/refresh-token", {
+    method: "POST",
+    headers: { "X-Athome-Refresh": "1" },
+    body: jsonBody(legacy ? { refreshToken: legacy } : {}),
+    credentials: "same-origin",
+    useProxy: true,
+  }).then(persistAuthResponse).finally(() => { refreshInFlight = null; });
+  return refreshInFlight;
 }
 
 export async function getCurrentUser() {
@@ -336,17 +338,12 @@ export async function resendEmailVerification(email: string) {
 export async function logout() {
   const tokens = getStoredAuthTokens();
 
-  if (!tokens) {
-    clearAuthTokens();
-    storeProfileAvatar(null);
-    return;
-  }
-
   try {
     await apiRequest<void>("/api/auth/logout", {
       method: "POST",
-      token: tokens.accessToken,
-      body: jsonBody({ refreshToken: tokens.refreshToken }),
+      token: tokens?.accessToken,
+      credentials: "same-origin",
+      body: jsonBody({}),
       useProxy: true,
     });
   } finally {

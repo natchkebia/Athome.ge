@@ -6,17 +6,17 @@ const vm = require('node:vm');
 const ts = require('typescript');
 const modules = new Map();
 const locale = { getBrowserLocale: () => 'en' };
-const tokens = { getStoredAuthTokens: () => ({ accessToken: 'test', refreshToken: 'test' }), storeAuthTokens() {}, clearAuthTokens() {} };
+const tokens = { getStoredAuthTokens: () => ({ accessToken: 'test' }), takeLegacyRefreshToken: () => null, storeAuthTokens() {}, clearAuthTokens() {} };
 function load(file) {
   file = path.resolve(file);
   if (modules.has(file)) return modules.get(file);
   const mod = { exports: {} };
   const code = ts.transpileModule(fs.readFileSync(file, 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
-  const localRequire = name => name === 'next/server' ? { NextResponse: Response } : name.includes('i18n/locale') ? locale
+  const localRequire = name => name === 'next/server' ? require('next/server') : name === 'node:net' ? require('node:net') : name.includes('i18n/locale') ? locale
     : name.includes('auth/tokens') ? tokens
     : name.includes('profilePreferences') ? { storeProfileGender() {} }
-    : load(path.resolve(path.dirname(file), name + '.ts'));
-  vm.runInNewContext(code, { exports: mod.exports, require: localRequire, process, window: { location: { origin: 'http://localhost', pathname: '/' } }, fetch: (...args) => global.fetch(...args), URL, Headers, Response, FormData, Date, console }, { filename: file });
+    : load(name.startsWith('@/') ? path.resolve('src', name.slice(2) + '.ts') : path.resolve(path.dirname(file), name + '.ts'));
+  vm.runInNewContext(code, { exports: mod.exports, require: localRequire, process, window: { location: { origin: 'http://localhost', pathname: '/' } }, fetch: (...args) => global.fetch(...args), URL, Headers, Response, FormData, TextDecoder, Date, console }, { filename: file });
   modules.set(file, mod.exports);
   return mod.exports;
 }

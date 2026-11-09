@@ -89,7 +89,7 @@ export default function AuthForm() {
         acceptedTerms: true,
       });
 
-      if (!response.accessToken || !response.refreshToken) {
+      if (!response.accessToken) {
         setFeedback({
           type: "error",
           text: "ავტორიზაციის პასუხში token არ დაბრუნდა",
@@ -118,7 +118,7 @@ export default function AuthForm() {
         password: String(formData.get("password") ?? ""),
       });
 
-      if (!response.accessToken || !response.refreshToken) {
+      if (!response.accessToken) {
         setFeedback({
           type: "error",
           text: "ავტორიზაციის პასუხში token არ დაბრუნდა",

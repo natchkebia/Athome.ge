@@ -4,7 +4,6 @@ const ACCESS_TOKEN_EXPIRES_AT_KEY = "athome.accessTokenExpiresAt";
 
 export type StoredAuthTokens = {
   accessToken: string;
-  refreshToken: string;
   accessTokenExpiresAt?: string;
 };
 
@@ -14,15 +13,13 @@ export function getStoredAuthTokens(): StoredAuthTokens | null {
   }
 
   const accessToken = localStorage.getItem(ACCESS_TOKEN_KEY);
-  const refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
 
-  if (!accessToken || !refreshToken) {
+  if (!accessToken) {
     return null;
   }
 
   return {
     accessToken,
-    refreshToken,
     accessTokenExpiresAt:
       localStorage.getItem(ACCESS_TOKEN_EXPIRES_AT_KEY) ?? undefined,
   };
@@ -34,7 +31,7 @@ export function storeAuthTokens(tokens: StoredAuthTokens) {
   }
 
   localStorage.setItem(ACCESS_TOKEN_KEY, tokens.accessToken);
-  localStorage.setItem(REFRESH_TOKEN_KEY, tokens.refreshToken);
+  localStorage.removeItem(REFRESH_TOKEN_KEY);
 
   if (tokens.accessTokenExpiresAt) {
     localStorage.setItem(
@@ -46,6 +43,14 @@ export function storeAuthTokens(tokens: StoredAuthTokens) {
   }
 
   window.dispatchEvent(new Event("athome-auth-changed"));
+}
+
+/** Read an old session's token once, removing it before any network request. */
+export function takeLegacyRefreshToken(): string | null {
+  if (typeof window === "undefined") return null;
+  const legacy = localStorage.getItem(REFRESH_TOKEN_KEY);
+  localStorage.removeItem(REFRESH_TOKEN_KEY);
+  return legacy;
 }
 
 export function clearAuthTokens() {
@@ -79,6 +84,9 @@ export function shouldRefreshAccessToken(bufferMs = 60_000) {
   const tokens = getStoredAuthTokens();
 
   if (!tokens) return false;
+
+  // Migrate an old browser session on page load, without waiting for access-token expiry.
+  if (localStorage.getItem(REFRESH_TOKEN_KEY)) return true;
 
   const explicitExpiry = tokens.accessTokenExpiresAt
     ? new Date(tokens.accessTokenExpiresAt).getTime()
