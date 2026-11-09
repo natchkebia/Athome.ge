@@ -11,6 +11,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
   const response = await fetch(url, { headers: { Accept: "application/json" }, cache: "no-store" });
   return new Response(await response.arrayBuffer(), {
     status: response.status,
-    headers: { "Content-Type": response.headers.get("content-type") ?? "application/json" },
+    headers: { "Content-Type": response.headers.get("content-type") ?? "application/json",
+      ...(response.headers.has("retry-after") ? { "Retry-After": response.headers.get("retry-after")! } : {}), },
   });
 }

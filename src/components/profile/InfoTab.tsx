@@ -250,6 +250,7 @@ export default function InfoTab({
 
       <div className={styles.passwordSection} id="change-password">
         <h4>პაროლის შეცვლა</h4>
+        <p>მინიმუმ 12 სიმბოლო (მაქსიმუმ 128).</p>
         <div className={styles.passwordGrid}>
           {["old", "new", "repeat"].map((field, i) => (
             <div key={field} className={styles.passwordField}>
@@ -259,6 +260,8 @@ export default function InfoTab({
                     ? "text"
                     : "password"
                 }
+                minLength={i === 0 ? undefined : 12}
+                maxLength={i === 0 ? undefined : 128}
                 placeholder={
                   i === 0
                     ? "ძველი პაროლი"

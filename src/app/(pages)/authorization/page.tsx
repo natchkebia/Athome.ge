@@ -13,6 +13,8 @@ import {
   resetPasswordSms,
   socialLogin,
 } from "@/lib/api/auth";
+import EmailVerification from "@/components/auth/EmailVerification";
+import { ApiError } from "@/lib/api/client";
 import { storeProfileGender } from "@/lib/auth/profilePreferences";
 import AtHomeLoader from "@/components/shared/AtHomeLoader";
 import styles from "./authorization.module.scss";
@@ -24,9 +26,11 @@ export default function AuthForm() {
   const searchParams = useSearchParams();
   const locale = useStorefrontLocale();
   const en = locale === "en";
-  const [activeTab, setActiveTab] = useState<"login" | "register" | "reset">(
+  const [activeTab, setActiveTab] = useState<"login" | "register" | "reset" | "verify">(
     "login"
   );
+  const [verificationEmail, setVerificationEmail] = useState("");
+  const [verificationCodeSent, setVerificationCodeSent] = useState(false);
   const [personType, setPersonType] = useState<"physical" | "legal">(
     "physical"
   );
@@ -45,7 +49,6 @@ export default function AuthForm() {
   const [showResetPassword, setShowResetPassword] = useState(false);
   const [showResetRepeat, setShowResetRepeat] = useState(false);
   const [resetContact, setResetContact] = useState("");
-  const [debugResetToken, setDebugResetToken] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [feedback, setFeedback] = useState<{
     type: "error" | "success";
@@ -57,9 +60,14 @@ export default function AuthForm() {
     if (
       requestedTab === "login" ||
       requestedTab === "register" ||
-      requestedTab === "reset"
+      requestedTab === "reset" || requestedTab === "verify"
     ) {
       setActiveTab(requestedTab);
+      if (requestedTab === "verify") {
+        setVerificationCodeSent(false);
+        setVerificationEmail(sessionStorage.getItem("athome-verification-email") ?? "");
+        sessionStorage.removeItem("athome-verification-email");
+      }
       setFeedback(null);
     }
   }, [searchParams]);
@@ -106,7 +114,7 @@ export default function AuthForm() {
 
     try {
       const response = await login({
-        email: String(formData.get("email") ?? ""),
+        email: String(formData.get("email") ?? "").trim(),
         password: String(formData.get("password") ?? ""),
       });
 
@@ -120,6 +128,12 @@ export default function AuthForm() {
 
       router.push("/profile");
     } catch (error) {
+      if (error instanceof ApiError && error.code === "EMAIL_NOT_VERIFIED") {
+        setVerificationCodeSent(false);
+        setVerificationEmail(String(formData.get("email") ?? "").trim());
+        setActiveTab("verify");
+        return;
+      }
       setFeedback({ type: "error", text: getErrorText(error) });
     } finally {
       setIsSubmitting(false);
@@ -162,22 +176,10 @@ export default function AuthForm() {
         if (response.success) {
           storeProfileGender(gender);
 
-          try {
-            const loginResponse = await login({ email, password });
-
-            if (loginResponse.accessToken && loginResponse.refreshToken) {
-              router.push("/profile");
-              return;
-            }
-          } catch {
-            // Some backends require email verification before first login.
-          }
-
-          setActiveTab("login");
-          setFeedback({
-            type: "success",
-            text: response.message,
-          });
+          setVerificationCodeSent(true);
+          setVerificationEmail(email.trim());
+          setActiveTab("verify");
+          setFeedback(null);
           return;
         }
 
@@ -197,22 +199,10 @@ export default function AuthForm() {
         if (response.success) {
           storeProfileGender("male");
 
-          try {
-            const loginResponse = await login({ email, password });
-
-            if (loginResponse.accessToken && loginResponse.refreshToken) {
-              router.push("/profile");
-              return;
-            }
-          } catch {
-            // Some backends require email verification before first login.
-          }
-
-          setActiveTab("login");
-          setFeedback({
-            type: "success",
-            text: response.message,
-          });
+          setVerificationCodeSent(true);
+          setVerificationEmail(email.trim());
+          setActiveTab("verify");
+          setFeedback(null);
           return;
         }
 
@@ -236,14 +226,13 @@ export default function AuthForm() {
     const contact = String(formData.get("resetContact") ?? "");
 
     try {
-      const response = await forgotPassword(
+      await forgotPassword(
         method === "email" ? { email: contact } : { phone: contact }
       );
       setResetContact(contact);
-      setDebugResetToken(response.debugResetToken ?? "");
       setFeedback({
         type: "success",
-        text: response.message ?? "კოდი წარმატებით გაიგზავნა",
+        text: "თუ ანგარიში არსებობს, აღდგენის კოდი გამოგზავნილია. შეამოწმეთ შეტყობინებები.",
       });
       setResetStep(3);
     } catch (error) {
@@ -305,7 +294,15 @@ export default function AuthForm() {
         </div>
 
         <div className={styles.rightSide}>
-          {activeTab === "reset" ? (
+          {activeTab === "verify" ? (
+            <EmailVerification initialEmail={verificationEmail} initialCodeSent={verificationCodeSent} en={en}
+              onRegister={(email) => { setVerificationEmail(email); setActiveTab("register"); setFeedback(null); }}
+              onBack={() => { setActiveTab("login"); setFeedback(null); }}
+              onVerified={() => {
+                setActiveTab("login");
+                setFeedback({ type: "success", text: en ? "Email confirmed. Please sign in again." : "ელფოსტა დადასტურებულია. გაიარეთ ავტორიზაცია." });
+              }} />
+          ) : activeTab === "reset" ? (
             <>
               {resetStep === 1 && (
                 <>
@@ -457,13 +454,12 @@ export default function AuthForm() {
                     <div className={styles.desc}>
                       {method === "email" ? (
                         <div>
-                          <p>ვერიფიკაციის კოდი გამოგზავნილია ელ.ფოსტაზე</p>
+                          <p>თუ ანგარიში არსებობს, კოდი გამოგზავნილია ელფოსტაზე</p>
                           <span>{resetContact}</span>
-                          {debugResetToken && <span>{debugResetToken}</span>}
                         </div>
                       ) : (
                         <div>
-                          <p>ვერიფიკაციის კოდი გამოგზავნილია ნომერზე</p>
+                          <p>თუ ანგარიში არსებობს, კოდი გამოგზავნილია ნომერზე</p>
                           <span>{resetContact}</span>
                         </div>
                       )}
@@ -506,8 +502,7 @@ export default function AuthForm() {
                     </div>
                     <h3 className={styles.mainTittle}>დააყენე ახალი პაროლი</h3>
                     <p className={styles.desc}>
-                      უნდა იყოს მინიმუმ 8 სიმბოლო, ერთი დიდი ასოთი, ერთი პატარა
-                      ასოთი და ერთი რიცხვით.
+                      გამოიყენეთ მინიმუმ 12 სიმბოლო (მაქსიმუმ 128).
                     </p>
                   </div>
 
@@ -519,6 +514,8 @@ export default function AuthForm() {
                       <input
                         type={showResetPassword ? "text" : "password"}
                         placeholder="პაროლი"
+                        minLength={12}
+                        maxLength={128}
                         value={newPassword}
                         onChange={(e) => setNewPassword(e.target.value)}
                         required
@@ -543,6 +540,8 @@ export default function AuthForm() {
                       <input
                         type={showResetRepeat ? "text" : "password"}
                         placeholder="გაიმეორე პაროლი"
+                        minLength={12}
+                        maxLength={128}
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
                         required
@@ -581,6 +580,9 @@ export default function AuthForm() {
                       disabled={isSubmitting}
                     >
                       პაროლის შეცვლა
+                    </button>
+                    <button type="button" className={styles.back} onClick={() => { setResetStep(2); setCode(""); setFeedback(null); }}>
+                      ახალი კოდის გაგზავნა
                     </button>
                   </form>
 
@@ -670,6 +672,7 @@ export default function AuthForm() {
                     type="email"
                     placeholder={en ? "Email" : "ელ. ფოსტა"}
                     name="email"
+                        defaultValue={verificationEmail}
                     autoComplete="username"
                     required
                   />
@@ -836,6 +839,7 @@ export default function AuthForm() {
                       <input
                         type="email"
                         name="email"
+                        defaultValue={verificationEmail}
                         placeholder="ელ. ფოსტა"
                         autoComplete="email"
                         required
@@ -850,6 +854,7 @@ export default function AuthForm() {
                         required
                       />
 
+                      <p className={styles.desc}>{en ? "At least 12 characters (maximum 128)." : "მინიმუმ 12 სიმბოლო (მაქსიმუმ 128)."}</p>
                       <div className={styles.password}>
                         <div className={styles.passwordField}>
                           <input
@@ -857,6 +862,9 @@ export default function AuthForm() {
                             placeholder="პაროლი"
                             name="password"
                             autoComplete="new-password"
+                            minLength={12}
+                            maxLength={128}
+                            title="მინიმუმ 12 სიმბოლო (მაქსიმუმ 128)"
                             required
                           />
                           <button
@@ -882,6 +890,9 @@ export default function AuthForm() {
                             placeholder="გაიმეორე პაროლი"
                             name="confirmPassword"
                             autoComplete="new-password"
+                            minLength={12}
+                            maxLength={128}
+                            title="მინიმუმ 12 სიმბოლო (მაქსიმუმ 128)"
                             required
                           />
                           <button
@@ -928,6 +939,7 @@ export default function AuthForm() {
                         <input
                           type="email"
                           name="email"
+                        defaultValue={verificationEmail}
                           placeholder="ელ. ფოსტა"
                           autoComplete="email"
                           required
@@ -943,6 +955,7 @@ export default function AuthForm() {
                         />
                       </div>
 
+                      <p className={styles.desc}>{en ? "At least 12 characters (maximum 128)." : "მინიმუმ 12 სიმბოლო (მაქსიმუმ 128)."}</p>
                       <div className={styles.password}>
                         <div className={styles.passwordField}>
                           <input
@@ -950,6 +963,9 @@ export default function AuthForm() {
                             placeholder="პაროლი"
                             name="password"
                             autoComplete="new-password"
+                            minLength={12}
+                            maxLength={128}
+                            title="მინიმუმ 12 სიმბოლო (მაქსიმუმ 128)"
                             required
                           />
                           <button
@@ -975,6 +991,9 @@ export default function AuthForm() {
                             placeholder="გაიმეორე პაროლი"
                             name="confirmPassword"
                             autoComplete="new-password"
+                            minLength={12}
+                            maxLength={128}
+                            title="მინიმუმ 12 სიმბოლო (მაქსიმუმ 128)"
                             required
                           />
                           <button

@@ -11,7 +11,7 @@ import StepPagination from "./components/StepPagination";
 import type { FormValues } from "./Step1Contact";
 import { useCommerce } from "@/contexts/CommerceContext";
 import { useToast } from "@/contexts/ToastContext";
-import { getCurrentUser } from "@/lib/api/auth";
+import { retryOrderPayment } from "@/lib/api/orders";
 import { ApiError } from "@/lib/api/client";
 import { useStorefrontLocale } from "@/lib/i18n/useStorefrontLocale";
 import { useCartQuote } from "@/contexts/CartQuoteContext";
@@ -21,7 +21,6 @@ import {
 } from "@/lib/commerce/stockShortfall";
 import {
   submitCheckout,
-  initiateFlittPayment,
   type CheckoutPayload,
   type CheckoutResponse,
   type PaymentMethod,
@@ -272,24 +271,12 @@ export default function CheckoutWizard({ onStepChange, onDeliverySummaryChange }
         return;
       }
 
-      // Fallback: Flitt-ით დამუშავებული ბარათის გადახდისას, თუ ბექმა redirect
-      // URL არ დააბრუნა, front თვითონ იძახებს initiate-ს და გადაამისამართებს.
-      if (payload.paymentMethod === "card" && payload.selectedBank === "tbc") {
-        try {
-          // Flitt ამოწმებს, რომ email ემთხვევოდეს შეკვეთის email-ს. ავტორიზებულ
-          // შეკვეთას ბექი account email-ით ქმნის, ამიტომ პრიორიტეტი account email-ს.
-          const currentUser = await getCurrentUser().catch(() => null);
-          const orderEmail = currentUser?.email || payload.email;
-          const flitt = await initiateFlittPayment(result.orderId, {
-            currency: result.currency ?? "GEL",
-            email: orderEmail,
-          });
-          if (flitt.redirectUrl) {
-            window.location.href = flitt.redirectUrl;
-            return;
-          }
-        } catch {
-          // A missing redirect is handled below as a payment-start failure.
+      // Payment initiation belongs to the public owner/guest retry endpoint.
+      if (payload.paymentMethod !== "bankTransfer" && result.orderNumber) {
+        const retry = await retryOrderPayment(result.orderNumber, payload.email);
+        if (retry.paymentRedirectUrl) {
+          window.location.href = retry.paymentRedirectUrl;
+          return;
         }
       }
 

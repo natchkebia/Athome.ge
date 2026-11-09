@@ -72,6 +72,15 @@ export type ForgotPasswordResponse = {
   smtpError?: string;
 };
 
+export function validateNewPassword(password: string, email?: string, phone?: string) {
+  const normalized = password.toLocaleLowerCase();
+  if (password.length < 12 || password.length > 128 ||
+      (email && normalized === email.toLocaleLowerCase()) ||
+      (phone && normalized === phone.toLocaleLowerCase())) {
+    throw new ApiError(409, { code: "WEAK_PASSWORD" });
+  }
+}
+
 function jsonBody(payload: unknown) {
   return JSON.stringify(payload);
 }
@@ -117,7 +126,8 @@ async function authorizedRequest<T>(
 
     try {
       await refreshToken(tokens.refreshToken);
-    } catch {
+    } catch (refreshError) {
+      if (refreshError instanceof ApiError && refreshError.status === 429) throw refreshError;
       clearAuthTokens();
       throw error;
     }
@@ -166,6 +176,7 @@ export async function socialLogin(payload: SocialAuthPayload) {
 }
 
 export function registerIndividual(payload: IndividualRegisterPayload) {
+  validateNewPassword(payload.password, payload.email, payload.phone);
   return apiRequest<RegisterResponse>("/api/auth/register/individual", {
     method: "POST",
     body: jsonBody(payload),
@@ -174,6 +185,7 @@ export function registerIndividual(payload: IndividualRegisterPayload) {
 }
 
 export function registerLegal(payload: LegalRegisterPayload) {
+  validateNewPassword(payload.password, payload.email, payload.phone);
   return apiRequest<RegisterResponse>("/api/auth/register/legal", {
     method: "POST",
     body: jsonBody(payload),
@@ -237,6 +249,7 @@ export async function changePassword(payload: {
   currentPassword: string;
   newPassword: string;
 }) {
+  validateNewPassword(payload.newPassword);
   return authorizedRequest<void>("/api/auth/change-password", {
     method: "POST",
     body: jsonBody(payload),
@@ -259,6 +272,7 @@ export async function resetPassword(payload: {
   token: string;
   newPassword: string;
 }) {
+  validateNewPassword(payload.newPassword, payload.email);
   return apiRequest<void>("/api/auth/reset-password", {
     method: "POST",
     body: jsonBody(payload),
@@ -271,6 +285,7 @@ export async function resetPasswordSms(payload: {
   otpCode: string;
   newPassword: string;
 }) {
+  validateNewPassword(payload.newPassword, undefined, payload.phone);
   return apiRequest<void>("/api/auth/reset-password/sms", {
     method: "POST",
     body: jsonBody(payload),
@@ -283,6 +298,7 @@ export async function resetPasswordEmailOtp(payload: {
   otpCode: string;
   newPassword: string;
 }) {
+  validateNewPassword(payload.newPassword, payload.email);
   return apiRequest<void>("/api/auth/reset-password/email-otp", {
     method: "POST",
     body: jsonBody(payload),

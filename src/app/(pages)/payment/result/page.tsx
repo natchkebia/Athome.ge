@@ -65,6 +65,7 @@ function PaymentStatusContent() {
   const [status, setStatus] = useState<OrderPaymentStatus | null>(null);
   const [summary, setSummary] = useState<CheckoutSummary | null>(null);
   const [retrying, setRetrying] = useState(false);
+  const [statusError, setStatusError] = useState<string | null>(null);
   const [retryError, setRetryError] = useState<string | null>(null);
   const stopped = useRef(false);
   const cartCleared = useRef(false);
@@ -100,7 +101,8 @@ function PaymentStatusContent() {
           return;
         }
         setView("ready");
-      } catch {
+      } catch (error) {
+        setStatusError(error instanceof Error ? error.message : null);
         if (stopped.current) return;
         setView("error");
         return;
@@ -147,7 +149,7 @@ function PaymentStatusContent() {
 
   if (view === "loading") return <StatusCard icon="spinner" title="ვადასტურებთ გადახდას…" text="გთხოვთ, დაელოდოთ. ეს რამდენიმე წამს გასტანს." />;
   if (view === "missing") return <StatusCard icon="warning" title="შეკვეთის ნომერი ვერ მოიძებნა" text="გთხოვთ, შეკვეთის სტატუსი შეამოწმოთ პროფილიდან ან დაგვიკავშირდეთ." />;
-  if (view === "error") return <StatusCard icon="warning" title="სტატუსი ვერ ჩაიტვირთა" text="გთხოვთ, გადაამოწმოთ შეკვეთის ნომერი და ელფოსტა ან სცადოთ მოგვიანებით." />;
+  if (view === "error") return <StatusCard icon="warning" title="სტატუსი ვერ ჩაიტვირთა" text={statusError ?? "გთხოვთ, გადაამოწმოთ შეკვეთის ნომერი და ელფოსტა ან გაიმეოროთ მოგვიანებით."} />;
   if (view === "pendingTimeout") return <StatusCard icon="pending" title="გადახდის დადასტურება მიმდინარეობს" text="შეკვეთის სტატუსს მოგწერთ ელფოსტაზე. გადახდა შესაძლოა უკვე წარმატებით იყოს შესრულებული." />;
   if (!status) return null;
 

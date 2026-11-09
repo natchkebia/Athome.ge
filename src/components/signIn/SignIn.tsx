@@ -10,6 +10,7 @@ import {
   socialLogin,
   type AuthUser,
 } from "@/lib/api/auth";
+import { ApiError } from "@/lib/api/client";
 import { getStoredAuthTokens } from "@/lib/auth/tokens";
 import {
   getStoredProfileGender,
@@ -216,6 +217,12 @@ export default function SignIn() {
       setIsAuthorized(true);
       setIsOpen(false);
     } catch (loginError) {
+      if (loginError instanceof ApiError && loginError.code === "EMAIL_NOT_VERIFIED") {
+        sessionStorage.setItem("athome-verification-email", String(formData.get("email") ?? "").trim());
+        setIsOpen(false);
+        router.push("/authorization?tab=verify");
+        return;
+      }
       setError(
         loginError instanceof Error
           ? loginError.message

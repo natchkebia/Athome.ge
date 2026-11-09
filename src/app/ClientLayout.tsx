@@ -1,5 +1,7 @@
 "use client";
 
+import { ApiError } from "@/lib/api/client";
+
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import { usePathname } from "next/navigation";
@@ -142,11 +144,12 @@ export default function ClientLayout({
 
   useEffect(() => {
     let isRefreshing = false;
+    let refreshRateLimited = false;
 
     const keepSessionFresh = async () => {
       const tokens = getStoredAuthTokens();
 
-      if (!tokens || isRefreshing || !shouldRefreshAccessToken(120_000)) {
+      if (!tokens || isRefreshing || refreshRateLimited || !shouldRefreshAccessToken(120_000)) {
         return;
       }
 
@@ -154,7 +157,8 @@ export default function ClientLayout({
 
       try {
         await refreshToken(tokens.refreshToken);
-      } catch {
+      } catch (error) {
+        if (error instanceof ApiError && error.status === 429) refreshRateLimited = true;
         // Auth-guarded requests still handle a failed refresh explicitly.
       } finally {
         isRefreshing = false;

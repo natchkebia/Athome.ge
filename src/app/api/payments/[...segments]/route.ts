@@ -56,6 +56,7 @@ async function proxyPaymentRequest(
     headers: {
       "Content-Type":
         response.headers.get("content-type") ?? "application/json",
+      ...(response.headers.has("retry-after") ? { "Retry-After": response.headers.get("retry-after")! } : {}),
     },
   });
 }

@@ -1,0 +1,13 @@
+.panel {
+  width: 100%;
+  max-width: 440px;
+  margin: 24px auto;
+  h3 { font-size: 24px; margin-bottom: 16px; }
+  p { line-height: 1.6; margin-bottom: 16px; overflow-wrap: anywhere; }
+  form, label { display: flex; flex-direction: column; gap: 12px; }
+  label { gap: 8px; }
+  input { width: 100%; min-width: 0; padding: 14px; border: 1px solid #ccc; border-radius: 8px; font: inherit; }
+  button { padding: 14px; border: 1px solid #d9d9d9; border-radius: 8px; background: white; cursor: pointer; font: inherit; }
+  button:first-of-type { background: #f90446; color: white; border-color: #f90446; }
+  button:disabled { opacity: .55; cursor: default; }
+}

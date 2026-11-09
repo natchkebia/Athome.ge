@@ -46,6 +46,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
     headers: {
       "Content-Type":
         response.headers.get("content-type") ?? "application/json",
+      ...(response.headers.has("retry-after") ? { "Retry-After": response.headers.get("retry-after")! } : {}),
     },
   });
 }

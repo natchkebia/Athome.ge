@@ -25,7 +25,8 @@ async function proxy(request: NextRequest, context: RouteContext) {
   });
   return new Response(await response.arrayBuffer(), {
     status: response.status,
-    headers: { "Content-Type": response.headers.get("content-type") ?? "application/json" },
+    headers: { "Content-Type": response.headers.get("content-type") ?? "application/json",
+      ...(response.headers.has("retry-after") ? { "Retry-After": response.headers.get("retry-after")! } : {}), },
   });
 }
 
