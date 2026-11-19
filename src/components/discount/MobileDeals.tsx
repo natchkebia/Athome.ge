@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import type { StorefrontProduct } from "@/lib/api/storefront";
 import { mapStorefrontProductToCard } from "@/lib/storefront/products";
+import { selectMobileDeals } from "@/lib/storefront/dailyDeals";
 import { useStorefrontLocale } from "@/lib/i18n/useStorefrontLocale";
 import styles from "./MobileDeals.module.scss";
 
@@ -20,20 +21,10 @@ export default function MobileDeals({ products, dailyOffers = [] }: {
     return () => window.clearInterval(timer);
   }, []);
 
-  const candidates = [...dailyOffers.filter((product) => product.isDealOfDay), ...products];
-  const offers = candidates.filter((product, index) => {
-    const expires = Date.parse(product.activePromotion?.endsAt ?? "");
-    return candidates.findIndex((candidate) => candidate.id === product.id) === index &&
-      product.isAvailable && (product.compareAtPrice ?? 0) > product.effectivePrice &&
-      (!Number.isFinite(expires) || now === null || expires > now);
-  });
-  const featured = offers.find((product) => product.isDealOfDay) ?? offers[0];
-  if (!featured) return null;
+  const { featured, remaining, discounts } = selectMobileDeals(products, dailyOffers, now);
+  if (!featured && discounts.length === 0) return null;
 
-  const card = mapStorefrontProductToCard(featured);
-  const endTime = featured.isDealOfDay ? Date.parse(featured.activePromotion?.endsAt ?? "") : NaN;
-  const remaining = now !== null && Number.isFinite(endTime)
-    ? Math.max(0, Math.floor((endTime - now) / 1000)) : null;
+  const card = featured ? mapStorefrontProductToCard(featured) : null;
   const time = remaining === null ? ["--", "--", "--"] : [
     Math.floor(remaining / 3600), Math.floor(remaining / 60) % 60, remaining % 60,
   ].map((value) => String(value).padStart(2, "0"));
@@ -52,22 +43,23 @@ export default function MobileDeals({ products, dailyOffers = [] }: {
           </svg>
         </span>
         <h2>{en ? "Discounts" : "ფასდაკლებები"}</h2>
-        <div className={styles.timer} role="timer" aria-label={remaining === null
+        {featured && <div className={styles.timer} role="timer" aria-label={remaining === null
           ? (en ? "Offer end time is not available" : "შეთავაზების დასრულების დრო ჯერ არ არის მითითებული")
           : (en ? `${time[0]} hours, ${time[1]} minutes, ${time[2]} seconds left`
             : `დარჩენილია ${time[0]} საათი, ${time[1]} წუთი, ${time[2]} წამი`)}>
           {time.map((value, index) => <span key={index} aria-hidden="true">{value}</span>)}
-        </div>
+        </div>}
       </header>
 
-      <Link href={href(featured)} className={styles.featured}>
+      {featured && card && <Link href={href(featured)} className={styles.featured}>
         <div className={styles.featuredImage}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={card.image} alt="" loading="lazy" />
         </div>
         <div className={styles.featuredInfo}>
           <span className={styles.badge}>
-            {featured.isDealOfDay ? (en ? "Deal of the day" : "დღის შეთავაზება") : (en ? "Special offer" : "შეთავაზება")} · -{card.discount}%
+            {featured.isDealOfDay ? (en ? "Deal of the day" : "დღის შეთავაზება") : (en ? "Special offer" : "შეთავაზება")}
+            {(card.discount ?? 0) > 0 && <> · -{card.discount}%</>}
           </span>
           <h3>{featured.shortTitle || featured.name}</h3>
           <div className={styles.prices}>
@@ -75,10 +67,10 @@ export default function MobileDeals({ products, dailyOffers = [] }: {
             {card.oldPrice && <del>{price(card.oldPrice)}</del>}
           </div>
         </div>
-      </Link>
+      </Link>}
 
-      {offers.length > 1 && <div className={styles.track} aria-label={en ? "More discounts" : "სხვა ფასდაკლებები"}>
-        {offers.filter((product) => product.id !== featured.id).map((product) => {
+      {discounts.length > 0 && <div className={styles.track} aria-label={en ? "More discounts" : "სხვა ფასდაკლებები"}>
+        {discounts.map((product) => {
           const item = mapStorefrontProductToCard(product);
           return <Link key={product.id} href={href(product)} className={styles.product}>
             <div className={styles.productImage}>

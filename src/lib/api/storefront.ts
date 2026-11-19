@@ -129,6 +129,7 @@ export type StorefrontProduct = {
   isNewArrival: boolean;
   isTopSeller: boolean;
   isDealOfDay: boolean;
+  dealOfDayEndsAt?: string | null;
   ratingAverage: number;
   ratingCount: number;
 };
