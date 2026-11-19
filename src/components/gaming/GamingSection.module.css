@@ -5,6 +5,11 @@
   padding: 0 var(--site-gutter);
 }
 
+.mobileOnly,
+.heading {
+  display: none;
+}
+
 .gamingGrid {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
@@ -124,5 +129,65 @@
     bottom: 16px;
     font-size: 14px;
     line-height: 1.35;
+  }
+}
+
+@media (max-width: 560px) {
+  .mobileOnly {
+    display: block;
+  }
+
+  .desktopOnly {
+    display: none;
+  }
+
+  .gamingSection {
+    margin-top: 0;
+    box-sizing: border-box;
+  }
+
+  .heading {
+    display: block;
+    margin: 0 0 16px;
+    color: #17212d;
+    font-size: clamp(24px, 5.5vw, 28px);
+    line-height: 1.25;
+    font-weight: 800;
+  }
+
+  .gamingGrid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    overflow: visible;
+  }
+
+  .large,
+  .small,
+  .wide {
+    width: auto;
+    height: auto;
+    min-width: 0;
+    min-height: 0;
+    aspect-ratio: 1.16;
+    border-radius: 20px;
+  }
+
+  .gamingGrid > .gamingCard:first-child {
+    grid-column: 1 / -1;
+    aspect-ratio: 2;
+  }
+
+  .gamingCard span {
+    left: 14px;
+    right: 12px;
+    bottom: 12px;
+    font-size: clamp(14px, 3.7vw, 19px);
+    line-height: 1.2;
+    font-weight: 800;
+  }
+
+  .gamingGrid > .gamingCard:last-child span {
+    max-width: 70%;
   }
 }

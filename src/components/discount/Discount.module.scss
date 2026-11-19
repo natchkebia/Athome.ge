@@ -92,3 +92,13 @@
   color: #7a858c;
   font-size: 15px;
 }
+
+.desktopDeals {
+  display: contents;
+}
+
+@media (max-width: 560px) {
+  .desktopDeals {
+    display: none;
+  }
+}

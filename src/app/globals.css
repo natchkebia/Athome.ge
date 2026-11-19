@@ -165,6 +165,15 @@ img {
 }
 
 @media (max-width: 560px) {
+  /* Reserve room after the footer for the 164px purchase bar and 76px nav. */
+  body:has([data-product-detail]) {
+    padding-bottom: calc(240px + env(safe-area-inset-bottom));
+  }
+
+  html:has([data-product-detail]) {
+    scroll-padding-bottom: calc(256px + env(safe-area-inset-bottom));
+  }
+
   .fixed-header {
     position: relative;
     box-shadow: none;

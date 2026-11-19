@@ -79,3 +79,7 @@
     margin-top: 20px;
   }
 }
+@media (max-width: 560px) {
+  .text { margin-bottom: 24px; }
+  .button { margin-top: 24px; margin-bottom: 24px; }
+}

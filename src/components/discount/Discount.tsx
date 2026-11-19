@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import styles from "./Discount.module.scss";
 import DiscountSlider from "./DiscountSlider";
+import MobileDeals from "./MobileDeals";
 import { getDealStorefrontProducts } from "@/lib/api/storefront";
 import {
   mapStorefrontProductToCard,
@@ -24,9 +25,10 @@ const FILTER_SLUGS: Record<string, string> = {
 
 type DiscountProps = {
   initialProducts?: StorefrontProduct[];
+  initialDailyOffers?: StorefrontProduct[];
 };
 
-export default function Discount({ initialProducts }: DiscountProps) {
+export default function Discount({ initialProducts, initialDailyOffers }: DiscountProps) {
   const locale = useStorefrontLocale();
   const filters = Object.keys(FILTER_SLUGS);
   const filterLabels: Record<string, string> = {
@@ -38,6 +40,7 @@ export default function Discount({ initialProducts }: DiscountProps) {
   };
 
   const initialMapped = (initialProducts ?? []).map(mapStorefrontProductToCard);
+  const [sourceProducts, setSourceProducts] = useState(initialProducts ?? []);
   const [activeFilter, setActiveFilter] = useState(filters[0]);
   const [products, setProducts] =
     useState<StorefrontProductCard[]>(initialMapped);
@@ -54,8 +57,10 @@ export default function Discount({ initialProducts }: DiscountProps) {
 
     getDealStorefrontProducts(48)
       .then((response) => {
-        if (isMounted)
+        if (isMounted) {
+          setSourceProducts(response.items);
           setProducts(response.items.map(mapStorefrontProductToCard));
+        }
       })
       .catch(() => {
         if (isMounted) setProducts([]);
@@ -96,10 +101,12 @@ export default function Discount({ initialProducts }: DiscountProps) {
   };
 
   if (loading) return null;
-  if (products.length === 0 || availableFilters.length === 0) return null;
+  if (products.length === 0 && !initialDailyOffers?.some((product) => product.isDealOfDay)) return null;
 
   return (
     <>
+      <MobileDeals products={sourceProducts} dailyOffers={initialDailyOffers} />
+      {availableFilters.length > 0 && <div className={styles.desktopDeals}>
       {/* ზედა ფილტრები — ვიზუალი რჩება */}
       <div className={styles.filtersWrapper}>
         <div className={styles.left}>
@@ -123,6 +130,7 @@ export default function Discount({ initialProducts }: DiscountProps) {
 
       {/* სლაიდერი — არჩეული კატეგორიის ფასდაკლებები */}
       {filteredProducts.length > 0 && <DiscountSlider products={filteredProducts} />}
+      </div>}
     </>
   );
 }

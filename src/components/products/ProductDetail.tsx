@@ -444,7 +444,7 @@ export default function ProductDetail({
   };
 
   return (
-    <div className={styles.mainContainer}>
+    <div className={styles.mainContainer} data-product-detail="true">
       <div
         className={`${styles.container} ${
           !isAthomePrebuilt ? styles.standardProductContainer : ""

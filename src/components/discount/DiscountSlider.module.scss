@@ -197,3 +197,20 @@
     width: 260px;
   }
 }
+
+@media (max-width: 560px) {
+  .sliderWrapper .swiper {
+    :global(.swiper-slide) {
+      width: calc((100% - 12px) / 2);
+      height: auto;
+    }
+  }
+
+  .swiperViewport {
+    clip-path: inset(-20px 0 0 0);
+  }
+
+  .cardLink {
+    height: 100%;
+  }
+}

@@ -1,0 +1,7 @@
+.desktop { display: contents; }
+.mobile { display: none; }
+
+@media (max-width: 560px) {
+  .desktop { display: none; }
+  .mobile { display: contents; }
+}

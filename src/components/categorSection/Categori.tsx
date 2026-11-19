@@ -21,6 +21,17 @@ const bgColors = [
   "#F7F7FC",
 ];
 
+const mobileTitles: Record<string, string> = {
+  computers: "კომპიუტერები",
+  "computer-parts": "ნაწილები",
+  monitor: "მონიტორები",
+  peripherials: "პერიფერია",
+  "noutbukebi-da-aksesuarebi": "ნოუთბუქები",
+  tv: "ტელევიზორი",
+  "gaming-accessories": "გეიმინგი",
+  "networking-devices": "ქსელური",
+};
+
 type CategoriesProps = {
   initialCategories?: StorefrontCategory[];
 };
@@ -91,9 +102,11 @@ export default function Categories({ initialCategories }: CategoriesProps) {
             <CategoryCard
               key={cat.slug}
               title={cat.title}
+              mobileTitle={locale === "en" ? undefined : mobileTitles[cat.slug]}
               image={cat.image}
               bgColor={cat.bgColor}
               slug={cat.slug}
+              mobileCompact
             />
           ))}
         </div>

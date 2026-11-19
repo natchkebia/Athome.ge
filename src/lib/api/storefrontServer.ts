@@ -138,6 +138,20 @@ export async function getStorefrontCategoryProductsServer(
   return data ?? [];
 }
 
+export async function getStorefrontTopCategoryProductsServer(
+  categorySlug: string,
+  limit = 8,
+  locale: StorefrontLocale = "ka"
+): Promise<StorefrontProduct[]> {
+  const data = await serverFetch<StorefrontPagedResult<StorefrontProduct>>(
+    "/api/storefront/products",
+    { CategorySlug: categorySlug, Page: 1, PageSize: limit, InStockOnly: true },
+    locale,
+    60
+  );
+  return data?.items ?? [];
+}
+
 export async function getStorefrontTablesAndChairsServer(
   limit = 12,
   locale: StorefrontLocale = "ka"

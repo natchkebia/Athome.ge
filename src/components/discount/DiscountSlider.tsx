@@ -128,21 +128,27 @@ export default function DiscountSlider({
           spaceBetween={24}
           breakpoints={{
             0: {
+              slidesPerView: 2,
               spaceBetween: 12,
             },
-            541: {
+            561: {
+              slidesPerView: "auto",
               spaceBetween: 12,
             },
             640: {
+              slidesPerView: "auto",
               spaceBetween: 16,
             },
             769: {
+              slidesPerView: "auto",
               spaceBetween: 16,
             },
             1024: {
+              slidesPerView: "auto",
               spaceBetween: 24,
             },
             1181: {
+              slidesPerView: "auto",
               spaceBetween: 24,
             },
           }}
@@ -159,6 +165,7 @@ export default function DiscountSlider({
                   className={styles.cardLink}
                 >
                   <DiscountCard
+                    mobileSlider
                     id={String(item.id)}
                     discount={item.discount}
                     image={item.image}
@@ -182,6 +189,7 @@ export default function DiscountSlider({
                 </Link>
               ) : (
                 <DiscountCard
+                  mobileSlider
                   id={String(item.id)}
                   discount={item.discount}
                   image={item.image}

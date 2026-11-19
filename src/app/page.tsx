@@ -20,6 +20,7 @@ import {
   getStorefrontHomeServer,
   getStorefrontProductsByCategoryServer,
   getStorefrontTablesAndChairsServer,
+  getStorefrontTopCategoryProductsServer,
 } from "@/lib/api/storefrontServer";
 
 export const revalidate = 60;
@@ -56,17 +57,21 @@ export default async function Home() {
     getStorefrontBrandsServer({ featured: true, pageSize: 24 }, locale),
   ]);
 
+  const mobilePeripheryData = peripheryData.length > 0 ? peripheryData
+    : await getStorefrontTopCategoryProductsServer("peripherials", 8, locale);
+
   return (
     <div className={styles.page}>
       <main className={styles.main}>
         <HeroSlider initialHome={homeData} initialBanners={bannersData} />
         <Categories initialCategories={categoriesData} />
-        <Discount initialProducts={dealsData} />
+        <Discount initialProducts={dealsData} initialDailyOffers={homeData.dealsOfDay} />
         <ComputersSection initialProducts={computersData} />
+        <GamingSection placement="mobile" />
         <MonitorsSection initialProducts={monitorsData} />
-        <PeripherySection initialProducts={peripheryData} />
+        <PeripherySection initialProducts={peripheryData} mobileFallbackProducts={mobilePeripheryData} />
         <TablesAndChairs initialProducts={tablesData} />
-        <GamingSection />
+        <GamingSection placement="desktop" />
         <ConfiguratorBanner />
         <Service />
         <BrandSlider initialBrands={brandsData} />

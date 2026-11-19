@@ -29,6 +29,7 @@ export interface ProductCardProps {
   slug?: string;
   layout?: "grid" | "list";
   fixedSize?: boolean;
+  mobileSlider?: boolean;
   /** Swiper-ის შიგნით მშობლიური lazy ხშირად არ ირთვება (transform) — იქ eager. */
   eager?: boolean;
   /** Slider can hold the image out of the DOM until its own observer activates it. */
@@ -72,6 +73,7 @@ export default function DiscountCard({
   slug,
   layout = "grid",
   fixedSize = false,
+  mobileSlider = false,
   eager = false,
   renderImage = true,
 }: ProductCardProps) {
@@ -297,7 +299,7 @@ export default function DiscountCard({
   }
 
   return (
-    <div className={`${styles.card} ${fixedSize ? styles.fixedCard : ""} ${!isAvailable ? styles.outOfStockCard : ""}`}>
+    <div className={`${styles.card} ${fixedSize ? styles.fixedCard : ""} ${mobileSlider ? styles.mobileSlider : ""} ${!isAvailable ? styles.outOfStockCard : ""}`}>
       <div className={styles.cardWrapper}>
         {(promotionLabel || discountText || isNew) && (
           <div className={styles.badges}>

@@ -23,6 +23,7 @@ export type StorefrontPromotionBanner = {
 export type StorefrontHome = {
   heroBanners?: StorefrontBanner[];
   promotionBanners?: StorefrontPromotionBanner[];
+  dealsOfDay?: StorefrontProduct[];
 };
 
 export type StorefrontBrand = {

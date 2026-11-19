@@ -37,12 +37,14 @@ const gamingItems = [
   },
 ];
 
-export default function GamingSection() {
+export default function GamingSection({ placement }: { placement?: "mobile" | "desktop" }) {
   const locale = useStorefrontLocale();
   const englishTitles = ["Gaming console", "Gaming keyboard", "Gaming monitor", "Gaming laptop", "Gaming chair"];
-  const title = (index: number) => locale === "en" ? englishTitles[index] : gamingItems[index].title;
+  const title = (index: number) => locale === "en" ? englishTitles[index]
+    : placement === "mobile" && index === 0 ? "სათამაშო კონსოლები" : gamingItems[index].title;
   return (
-    <section className={styles.gamingSection}>
+    <section className={`${styles.gamingSection} ${placement === "mobile" ? styles.mobileOnly : placement === "desktop" ? styles.desktopOnly : ""}`}>
+      <h2 className={styles.heading}>{locale === "en" ? "Gaming zone" : "გეიმინგ ზონა"}</h2>
       <div className={styles.gamingGrid}>
         <Link
           href={`/products/${gamingItems[0].slug}`}

@@ -96,3 +96,58 @@
     box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
   }
 }
+
+.mobileTitle {
+  display: none;
+}
+
+@media (max-width: 560px) {
+  .mobileCompact {
+    .regularTitle {
+      display: none;
+    }
+
+    .mobileTitle {
+      display: inline;
+    }
+
+    height: auto;
+    padding: 0;
+    background: transparent !important;
+    border-radius: 0;
+    justify-content: flex-start;
+    gap: 8px;
+
+    &:hover {
+      transform: none;
+      box-shadow: none;
+    }
+
+    .image,
+    .placeholder {
+      flex: none;
+      width: 100%;
+      max-width: 96px;
+      height: auto;
+      aspect-ratio: 1;
+      box-sizing: border-box;
+      padding: 10px;
+      margin: 0;
+      border-radius: 22px;
+      background: var(--category-background);
+    }
+
+    .placeholder {
+      font-size: 28px;
+    }
+
+    .label {
+      width: 100%;
+      margin: 0;
+      font-size: clamp(10px, 2.8vw, 14px);
+      line-height: 1.35;
+      font-weight: 600;
+      overflow-wrap: anywhere;
+    }
+  }
+}
