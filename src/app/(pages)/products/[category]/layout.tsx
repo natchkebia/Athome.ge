@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
 import { entityMeta } from "@/lib/admin/entity-meta";
+import { UPSTREAM_API_URL as API_BASE_URL } from "@/lib/api/upstream";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "");
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://ithome.ge";
 
 type Props = { children: React.ReactNode; params: Promise<{ category: string }> };
@@ -18,7 +18,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     try {
       const url = new URL(`/api/storefront/categories/${encodeURIComponent(category)}`, API_BASE_URL);
       url.searchParams.set("lang", locale);
-      const response = await fetch(url, { headers: { Accept: "application/json", "X-Lang": locale }, cache: "no-store" });
+      const response = await fetch(url, { headers: { Accept: "application/json", "X-Lang": locale }, cache: "no-store", signal: AbortSignal.timeout(5000) });
       if (response.ok) data = await response.json();
     } catch {
       // Keep route metadata usable with the fallback title during API outages.

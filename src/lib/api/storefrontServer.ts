@@ -1,4 +1,5 @@
 import { StorefrontLocale } from "@/lib/i18n/locale";
+import { UPSTREAM_API_URL } from "./upstream";
 import type {
   StorefrontBanner,
   StorefrontBrand,
@@ -9,7 +10,7 @@ import type {
 } from "./storefront";
 
 const API_BASE_URL = (
-  process.env.NEXT_PUBLIC_API_URL || "https://api.ithome.ge"
+  UPSTREAM_API_URL || "https://api.ithome.ge"
 ).replace(/\/$/, "");
 
 async function serverFetch<T>(
@@ -39,6 +40,7 @@ async function serverFetch<T>(
         "X-Lang": locale,
       },
       next: { revalidate },
+      signal: AbortSignal.timeout(5000),
     });
 
     if (!res.ok) {

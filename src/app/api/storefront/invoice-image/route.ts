@@ -1,4 +1,7 @@
 import { NextRequest } from "next/server";
+import { UPSTREAM_API_URL, upstreamHeaders } from "@/lib/api/upstream";
+
+const API_BASE_URL = UPSTREAM_API_URL || "https://api.ithome.ge";
 
 export async function GET(request: NextRequest) {
   const path = request.nextUrl.searchParams.get("path");
@@ -7,11 +10,11 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const source = new URL(path, "https://api.ithome.ge");
-    if (source.origin !== "https://api.ithome.ge" || !source.pathname.startsWith("/uploads/products/images/")) {
+    const source = new URL(path, API_BASE_URL);
+    if (source.origin !== new URL(API_BASE_URL).origin || !source.pathname.startsWith("/uploads/products/images/")) {
       return new Response(null, { status: 400 });
     }
-    const response = await fetch(source, { signal: AbortSignal.timeout(5000) });
+    const response = await fetch(source, { headers: upstreamHeaders(request), signal: AbortSignal.timeout(5000) });
     const contentType = response.headers.get("content-type") ?? "";
     if (!response.ok || !/^image\/(png|jpeg|webp|avif)/i.test(contentType)) {
       return new Response(null, { status: 404 });

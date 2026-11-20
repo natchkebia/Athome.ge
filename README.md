@@ -69,3 +69,9 @@ Release verification still requires server access: read/compare the current live
 5. Remove duplicate security headers in nginx or Cloudflare while retaining the app's CSP/security headers. Ensure the new backend coupon reservation/errors are deployed before checking a real coupon conflict.
 
 Local QA uses a separate synthetic backend and browser origin; no real account, order, payment, production configuration or database data is created/changed by that fixture. It is not part of the production bundle.
+
+## Server API routing and timeout (2026-11-20)
+
+Home/layout SSR, product/category/brand metadata and invoice-image fetches use `UPSTREAM_API_URL`: `INTERNAL_API_URL` takes precedence over the public API. SSR retains its `https://api.ithome.ge` fallback when neither variable is configured. Public media URLs and canonical site URLs retain their public origins. Metadata, SSR and invoice-image requests have a five-second timeout; SSR/metadata keep their existing empty-data/fallback-title behavior on failure. The mini/subcategory filter routes already re-export the shared category handler, which uses the same upstream setting.
+
+Run `npm run test:server-api-routing` for synthetic internal/public routing, deadlines, outage fallbacks, metadata origins, filter aliases and invoice-image allowlist checks. On production, preserve the existing `INTERNAL_API_URL=http://127.0.0.1:5001` runtime setting on both PM2 processes and rebuild/restart through the existing deployment workflow. After deployment, confirm SSR reaches the loopback backend through its logs or a loopback packet capture; localhost tests do not establish server deployment or a sub-0.5-second production response time.

@@ -10,6 +10,7 @@
     "start": "next start",
     "lint": "eslint",
     "test:daily-deals": "node scripts/test-daily-deals.cjs",
+    "test:server-api-routing": "node scripts/test-server-api-routing.cjs",
     "test:security": "node scripts/test-security-hardening.cjs && node scripts/test-email-verification.cjs && node scripts/test-proxy-session.cjs && node scripts/test-session-client.cjs && node scripts/test-checkout-conflicts.cjs && node scripts/test-cart-quote-context.cjs"
   },
   "dependencies": {
