@@ -17,12 +17,6 @@ export default function TestModeBadge() {
             <span className={styles.dot} aria-hidden="true" />
             <strong>{en ? "Test version" : "სატესტო ვერსია"}</strong>
           </span>
-          <span className={styles.divider} aria-hidden="true" />
-          <span className={styles.description}>
-            {en
-              ? "You are viewing a test environment. For shopping, please use our main website."
-              : "თქვენ იმყოფებით სატესტო გარემოში. შესაძენად გამოიყენეთ ჩვენი მთავარი საიტი."}
-          </span>
         </div>
 
         <a className={styles.link} href="https://athome.ge/">

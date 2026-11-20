@@ -81,20 +81,6 @@
   }
 }
 
-.divider {
-  width: 1px;
-  height: 16px;
-  flex: 0 0 1px;
-  background: rgba(255, 255, 255, 0.3);
-}
-
-.description {
-  color: rgba(255, 255, 255, 0.78);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
 .link {
   min-height: 29px;
   flex: 0 0 auto;
@@ -146,11 +132,6 @@
 
   .inner {
     gap: 10px;
-  }
-
-  .divider,
-  .description {
-    display: none;
   }
 
   .link {
